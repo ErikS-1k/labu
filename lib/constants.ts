@@ -1,0 +1,14 @@
+
+export const MODALIDADES = [
+  { value: 'inmediato', label: 'Inmediato' },
+  { value: 'temporal',  label: 'Temporal' },
+  { value: 'permanente', label: 'Permanente' },
+] as const
+
+export const PRICE_TYPES = [
+  { value: 'hora',       label: 'por hora' },
+  { value: 'dia',        label: 'por día' },
+  { value: 'trabajo',    label: 'por trabajo' },
+  { value: 'mes',        label: 'por mes' },
+  { value: 'a_convenir', label: 'a convenir' },
+] as const
