@@ -1,6 +1,16 @@
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let firstName: string | null = null
+  if (user) {
+    const { data } = await supabase.from('users').select('first_name').eq('id', user.id).single()
+    firstName = data?.first_name ?? null
+  }
+
   return (
     <div className="relative flex h-screen flex-col overflow-hidden bg-black text-white">
       {/* Dot grid */}
@@ -21,12 +31,21 @@ export default function Home() {
       {/* Nav */}
       <nav className="relative flex items-center justify-between px-8 py-6">
         <span className="text-lg font-bold tracking-tight">Labu</span>
-        <Link
-          href="/login"
-          className="rounded-lg border border-white/20 px-4 py-1.5 text-sm text-white/80 transition-colors hover:bg-white/5"
-        >
-          Iniciar sesión
-        </Link>
+        {user ? (
+          <Link
+            href="/panel"
+            className="rounded-lg border border-white/20 px-4 py-1.5 text-sm text-white/80 transition-colors hover:bg-white/5"
+          >
+            {firstName ? `Hola, ${firstName}` : 'Panel'}
+          </Link>
+        ) : (
+          <Link
+            href="/login"
+            className="rounded-lg border border-white/20 px-4 py-1.5 text-sm text-white/80 transition-colors hover:bg-white/5"
+          >
+            Iniciar sesión
+          </Link>
+        )}
       </nav>
 
       {/* Hero */}
@@ -46,12 +65,14 @@ export default function Home() {
         </p>
 
         <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
-          <Link
-            href="/registro"
-            className="rounded-xl bg-white px-7 py-3 text-sm font-semibold text-black transition-colors hover:bg-zinc-200"
-          >
-            Crear cuenta gratis
-          </Link>
+          {!user && (
+            <Link
+              href="/registro"
+              className="rounded-xl bg-white px-7 py-3 text-sm font-semibold text-black transition-colors hover:bg-zinc-200"
+            >
+              Crear cuenta gratis
+            </Link>
+          )}
           <Link
             href="/panel"
             className="rounded-xl border border-white/20 px-7 py-3 text-sm font-semibold text-white/80 transition-colors hover:bg-white/5"
