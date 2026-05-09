@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 // El middleware se ejecuta antes de cada request.
 // Su trabajo es refrescar la sesión del usuario si el token expiró,
 // para que los Server Components siempre reciban una sesión válida.
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
