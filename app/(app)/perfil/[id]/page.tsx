@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import VerificacionForm from '@/components/verificacion/VerificacionForm'
 import { logout } from '@/app/actions/auth'
 
 export const metadata: Metadata = { title: 'Perfil — Labu' }
@@ -155,7 +154,14 @@ export default async function PerfilPage({
             >
               Editar perfil
             </Link>
-            {!verificacion && <VerificacionForm userId={id} />}
+            {!verificacion && (
+              <Link
+                href="/verificacion"
+                className="mb-2 inline-block rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-zinc-50"
+              >
+                Solicitar verificación
+              </Link>
+            )}
             {pendVerif && (
               <p className="text-sm text-zinc-400">Verificación pendiente de revisión.</p>
             )}
