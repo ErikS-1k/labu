@@ -24,28 +24,42 @@ Cualquier usuario puede ser oferente, demandante, o ambos al mismo tiempo. No ha
 - En V2: escrow con MercadoPago (el demandante deposita, Labu retiene, libera al completar el trabajo)
 
 ### Problema del contacto
-El perfil público muestra información general. El nombre completo y contacto se desbloquean solo cuando se inicia una contratación formal dentro de la plataforma (modelo Airbnb). Esto se implementa completamente en V2 cuando haya pagos.
+El perfil público muestra información general. El teléfono se desbloquea solo cuando el dueño de un requerimiento acepta una postulación — ambas partes ven el contacto del otro. El email completo y los pagos quedan para V2.
 
 ---
 
 ## Stack técnico
-- **Framework:** Next.js 14 con App Router
+- **Framework:** Next.js 16 con App Router
 - **Lenguaje:** TypeScript (siempre)
 - **Base de datos + Auth + Realtime:** Supabase
 - **Estilos:** Tailwind CSS
-- **Deploy:** Vercel
+- **Deploy:** Vercel (producción)
 - **Pagos (V2):** MercadoPago API
 
 ---
 
 ## Estructura del proyecto
 ```
-/app              → páginas (App Router)
-/components       → componentes reutilizables
-/lib              → utilidades, cliente de supabase, helpers
-/types            → tipos TypeScript
-/public           → assets estáticos
-CLAUDE.md         → este archivo
+/app
+  /page.tsx               → landing page (negra, pública)
+  /(auth)                 → login, registro (sin Header)
+  /(app)                  → todas las páginas con Header
+    /panel                → hub principal post-login (tabs Ofertas/Reqs)
+    /ofertas              → feed de ofertas
+    /requerimientos       → feed de requerimientos
+    /post/[id]            → detalle de post + postulaciones
+    /perfil/[id]          → perfil público/propio
+    /perfil/editar        → editar perfil + secciones LinkedIn
+    /publicar             → crear nuevo post
+    /mensajes             → lista de conversaciones
+    /mensajes/[id]        → chat individual
+    /mensajes/nuevo       → iniciar conversación
+    /verificacion         → página explicativa + formulario DNI
+    /admin/verificaciones → panel admin (solo ADMIN_EMAIL)
+/components               → componentes reutilizables
+/lib                      → clientes Supabase (server, client, service)
+/app/actions              → server actions (auth, perfil, posts, etc.)
+/supabase                 → schema.sql
 ```
 
 ---
@@ -56,13 +70,15 @@ CLAUDE.md         → este archivo
 ```
 id              uuid (primary key, auth.users)
 username        text (único)
-full_name       text
+first_name      text
+last_name       text  (PRIVADO — solo visible en perfil propio y admin)
+headline        text  (titular profesional, ej: "Electricista matriculado")
 avatar_url      text
 bio             text
-location        text (zona general, ej: "Palermo, CABA")
-phone           text (PRIVADO — solo visible post-contratación)
-email           text (PRIVADO — solo visible post-contratación)
-rating_avg      numeric (calculado)
+location        text  (zona general, ej: "Palermo, CABA")
+phone           text  (PRIVADO — se desbloquea al aceptar una postulación)
+email           text  (PRIVADO — nunca visible en MVP)
+rating_avg      numeric (calculado automáticamente por trigger)
 rating_count    integer
 created_at      timestamp
 ```
@@ -71,15 +87,16 @@ created_at      timestamp
 ```
 id              uuid (primary key)
 user_id         uuid (foreign key → users)
-type            enum: 'oferta' | 'requerimiento'
+type            'oferta' | 'requerimiento'
 title           text
 description     text
 category        text (plomería, electricidad, programación, etc.)
-modality        enum: 'inmediato' | 'temporal' | 'permanente'
+modality        text[]  (array: puede ser ['inmediato'], ['temporal','permanente'], etc.)
 price           numeric
-price_type      enum: 'hora' | 'dia' | 'trabajo' | 'mes' | 'a_convenir'
+price_type      'hora' | 'dia' | 'trabajo' | 'mes' | 'a_convenir'
 location        text
 is_active       boolean
+completed_at    timestamp (null = activo, fecha = completado)
 created_at      timestamp
 ```
 
@@ -112,42 +129,72 @@ id              uuid (primary key)
 post_id         uuid (foreign key → posts) — el requerimiento al que se postula
 applicant_id    uuid (foreign key → users) — el oferente que se postula
 message         text — mensaje opcional del oferente
-status          enum: 'pendiente' | 'aceptado' | 'rechazado'
+status          'pendiente' | 'aceptado' | 'rechazado'
 created_at      timestamp
+unique(post_id, applicant_id)
 ```
 
 ### Tabla: verifications
 ```
 id              uuid (primary key)
 user_id         uuid (foreign key → users)
-type            enum: 'dni' | 'matricula' | 'portfolio'
-status          enum: 'pendiente' | 'verificado' | 'rechazado'
+type            'dni' | 'matricula' | 'portfolio'
+status          'pendiente' | 'verificado' | 'rechazado'
+document_url    text (path en Supabase Storage, bucket: verificaciones)
 created_at      timestamp
 ```
 
+### Tabla: profile_sections
+```
+id              uuid (primary key)
+user_id         uuid (foreign key → users)
+type            'experiencia' | 'educacion' | 'certificado' | 'proyecto' | 'curso'
+title           text
+subtitle        text
+description     text
+date_from       text
+date_to         text
+url             text
+order           integer
+created_at      timestamp
+```
+
+### Storage buckets
+- `verificaciones` — privado, documentos de identidad (DNI)
+- `avatars` — público, fotos de perfil
+
 ---
 
-## Funcionalidades del MVP (construir en este orden)
+## Funcionalidades del MVP
 
-### Fase 1 — Base
-- [ ] Autenticación (registro, login, logout) con Supabase Auth
-- [ ] Perfil de usuario (crear, editar, ver perfil propio)
-- [ ] Ver perfil público de otros usuarios (sin datos de contacto)
+### Fase 1 — Base ✅
+- [x] Autenticación (registro con first_name + last_name, login, logout)
+- [x] Perfil de usuario (editar bio, zona, headline, teléfono, foto de perfil)
+- [x] Ver perfil público de otros usuarios (sin datos de contacto)
+- [x] Perfil estilo LinkedIn (secciones: experiencia, educación, certificados, proyectos, cursos)
 
-### Fase 2 — Core
-- [ ] Publicar post (oferta o requerimiento) con todos los campos
-- [ ] Feed de Ofertas con filtros (categoría, modalidad, zona)
-- [ ] Feed de Requerimientos con filtros
-- [ ] Ver detalle de un post
+### Fase 2 — Core ✅
+- [x] Publicar post (oferta o requerimiento) con todos los campos
+- [x] Feed de Ofertas con filtros (búsqueda, categoría, modalidad)
+- [x] Feed de Requerimientos con filtros
+- [x] Ver detalle de un post con tarjeta del autor
+- [x] Panel hub (página principal con tabs Ofertas / Requerimientos)
 
-### Fase 3 — Interacción
-- [ ] Sistema de mensajería interna (Supabase Realtime)
-- [ ] Historial de trabajos (posts completados por usuario)
-- [ ] Sistema de ratings y reviews (post-trabajo)
+### Fase 3 — Interacción ✅
+- [x] Sistema de mensajería interna (Supabase Realtime)
+- [x] Historial de trabajos (posts completados por usuario)
+- [x] Sistema de ratings y reviews (post-trabajo)
+- [x] Sistema de postulaciones (postularse, aceptar/rechazar, desbloqueo de contacto)
 
-### Fase 4 — Confianza
-- [ ] Badge de verificación básica (subir DNI, revisión manual)
-- [ ] Sección "Inmediato" destacada en el feed
+### Fase 4 — Confianza ✅
+- [x] Badge de verificación (subir DNI → revisión manual → badge en perfil)
+- [x] Panel admin para revisar verificaciones (/admin/verificaciones)
+- [x] Sección "Inmediato" destacada en el feed
+
+### Infraestructura ✅
+- [x] Deploy en Vercel (producción)
+- [x] Landing page dark con dot grid
+- [x] Header responsive con menú hamburguesa en mobile
 
 ### NO construir en MVP (V2+)
 - Pagos / escrow con MercadoPago
@@ -156,6 +203,16 @@ created_at      timestamp
 - App móvil nativa
 - Algoritmo de matching
 - Sistema de notificaciones push
+
+---
+
+## Variables de entorno (.env.local)
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=   ← solo para el panel admin (bypasa RLS)
+ADMIN_EMAIL=                 ← email del admin para acceder a /admin
+```
 
 ---
 
@@ -171,12 +228,24 @@ created_at      timestamp
 ### Base de datos
 - No modificar el schema sin avisarme y explicarme el impacto
 - Siempre usar Row Level Security (RLS) en Supabase
-- No exponer datos privados (phone, email) en queries públicas
+- No exponer datos privados (phone, email, last_name) en queries públicas
+- `last_name` solo visible en perfil propio y panel admin
+- `phone` solo visible cuando una postulación está aceptada (ambas partes)
+
+### Visibilidad de datos de usuarios
+| Contexto | Qué mostrar |
+|---|---|
+| Perfil público (ajeno) | first_name, headline, bio, location, rating |
+| Perfil propio | first_name + last_name, todos los campos |
+| Post (tarjeta autor) | first_name, bio, location, rating |
+| Postulación aceptada | + phone del otro |
+| Admin | todo |
 
 ### Estilo
 - Mobile-first (la mayoría de usuarios van a entrar desde el celular)
 - Diseño limpio y simple — no sobre-diseñar
 - Tailwind puro, sin CSS custom salvo que sea estrictamente necesario
+- Paleta zinc (gris), sin colores llamativos
 
 ### Comunicación
 - Si una decisión técnica tiene tradeoffs importantes, explicámelos antes de implementar
@@ -191,12 +260,3 @@ created_at      timestamp
 - Mercado objetivo inicial: CABA, Argentina
 - El cold start es el mayor riesgo: hay que conseguir oferentes manualmente antes de escalar
 - Precios siempre en ARS, con opción futura de USD
-
----
-
-## Estado actual del proyecto
-- [hecho] Proyecto creado
-- [hecho] CLAUDE.md configurado
-- [hecho] Supabase configurado
-- [ ] Vercel configurado
-- [en proceso] Primera página funcional
