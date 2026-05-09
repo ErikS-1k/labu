@@ -1,25 +1,67 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useRef, useState } from 'react'
 import { actualizarPerfil } from '@/app/actions/perfil'
 
 type Props = {
-  first_name: string | null
-  last_name:  string | null
-  username:   string | null
-  headline:   string | null
-  bio:        string | null
-  location:   string | null
-  phone:      string | null
+  first_name:  string | null
+  last_name:   string | null
+  username:    string | null
+  headline:    string | null
+  bio:         string | null
+  location:    string | null
+  phone:       string | null
+  avatar_url:  string | null
 }
 
 const init = { error: null as string | null }
 
-export default function EditarPerfilForm({ first_name, last_name, username, headline, bio, location, phone }: Props) {
+export default function EditarPerfilForm({ first_name, last_name, username, headline, bio, location, phone, avatar_url }: Props) {
   const [state, action, pending] = useActionState(actualizarPerfil, init)
+  const [preview, setPreview] = useState<string | null>(avatar_url)
+  const avatarRef = useRef<HTMLInputElement>(null)
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) setPreview(URL.createObjectURL(file))
+  }
+
+  const inicial = (first_name ?? username ?? 'U')[0].toUpperCase()
 
   return (
     <form action={action} className="flex flex-col gap-4">
+      {/* Foto de perfil */}
+      <div className="flex items-center gap-4">
+        <button
+          type="button"
+          onClick={() => avatarRef.current?.click()}
+          className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-zinc-200 hover:opacity-80 transition-opacity"
+        >
+          {preview
+            ? <img src={preview} alt="Avatar" className="h-full w-full object-cover" />
+            : <span className="flex h-full w-full items-center justify-center text-2xl font-bold text-zinc-600">{inicial}</span>
+          }
+        </button>
+        <div>
+          <button
+            type="button"
+            onClick={() => avatarRef.current?.click()}
+            className="text-sm text-zinc-600 underline hover:text-zinc-900"
+          >
+            Cambiar foto
+          </button>
+          <p className="mt-0.5 text-xs text-zinc-400">JPG o PNG · máx. 5MB</p>
+        </div>
+        <input
+          ref={avatarRef}
+          type="file"
+          name="avatar"
+          accept="image/*"
+          className="hidden"
+          onChange={handleAvatarChange}
+        />
+      </div>
+
       <div className="flex gap-3">
         <div className="flex flex-1 flex-col gap-1">
           <label className="text-sm font-medium text-zinc-700">Nombre</label>

@@ -37,9 +37,25 @@ export async function actualizarPerfil(
     if (existente) return { error: 'Ese username ya está en uso.' }
   }
 
-  const { error } = await supabase.from('users')
-    .update({ first_name, last_name, username, headline, bio, location, phone })
-    .eq('id', user.id)
+  // Avatar upload (opcional)
+  let avatar_url: string | undefined
+  const avatarFile = formData.get('avatar') as File
+  if (avatarFile && avatarFile.size > 0) {
+    if (avatarFile.size > 5 * 1024 * 1024) return { error: 'La foto no puede superar 5MB.' }
+    const ext = avatarFile.name.split('.').pop() ?? 'jpg'
+    const path = `${user.id}/avatar.${ext}`
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(path, avatarFile, { upsert: true })
+    if (uploadError) return { error: 'No se pudo subir la foto. Intentá de nuevo.' }
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
+    avatar_url = urlData.publicUrl
+  }
+
+  const updates: Record<string, unknown> = { first_name, last_name, username, headline, bio, location, phone }
+  if (avatar_url) updates.avatar_url = avatar_url
+
+  const { error } = await supabase.from('users').update(updates).eq('id', user.id)
 
   if (error) return { error: 'No se pudo guardar. Intentá de nuevo.' }
 

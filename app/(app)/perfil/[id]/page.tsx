@@ -41,7 +41,7 @@ export default async function PerfilPage({
     { data: misPostulaciones },
   ] = await Promise.all([
     supabase.from('users')
-      .select('id, username, first_name, last_name, headline, bio, location, rating_avg, rating_count, created_at')
+      .select('id, username, first_name, last_name, headline, bio, location, rating_avg, rating_count, avatar_url, created_at')
       .eq('id', id).single(),
 
     supabase.from('verifications')
@@ -110,8 +110,11 @@ export default async function PerfilPage({
       {/* Tarjeta de perfil */}
       <div className="rounded-xl border border-zinc-200 bg-white p-6">
         <div className="flex items-start gap-4">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-2xl font-bold text-zinc-600">
-            {inicial}
+          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full bg-zinc-200">
+            {perfil.avatar_url
+              ? <img src={perfil.avatar_url} alt={nombre} className="h-full w-full object-cover" />
+              : <span className="flex h-full w-full items-center justify-center text-2xl font-bold text-zinc-600">{inicial}</span>
+            }
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">

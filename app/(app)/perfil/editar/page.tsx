@@ -27,7 +27,7 @@ export default async function EditarPerfilPage() {
   ] = await Promise.all([
     supabase
       .from('users')
-      .select('username, first_name, last_name, headline, bio, location, phone')
+      .select('username, first_name, last_name, headline, bio, location, phone, avatar_url')
       .eq('id', user.id)
       .single(),
 
@@ -59,6 +59,7 @@ export default async function EditarPerfilPage() {
           bio={perfil?.bio ?? null}
           location={perfil?.location ?? null}
           phone={perfil?.phone ?? null}
+          avatar_url={perfil?.avatar_url ?? null}
         />
       </div>
 
