@@ -6,16 +6,20 @@ export default async function Home() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (user) redirect('/ofertas')
+  if (user) redirect('/panel')
 
   return (
-    <div
-      className="relative flex h-screen flex-col overflow-hidden bg-black text-white"
-      style={{
-        backgroundImage: 'radial-gradient(circle, #ffffff0a 1px, transparent 1px)',
+    <div className="relative flex h-screen flex-col overflow-hidden bg-black text-white">
+      {/* Dot grid */}
+      <div className="absolute inset-0" style={{
+        backgroundImage: 'radial-gradient(circle, #ffffff18 1px, transparent 1px)',
         backgroundSize: '28px 28px',
-      }}
-    >
+      }} />
+      {/* Fade hacia los bordes */}
+      <div className="absolute inset-0" style={{
+        background: 'radial-gradient(ellipse at 50% 45%, transparent 25%, #000000 72%)',
+      }} />
+
       {/* Glow central */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
         <div className="h-[500px] w-[500px] rounded-full bg-white/5 blur-3xl" />
@@ -56,10 +60,10 @@ export default async function Home() {
             Crear cuenta gratis
           </Link>
           <Link
-            href="/ofertas"
+            href="/panel"
             className="rounded-xl border border-white/20 px-7 py-3 text-sm font-semibold text-white/80 transition-colors hover:bg-white/5"
           >
-            Ver ofertas
+            Panel
           </Link>
         </div>
       </div>
