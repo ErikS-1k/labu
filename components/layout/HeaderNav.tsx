@@ -31,11 +31,6 @@ export default function HeaderNav({ isLoggedIn, userId, userName }: Props) {
             <Link href={`/perfil/${userId}`} className="text-sm font-medium text-zinc-700 hover:text-zinc-900">
               {userName ?? 'Mi perfil'}
             </Link>
-            <form action={logout}>
-              <button type="submit" className="text-zinc-400 hover:text-zinc-700">
-                Salir
-              </button>
-            </form>
           </>
         ) : (
           <Link

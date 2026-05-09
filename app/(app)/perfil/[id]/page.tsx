@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import VerificacionForm from '@/components/verificacion/VerificacionForm'
+import { logout } from '@/app/actions/auth'
 
 export const metadata: Metadata = { title: 'Perfil — Labu' }
 
@@ -326,6 +327,19 @@ export default async function PerfilPage({
         <p className="mt-8 text-center text-sm text-zinc-400">
           {esPropio ? 'Todavía no tenés trabajos completados ni calificaciones.' : 'Este usuario no tiene historial todavía.'}
         </p>
+      )}
+
+      {esPropio && (
+        <div className="mt-12 border-t border-zinc-100 pt-6">
+          <form action={logout}>
+            <button
+              type="submit"
+              className="w-full rounded-lg border border-red-200 px-4 py-2.5 text-sm text-red-500 transition-colors hover:bg-red-50"
+            >
+              Cerrar sesión
+            </button>
+          </form>
+        </div>
       )}
     </main>
   )
