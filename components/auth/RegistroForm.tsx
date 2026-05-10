@@ -16,7 +16,7 @@ export default function RegistroForm() {
       )}
 
       <div className="flex gap-3">
-        <div className="flex flex-1 flex-col gap-1">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label htmlFor="first_name" className="text-sm font-medium text-zinc-700">
             Nombre
           </label>
@@ -26,10 +26,10 @@ export default function RegistroForm() {
             type="text"
             required
             placeholder="Juan"
-            className="rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
+            className="w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
           />
         </div>
-        <div className="flex flex-1 flex-col gap-1">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label htmlFor="last_name" className="text-sm font-medium text-zinc-700">
             Apellido
           </label>
@@ -39,7 +39,7 @@ export default function RegistroForm() {
             type="text"
             required
             placeholder="Pérez"
-            className="rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
+            className="w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
           />
         </div>
       </div>
