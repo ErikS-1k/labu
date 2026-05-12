@@ -22,7 +22,7 @@ export default function AgregarSeccionForm() {
   }
 
   return (
-    <form ref={formRef} action={action} className="mt-4 flex flex-col gap-3 rounded-lg border border-zinc-200 p-4">
+    <form ref={formRef} action={action} className="mt-4 flex flex-col gap-3 rounded-lg border border-zinc-300 bg-white p-4">
       <p className="text-sm font-medium text-zinc-700">Agregar sección</p>
 
       <div className="flex gap-3">

@@ -73,7 +73,7 @@ export default async function EditarPerfilPage() {
           {secciones && secciones.length > 0 && (
             <div className="mb-4 flex flex-col gap-2">
               {secciones.map(s => (
-                <div key={s.id} className="flex items-start justify-between gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3">
+                <div key={s.id} className="flex items-start justify-between gap-3 rounded-lg border border-zinc-300 bg-white px-4 py-3">
                   <div className="min-w-0">
                     <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
                       {TIPO_LABEL[s.type] ?? s.type}
