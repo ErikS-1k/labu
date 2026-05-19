@@ -26,5 +26,6 @@ body {
 }
 
 input, textarea, select {
-  color: #3f3f46; /* zinc-700 */
+  color: #3f3f46;
+  background-color: #ffffff;
 }
