@@ -60,8 +60,8 @@ export default async function PostPage({
       ? supabase.from('ratings').select('id').eq('post_id', id).eq('from_user_id', user!.id).maybeSingle()
       : Promise.resolve({ data: null }),
 
-    // Mi postulación (si soy no-autor de un requerimiento) — incluye estado de confirmación
-    user && !esAutor && esRequerimiento
+    // Mi postulación o solicitud (si soy no-autor de cualquier post) — incluye estado de confirmación
+    user && !esAutor
       ? supabase.from('applications')
           .select('id, status, message, confirmed_by_client, confirmed_by_worker, completed_at')
           .eq('post_id', id)
@@ -69,8 +69,8 @@ export default async function PostPage({
           .maybeSingle()
       : Promise.resolve({ data: null }),
 
-    // Todas las postulaciones (si soy el autor del requerimiento) — incluye estado de confirmación
-    esAutor && esRequerimiento
+    // Todas las postulaciones/solicitudes (si soy el autor de cualquier post) — incluye estado de confirmación
+    esAutor
       ? supabase.from('applications')
           .select('id, status, message, created_at, applicant_id, confirmed_by_client, confirmed_by_worker, completed_at, users(first_name, last_name, username, email, phone, rating_avg, rating_count)')
           .eq('post_id', id)
@@ -220,18 +220,141 @@ export default async function PostPage({
             </div>
           )}
 
-          {/* Contactar — solo para ofertas */}
-          {post.type === 'oferta' && user && !esAutor && !estaCompletado && (
-            <form action={iniciarConversacion} className="mt-4">
-              <input type="hidden" name="post_id"     value={post.id} />
-              <input type="hidden" name="receiver_id" value={post.user_id} />
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
-              >
-                Contactar
-              </button>
-            </form>
+        </div>
+      )}
+
+      {/* ── OFERTAS: solicitudes de contacto ────────────────────── */}
+
+      {/* Solicitante: contacto desbloqueado si fue aceptado */}
+      {!esRequerimiento && postulacionAceptada && autor && (
+        <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-5">
+          <p className="mb-3 text-sm font-semibold text-green-800">
+            ✓ Tu solicitud fue aceptada
+          </p>
+          <div className="flex flex-col gap-1.5 text-sm text-green-900">
+            {autor.phone && <p>📱 {autor.phone}</p>}
+          </div>
+          <form action={iniciarConversacion} className="mt-4">
+            <input type="hidden" name="post_id"     value={post.id} />
+            <input type="hidden" name="receiver_id" value={post.user_id} />
+            <button
+              type="submit"
+              className="w-full rounded-lg bg-green-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-800"
+            >
+              Iniciar conversación
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Solicitante: estado pendiente o rechazado */}
+      {!esRequerimiento && miPostulacion && !postulacionAceptada && (
+        <div className={`mt-4 rounded-xl border px-4 py-3 text-sm ${
+          miPostulacion.status === 'rechazado'
+            ? 'border-red-200 bg-red-50 text-red-700'
+            : 'border-zinc-200 bg-zinc-50 text-zinc-600'
+        }`}>
+          {miPostulacion.status === 'pendiente' && 'Solicitud enviada · pendiente de revisión.'}
+          {miPostulacion.status === 'rechazado' && 'Tu solicitud fue rechazada.'}
+        </div>
+      )}
+
+      {/* Solicitante: formulario si aún no envió solicitud */}
+      {!esRequerimiento && user && !esAutor && !miPostulacion && !estaCompletado && (
+        <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+          <p className="mb-3 text-sm font-semibold text-zinc-800">Solicitar contacto</p>
+          <PostularseForm
+            postId={post.id}
+            textoBoton="Enviar solicitud"
+            placeholder="Contá brevemente para qué necesitás contratar este servicio (opcional)..."
+            mensajeOk="Solicitud enviada. El oferente la revisará pronto."
+          />
+        </div>
+      )}
+
+      {/* Autor de la oferta: lista de solicitudes entrantes */}
+      {!esRequerimiento && esAutor && (
+        <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+            Solicitudes de contacto ({(postulaciones ?? []).length})
+          </p>
+          {(!postulaciones || postulaciones.length === 0) ? (
+            <p className="text-sm text-zinc-400">Todavía no hay solicitudes.</p>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {(postulaciones as any[]).map(p => {
+                const ap = p.users as {
+                  first_name: string | null; last_name: string | null
+                  username: string | null; email: string | null
+                  phone: string | null; rating_avg: number | null; rating_count: number | null
+                } | null
+                const nombre = [ap?.first_name, ap?.last_name].filter(Boolean).join(' ') || ap?.username || 'Usuario'
+                return (
+                  <div key={p.id} className={`rounded-lg border p-4 ${
+                    p.status === 'aceptado' ? 'border-green-200 bg-green-50' :
+                    p.status === 'rechazado' ? 'border-zinc-100 bg-zinc-50 opacity-60' :
+                    'border-zinc-200'
+                  }`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <Link
+                          href={`/perfil/${p.applicant_id}`}
+                          target="_blank"
+                          className="font-medium text-zinc-900 hover:underline"
+                        >
+                          {nombre}
+                        </Link>
+                        {(ap?.rating_count ?? 0) > 0 && (
+                          <p className="text-xs text-zinc-400">★ {ap?.rating_avg} · {ap?.rating_count} calificaciones</p>
+                        )}
+                        {p.message && (
+                          <p className="mt-2 text-sm text-zinc-600">{p.message}</p>
+                        )}
+                        {p.status === 'aceptado' && (
+                          <div className="mt-2 flex flex-col gap-1 text-sm text-green-800">
+                            {ap?.phone && <p>📱 {ap.phone}</p>}
+                          </div>
+                        )}
+                      </div>
+                      {p.status === 'pendiente' && (
+                        <div className="flex shrink-0 gap-2">
+                          <form action={aceptarPostulacion}>
+                            <input type="hidden" name="application_id" value={p.id} />
+                            <input type="hidden" name="post_id"        value={post.id} />
+                            <button type="submit" className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700">
+                              Aceptar
+                            </button>
+                          </form>
+                          <form action={rechazarPostulacion}>
+                            <input type="hidden" name="application_id" value={p.id} />
+                            <input type="hidden" name="post_id"        value={post.id} />
+                            <button type="submit" className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50">
+                              Rechazar
+                            </button>
+                          </form>
+                        </div>
+                      )}
+                      {p.status !== 'pendiente' && (
+                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+                          p.status === 'aceptado' ? 'bg-green-100 text-green-700' : 'bg-zinc-100 text-zinc-500'
+                        }`}>
+                          {p.status === 'aceptado' ? 'Aceptado' : 'Rechazado'}
+                        </span>
+                      )}
+                    </div>
+                    {p.status === 'aceptado' && (
+                      <form action={iniciarConversacion} className="mt-3">
+                        <input type="hidden" name="post_id"     value={post.id} />
+                        <input type="hidden" name="receiver_id" value={p.applicant_id} />
+                        <button type="submit" className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-xs font-medium text-white hover:bg-zinc-700">
+                          Iniciar conversación
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           )}
         </div>
       )}
