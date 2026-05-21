@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { PRICE_TYPES } from '@/lib/constants'
 import { iniciarConversacion } from '@/app/actions/mensajes'
 import { marcarCompletado } from '@/app/actions/posts'
+import EliminarPostButton from '@/components/posts/EliminarPostButton'
 import { aceptarPostulacion, rechazarPostulacion } from '@/app/actions/applications'
 import RatingForm from '@/components/ratings/RatingForm'
 import PostularseForm from '@/components/applications/PostularseForm'
@@ -163,6 +164,9 @@ export default async function PostPage({
           )}
         </div>
       </div>
+
+      {/* Eliminar publicación — solo el autor */}
+      {esAutor && <EliminarPostButton postId={post.id} type={post.type} />}
 
       {/* Tarjeta del autor */}
       {autor && (

@@ -42,6 +42,19 @@ export async function publicarPost(
   redirect(`/post/${data.id}`)
 }
 
+export async function eliminarPost(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const postId = formData.get('post_id') as string
+  const type   = formData.get('type')    as string
+
+  await supabase.from('posts').delete().eq('id', postId).eq('user_id', user.id)
+
+  redirect(type === 'oferta' ? '/ofertas' : '/requerimientos')
+}
+
 export async function marcarCompletado(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
