@@ -272,10 +272,14 @@ create policy "Solo calificás como vos mismo y a otros"
 
 
 -- -- verifications --
--- Solo ves tus propias verificaciones
-create policy "Solo ves tus propias verificaciones"
+-- El estado "verificado" es público (para mostrar el badge en el perfil).
+-- Las verificaciones pendientes o rechazadas solo las ve el propio usuario.
+create policy "Estado verificado es público"
   on public.verifications for select
-  using (auth.uid() = user_id);
+  using (
+    auth.uid() = user_id
+    or status = 'verificado'
+  );
 
 -- Solo podés crear tus propias verificaciones
 create policy "Solo creás tus propias verificaciones"
@@ -284,11 +288,13 @@ create policy "Solo creás tus propias verificaciones"
 
 
 -- -- applications --
--- El postulante y el dueño del post pueden ver la postulación
+-- Las aplicaciones completadas son públicas (historial visible en perfiles).
+-- Las pendientes/aceptadas/rechazadas solo las ven el postulante y el dueño del post.
 create policy "Postulante y dueño del post ven la postulación"
   on public.applications for select
   using (
-    auth.uid() = applicant_id
+    completed_at is not null
+    or auth.uid() = applicant_id
     or auth.uid() = (select user_id from public.posts where id = post_id)
   );
 
@@ -315,8 +321,9 @@ create policy "Postulante puede retirar su postulación"
 -- GRANTS (necesarios para tablas creadas con SQL puro)
 -- ============================================================
 
-grant select, insert, update, delete on public.applications to authenticated;
-grant select                          on public.applications to anon;
+grant select, insert, update, delete on public.applications  to authenticated;
+grant select                          on public.applications  to anon;
+grant select                          on public.verifications to anon;
 
 
 -- ============================================================
