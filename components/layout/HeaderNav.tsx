@@ -41,7 +41,7 @@ export default function HeaderNav({ isLoggedIn, userId, userName, unreadCount }:
 
   return (
     <>
-      {/* Desktop nav — izquierda */}
+      {/* Desktop nav — derecha */}
       <nav className="hidden items-center gap-4 text-sm md:flex">
         {isLoggedIn ? (
           <>
@@ -96,6 +96,9 @@ export default function HeaderNav({ isLoggedIn, userId, userName, unreadCount }:
       {open && (
         <div className="absolute left-0 right-0 top-full border-b border-zinc-200 bg-white px-4 py-3 shadow-sm md:hidden">
           <nav className="flex flex-col gap-1 text-sm">
+            <Link href="/buscar" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-zinc-700 hover:bg-zinc-50">
+              Buscar
+            </Link>
             <Link href="/panel" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-zinc-700 hover:bg-zinc-50">
               Panel
             </Link>

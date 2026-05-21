@@ -1,0 +1,235 @@
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import PostCard, { PostCardData } from '@/components/posts/PostCard'
+import SearchForm from '@/components/search/SearchForm'
+
+export default async function BuscarPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; tab?: string }>
+}) {
+  const { q: rawQ = '', tab = 'todo' } = await searchParams
+  const q = rawQ.trim().slice(0, 100)
+  // Escapa caracteres especiales de PostgREST para evitar inyección en el filtro ilike
+  const safe = q.replace(/['"\\,]/g, '')
+
+  const supabase = await createClient()
+
+  type PerfilRow = {
+    id: string
+    first_name: string | null
+    username: string | null
+    headline: string | null
+    bio: string | null
+    location: string | null
+    avatar_url: string | null
+    rating_avg: number | null
+    rating_count: number | null
+  }
+
+  const [{ data: perfiles }, { data: ofertas }, { data: requerimientos }] = q
+    ? await Promise.all([
+        supabase
+          .from('users')
+          .select('id, first_name, username, headline, bio, location, avatar_url, rating_avg, rating_count')
+          .or(`first_name.ilike.%${safe}%,username.ilike.%${safe}%,headline.ilike.%${safe}%,location.ilike.%${safe}%,bio.ilike.%${safe}%`)
+          .limit(20),
+
+        supabase
+          .from('posts')
+          .select('id, type, title, description, category, modality, price, price_type, location, created_at, users(username, rating_avg)')
+          .eq('type', 'oferta')
+          .eq('is_active', true)
+          .or(`title.ilike.%${safe}%,description.ilike.%${safe}%,category.ilike.%${safe}%,location.ilike.%${safe}%`)
+          .order('created_at', { ascending: false })
+          .limit(20),
+
+        supabase
+          .from('posts')
+          .select('id, type, title, description, category, modality, price, price_type, location, created_at, users(username, rating_avg)')
+          .eq('type', 'requerimiento')
+          .eq('is_active', true)
+          .or(`title.ilike.%${safe}%,description.ilike.%${safe}%,category.ilike.%${safe}%,location.ilike.%${safe}%`)
+          .order('created_at', { ascending: false })
+          .limit(20),
+      ])
+    : [
+        { data: [] as PerfilRow[] },
+        { data: [] as PostCardData[] },
+        { data: [] as PostCardData[] },
+      ]
+
+  const nPerfiles       = perfiles?.length ?? 0
+  const nOfertas        = ofertas?.length ?? 0
+  const nRequerimientos = requerimientos?.length ?? 0
+  const nTotal          = nPerfiles + nOfertas + nRequerimientos
+
+  const TABS = [
+    { key: 'todo',           label: 'Todo',           count: nTotal },
+    { key: 'perfiles',       label: 'Perfiles',       count: nPerfiles },
+    { key: 'ofertas',        label: 'Ofertas',        count: nOfertas },
+    { key: 'requerimientos', label: 'Requerimientos', count: nRequerimientos },
+  ]
+
+  const mostrarPerfiles       = tab === 'todo' || tab === 'perfiles'
+  const mostrarOfertas        = tab === 'todo' || tab === 'ofertas'
+  const mostrarRequerimientos = tab === 'todo' || tab === 'requerimientos'
+
+  return (
+    <main className="mx-auto max-w-2xl px-4 py-8">
+      <SearchForm initialQ={q} />
+
+      {/* Tabs — solo cuando hay búsqueda activa */}
+      {q && (
+        <div className="mt-4 flex gap-1 overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-50 p-1">
+          {TABS.map(t => (
+            <Link
+              key={t.key}
+              href={`/buscar?q=${encodeURIComponent(q)}&tab=${t.key}`}
+              className={`shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                tab === t.key
+                  ? 'bg-white text-zinc-900 shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-700'
+              }`}
+            >
+              {t.label}
+              <span className={`ml-1 text-xs ${tab === t.key ? 'text-zinc-400' : 'text-zinc-300'}`}>
+                {t.count}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {/* Sin búsqueda — estado vacío con accesos rápidos */}
+      {!q && (
+        <div className="mt-12 text-center">
+          <p className="text-sm text-zinc-400">
+            Buscá personas, servicios o trabajo en Labu.
+          </p>
+          <div className="mt-6 flex justify-center gap-3">
+            <Link
+              href="/ofertas"
+              className="rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-50"
+            >
+              Ver Ofertas
+            </Link>
+            <Link
+              href="/requerimientos"
+              className="rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-50"
+            >
+              Ver Requerimientos
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Sin resultados */}
+      {q && nTotal === 0 && (
+        <p className="mt-12 text-center text-sm text-zinc-400">
+          Sin resultados para &ldquo;{q}&rdquo;. Intentá con otro término.
+        </p>
+      )}
+
+      {/* Resultados */}
+      {q && nTotal > 0 && (
+        <div className="mt-6 flex flex-col gap-8">
+
+          {/* Perfiles */}
+          {mostrarPerfiles && nPerfiles > 0 && (
+            <section>
+              {tab === 'todo' && (
+                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                  Perfiles
+                </h2>
+              )}
+              <div className="flex flex-col gap-2">
+                {(perfiles as PerfilRow[]).map(u => {
+                  const nombre  = u.first_name ?? u.username ?? 'Usuario'
+                  const inicial = nombre[0].toUpperCase()
+                  return (
+                    <Link
+                      key={u.id}
+                      href={`/perfil/${u.id}`}
+                      className="flex items-start gap-4 rounded-xl border border-zinc-200 bg-white p-4 transition-shadow hover:shadow-sm"
+                    >
+                      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-zinc-200">
+                        {u.avatar_url
+                          ? <img src={u.avatar_url} alt={nombre} className="h-full w-full object-cover" />
+                          : <span className="flex h-full w-full items-center justify-center text-lg font-semibold text-zinc-600">{inicial}</span>
+                        }
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-semibold text-zinc-900">{nombre}</p>
+                          {(u.rating_count ?? 0) > 0 && (
+                            <span className="shrink-0 text-xs text-zinc-400">★ {u.rating_avg}</span>
+                          )}
+                        </div>
+                        {u.headline && (
+                          <p className="text-xs font-medium text-zinc-500">{u.headline}</p>
+                        )}
+                        {u.location && (
+                          <p className="mt-0.5 text-xs text-zinc-400">{u.location}</p>
+                        )}
+                        {u.bio && (
+                          <p className="mt-1.5 line-clamp-2 text-sm leading-snug text-zinc-600">
+                            {u.bio}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* Ofertas */}
+          {mostrarOfertas && nOfertas > 0 && (
+            <section>
+              {tab === 'todo' && (
+                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                  Ofertas
+                </h2>
+              )}
+              <div className="flex flex-col gap-2">
+                {(ofertas as PostCardData[]).map(post => (
+                  <PostCard key={post.id} post={post} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Requerimientos */}
+          {mostrarRequerimientos && nRequerimientos > 0 && (
+            <section>
+              {tab === 'todo' && (
+                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                  Requerimientos
+                </h2>
+              )}
+              <div className="flex flex-col gap-2">
+                {(requerimientos as PostCardData[]).map(post => (
+                  <PostCard key={post.id} post={post} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Tab activo sin resultados en esa categoría */}
+          {tab !== 'todo' && (
+            (tab === 'perfiles' && nPerfiles === 0) ||
+            (tab === 'ofertas' && nOfertas === 0) ||
+            (tab === 'requerimientos' && nRequerimientos === 0)
+          ) && (
+            <p className="text-center text-sm text-zinc-400">
+              Sin resultados en esta categoría para &ldquo;{q}&rdquo;.
+            </p>
+          )}
+
+        </div>
+      )}
+    </main>
+  )
+}
