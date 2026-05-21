@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import HeaderNav from './HeaderNav'
-import HeaderSearchBar from '@/components/search/HeaderSearchBar'
 
 export default async function Header() {
   const supabase = await createClient()
@@ -20,14 +19,11 @@ export default async function Header() {
 
   return (
     <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white">
-      <div className="mx-auto flex max-w-4xl items-center gap-4 px-4 py-3">
-        <Link href="/" className="shrink-0 text-lg font-bold tracking-tight text-zinc-900">
+      <div className="relative mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
+        <HeaderNav isLoggedIn={!!user} userId={user?.id ?? null} userName={userName} unreadCount={unreadCount} />
+        <Link href="/" className="text-lg font-bold tracking-tight text-zinc-900">
           Labu
         </Link>
-        <div className="hidden flex-1 md:block">
-          <HeaderSearchBar />
-        </div>
-        <HeaderNav isLoggedIn={!!user} userId={user?.id ?? null} userName={userName} unreadCount={unreadCount} />
       </div>
     </header>
   )

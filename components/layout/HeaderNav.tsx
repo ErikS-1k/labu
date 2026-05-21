@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { logout } from '@/app/actions/auth'
 import { createClient } from '@/lib/supabase/client'
 
@@ -16,7 +16,16 @@ type Props = {
 export default function HeaderNav({ isLoggedIn, userId, userName, unreadCount }: Props) {
   const [open, setOpen] = useState(false)
   const [count, setCount] = useState(unreadCount)
+  const [searchQ, setSearchQ] = useState('')
   const pathname = usePathname()
+  const router = useRouter()
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault()
+    const trimmed = searchQ.trim()
+    router.push(trimmed ? `/buscar?q=${encodeURIComponent(trimmed)}` : '/buscar')
+    setSearchQ('')
+  }
 
   // Resetear cuando el usuario entra a mensajes
   useEffect(() => {
@@ -51,6 +60,15 @@ export default function HeaderNav({ isLoggedIn, userId, userName, unreadCount }:
             <Link href="/publicar" className="rounded-lg bg-zinc-900 px-3 py-1.5 text-white transition-colors hover:bg-zinc-700">
               Publicar
             </Link>
+            <form onSubmit={handleSearch}>
+              <input
+                type="search"
+                value={searchQ}
+                onChange={e => setSearchQ(e.target.value)}
+                placeholder="Buscar..."
+                className="w-36 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm outline-none transition-all focus:w-48 focus:border-zinc-400 focus:bg-white"
+              />
+            </form>
             <Link href="/mensajes" className="relative text-zinc-600 hover:text-zinc-900">
               Mensajes
               {count > 0 && (
