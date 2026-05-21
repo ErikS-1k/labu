@@ -48,16 +48,17 @@ export default async function PerfilPage({
       .eq('user_id', id)
       .maybeSingle(),
 
-    // Trabajos completados: instancias donde el usuario fue el trabajador aceptado
+    // Trabajos completados como trabajador aceptado
     supabase.from('applications')
-      .select('id, completed_at, posts(id, type, title, category, modality)')
+      .select('id, completed_at, post_id, posts(id, type, title, category)')
       .eq('applicant_id', id)
       .not('completed_at', 'is', null)
       .order('completed_at', { ascending: false })
       .limit(20),
 
+    // Calificaciones recibidas con contexto del trabajo y del calificador
     supabase.from('ratings')
-      .select('id, score, comment, created_at, from_user:from_user_id(username, first_name)')
+      .select('id, score, comment, created_at, post_id, from_user:from_user_id(username, first_name), post:post_id(id, title, user_id)')
       .eq('to_user_id', id)
       .order('created_at', { ascending: false })
       .limit(20),
@@ -95,6 +96,22 @@ export default async function PerfilPage({
   const inicial   = nombre[0].toUpperCase()
   const estaVerif = verificacion?.status === 'verificado'
   const pendVerif = verificacion?.status === 'pendiente'
+
+  // Merge historial + ratings por post_id
+  type RatingData = { id: string; score: number; comment: string | null; post_id: string; from_user: { username: string | null; first_name: string | null } | null; post: { id: string; title: string; user_id: string } | null }
+  const ratingsPorPost = new Map<string, RatingData>(
+    ((ratings ?? []) as unknown as RatingData[]).map(r => [r.post_id, r])
+  )
+  type HistorialItem = { id: string; completed_at: string; post_id: string; posts: { id: string; type: string; title: string; category: string | null } | null }
+  const historialConRating = ((historial ?? []) as unknown as HistorialItem[]).map(job => ({
+    ...job,
+    rating: ratingsPorPost.get(job.post_id) ?? null,
+  }))
+  const postIdsEnHistorial = new Set(historialConRating.map(j => j.post_id))
+  // Calificaciones como cliente (no aparecen en el historial de trabajador)
+  const ratingsComoCliente = ((ratings ?? []) as unknown as RatingData[]).filter(
+    r => !postIdsEnHistorial.has(r.post_id) && r.post?.user_id === id
+  )
 
   // Agrupar secciones por tipo
   const seccionesPorTipo = TIPOS_ORDEN.reduce<Record<string, typeof secciones>>((acc, tipo) => {
@@ -246,59 +263,101 @@ export default async function PerfilPage({
         </section>
       )}
 
-      {/* Historial de trabajos completados */}
-      {historial && historial.length > 0 && (
+      {/* Trabajos y calificaciones — sección unificada */}
+      {(historialConRating.length > 0 || ratingsComoCliente.length > 0) && (
         <section className="mt-6">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-400">
-            Historial ({historial.length})
-          </h2>
-          <div className="flex flex-col gap-2">
-            {(historial as any[]).map(item => {
-              const p = item.posts as { id: string; title: string; category: string | null } | null
-              return (
-                <Link
-                  key={item.id}
-                  href={p ? `/post/${p.id}` : '#'}
-                  className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm transition-shadow hover:shadow-sm"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-zinc-900">{p?.title ?? 'Trabajo completado'}</p>
-                    <p className="text-xs text-zinc-400">
-                      {p?.category && `${p.category} · `}
-                      Completado {new Date(item.completed_at as string).toLocaleDateString('es-AR')}
-                    </p>
-                  </div>
-                  <span className="ml-3 shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-                    Completado
-                  </span>
-                </Link>
-              )
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* Calificaciones recibidas */}
-      {ratings && ratings.length > 0 && (
-        <section className="mt-6">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-400">
-            Calificaciones recibidas
+            Trabajos y calificaciones ({historialConRating.length + ratingsComoCliente.length})
           </h2>
           <div className="flex flex-col gap-3">
-            {(ratings as any[]).map(r => {
-              const quien = r.from_user?.first_name ?? r.from_user?.username ?? 'Usuario'
+
+            {/* Trabajos como trabajador (con su calificación inline) */}
+            {historialConRating.map(job => {
+              const p = job.posts
+              const r = job.rating
+              const quien = r?.from_user?.first_name ?? r?.from_user?.username ?? 'Cliente'
               return (
-                <div key={r.id} className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-zinc-800">{quien}</p>
-                    <p className="text-sm text-yellow-400">{'★'.repeat(r.score)}{'☆'.repeat(5 - r.score)}</p>
+                <div key={job.id} className="rounded-xl border border-zinc-200 bg-white p-4">
+                  {/* Cabecera del trabajo */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                          Trabajador
+                        </span>
+                        {p?.category && (
+                          <span className="text-xs text-zinc-400">{p.category}</span>
+                        )}
+                      </div>
+                      {p ? (
+                        <Link href={`/post/${p.id}`} className="font-medium text-zinc-900 hover:underline">
+                          {p.title}
+                        </Link>
+                      ) : (
+                        <p className="font-medium text-zinc-900">Trabajo completado</p>
+                      )}
+                    </div>
+                    <span className="shrink-0 text-xs text-zinc-400">
+                      {new Date(job.completed_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
                   </div>
-                  {r.comment && (
-                    <p className="mt-1 text-sm text-zinc-500">{r.comment}</p>
+
+                  {/* Calificación recibida */}
+                  {r ? (
+                    <div className="mt-3 border-t border-zinc-100 pt-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs text-zinc-500">
+                          Calificado por <span className="font-medium text-zinc-700">{quien}</span> (cliente)
+                        </p>
+                        <span className="text-sm text-yellow-400">{'★'.repeat(r.score)}{'☆'.repeat(5 - r.score)}</span>
+                      </div>
+                      {r.comment && (
+                        <p className="mt-1 text-sm text-zinc-500">"{r.comment}"</p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-xs text-zinc-300">Sin calificación</p>
                   )}
                 </div>
               )
             })}
+
+            {/* Calificaciones recibidas como cliente */}
+            {ratingsComoCliente.map(r => {
+              const quien = r.from_user?.first_name ?? r.from_user?.username ?? 'Trabajador'
+              return (
+                <div key={r.id} className="rounded-xl border border-zinc-200 bg-white p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+                          Cliente
+                        </span>
+                      </div>
+                      {r.post ? (
+                        <Link href={`/post/${r.post.id}`} className="font-medium text-zinc-900 hover:underline">
+                          {r.post.title}
+                        </Link>
+                      ) : (
+                        <p className="font-medium text-zinc-900">Trabajo completado</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-3 border-t border-zinc-100 pt-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs text-zinc-500">
+                        Calificado por <span className="font-medium text-zinc-700">{quien}</span> (trabajador)
+                      </p>
+                      <span className="text-sm text-yellow-400">{'★'.repeat(r.score)}{'☆'.repeat(5 - r.score)}</span>
+                    </div>
+                    {r.comment && (
+                      <p className="mt-1 text-sm text-zinc-500">"{r.comment}"</p>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+
           </div>
         </section>
       )}
@@ -335,7 +394,7 @@ export default async function PerfilPage({
         </section>
       )}
 
-      {(!historial || historial.length === 0) && (!ratings || ratings.length === 0) && Object.keys(seccionesPorTipo).length === 0 && (
+      {historialConRating.length === 0 && ratingsComoCliente.length === 0 && Object.keys(seccionesPorTipo).length === 0 && (
         <p className="mt-8 text-center text-sm text-zinc-400">
           {esPropio ? 'Todavía no tenés trabajos completados ni calificaciones.' : 'Este usuario no tiene historial todavía.'}
         </p>
