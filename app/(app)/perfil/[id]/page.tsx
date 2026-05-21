@@ -48,9 +48,10 @@ export default async function PerfilPage({
       .eq('user_id', id)
       .maybeSingle(),
 
-    supabase.from('posts')
-      .select('id, type, title, category, modality, completed_at')
-      .eq('user_id', id)
+    // Trabajos completados: instancias donde el usuario fue el trabajador aceptado
+    supabase.from('applications')
+      .select('id, completed_at, posts(id, type, title, category, modality)')
+      .eq('applicant_id', id)
       .not('completed_at', 'is', null)
       .order('completed_at', { ascending: false })
       .limit(20),
@@ -65,7 +66,6 @@ export default async function PerfilPage({
       .select('id, type, title, category, modality, price, price_type')
       .eq('user_id', id)
       .eq('is_active', true)
-      .is('completed_at', null)
       .order('created_at', { ascending: false })
       .limit(6),
 
@@ -253,24 +253,27 @@ export default async function PerfilPage({
             Historial ({historial.length})
           </h2>
           <div className="flex flex-col gap-2">
-            {historial.map(post => (
-              <Link
-                key={post.id}
-                href={`/post/${post.id}`}
-                className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm transition-shadow hover:shadow-sm"
-              >
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-zinc-900">{post.title}</p>
-                  <p className="text-xs text-zinc-400">
-                    {post.category && `${post.category} · `}
-                    Completado {new Date(post.completed_at as string).toLocaleDateString('es-AR')}
-                  </p>
-                </div>
-                <span className="ml-3 shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-                  Completado
-                </span>
-              </Link>
-            ))}
+            {(historial as any[]).map(item => {
+              const p = item.posts as { id: string; title: string; category: string | null } | null
+              return (
+                <Link
+                  key={item.id}
+                  href={p ? `/post/${p.id}` : '#'}
+                  className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm transition-shadow hover:shadow-sm"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-zinc-900">{p?.title ?? 'Trabajo completado'}</p>
+                    <p className="text-xs text-zinc-400">
+                      {p?.category && `${p.category} · `}
+                      Completado {new Date(item.completed_at as string).toLocaleDateString('es-AR')}
+                    </p>
+                  </div>
+                  <span className="ml-3 shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                    Completado
+                  </span>
+                </Link>
+              )
+            })}
           </div>
         </section>
       )}

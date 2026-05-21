@@ -56,7 +56,6 @@ create table public.posts (
   price_type   price_type,
   location     text,
   is_active    boolean default true,
-  completed_at timestamp with time zone,
   created_at   timestamp with time zone default now()
 );
 
@@ -118,9 +117,12 @@ create table public.applications (
   id           uuid primary key default gen_random_uuid(),
   post_id      uuid not null references public.posts(id) on delete cascade,
   applicant_id uuid not null references public.users(id) on delete cascade,
-  message      text,
-  status       application_status default 'pendiente',
-  created_at   timestamp with time zone default now(),
+  message              text,
+  status               application_status default 'pendiente',
+  confirmed_by_client  boolean not null default false,  -- el dueño del requerimiento confirmó finalización
+  confirmed_by_worker  boolean not null default false,  -- el trabajador aceptado confirmó finalización
+  completed_at         timestamp with time zone,        -- se llena cuando ambos confirman
+  created_at           timestamp with time zone default now(),
   unique(post_id, applicant_id)
 );
 

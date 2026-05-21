@@ -26,7 +26,6 @@ export default async function OfertasPage({
       .select(baseSelect)
       .eq('type', 'oferta')
       .eq('is_active', true)
-      .is('completed_at', null)
       .contains('modality', ['inmediato'])
       .order('created_at', { ascending: false })
       .limit(4)
@@ -38,7 +37,6 @@ export default async function OfertasPage({
     .select(baseSelect)
     .eq('type', 'oferta')
     .eq('is_active', true)
-    .is('completed_at', null)
     .order('created_at', { ascending: false })
 
   if (busqueda)  query = query.or(`title.ilike.%${busqueda}%,description.ilike.%${busqueda}%`)

@@ -13,14 +13,12 @@ async function FeedOfertas({ busqueda, categoria, modalidad }: { busqueda?: stri
 
   if (!hayFiltros) {
     const { data } = await supabase.from('posts').select(baseSelect)
-      .eq('type', 'oferta').eq('is_active', true).is('completed_at', null)
-      .contains('modality', ['inmediato']).order('created_at', { ascending: false }).limit(4)
+      .eq('type', 'oferta').eq('is_active', true)      .contains('modality', ['inmediato']).order('created_at', { ascending: false }).limit(4)
     inmediatos = (data ?? []) as unknown as PostCardData[]
   }
 
   let query = supabase.from('posts').select(baseSelect)
-    .eq('type', 'oferta').eq('is_active', true).is('completed_at', null)
-    .order('created_at', { ascending: false })
+    .eq('type', 'oferta').eq('is_active', true)    .order('created_at', { ascending: false })
 
   if (busqueda)  query = query.or(`title.ilike.%${busqueda}%,description.ilike.%${busqueda}%`)
   if (categoria) query = query.ilike('category', `%${categoria}%`)
@@ -66,14 +64,12 @@ async function FeedRequerimientos({ busqueda, categoria, modalidad }: { busqueda
 
   if (!hayFiltros) {
     const { data } = await supabase.from('posts').select(baseSelect)
-      .eq('type', 'requerimiento').eq('is_active', true).is('completed_at', null)
-      .contains('modality', ['inmediato']).order('created_at', { ascending: false }).limit(4)
+      .eq('type', 'requerimiento').eq('is_active', true)      .contains('modality', ['inmediato']).order('created_at', { ascending: false }).limit(4)
     urgentes = (data ?? []) as unknown as PostCardData[]
   }
 
   let query = supabase.from('posts').select(baseSelect)
-    .eq('type', 'requerimiento').eq('is_active', true).is('completed_at', null)
-    .order('created_at', { ascending: false })
+    .eq('type', 'requerimiento').eq('is_active', true)    .order('created_at', { ascending: false })
 
   if (busqueda)  query = query.or(`title.ilike.%${busqueda}%,description.ilike.%${busqueda}%`)
   if (categoria) query = query.ilike('category', `%${categoria}%`)

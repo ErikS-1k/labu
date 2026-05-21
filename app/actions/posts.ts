@@ -49,11 +49,42 @@ export async function marcarCompletado(formData: FormData) {
 
   const postId = formData.get('post_id') as string
 
-  await supabase
+  const { data: post } = await supabase
     .from('posts')
-    .update({ completed_at: new Date().toISOString() })
+    .select('id, user_id, type')
     .eq('id', postId)
-    .eq('user_id', user.id) // solo el dueño puede completar
+    .maybeSingle()
+
+  if (!post || post.type !== 'requerimiento') return
+
+  // Buscar la postulación aceptada de este post
+  const { data: app } = await supabase
+    .from('applications')
+    .select('id, applicant_id, confirmed_by_client, confirmed_by_worker, completed_at')
+    .eq('post_id', postId)
+    .eq('status', 'aceptado')
+    .maybeSingle()
+
+  if (!app || app.completed_at) return
+
+  const esCliente   = post.user_id === user.id
+  const esTrabajador = app.applicant_id === user.id
+
+  if (!esCliente && !esTrabajador) return
+
+  const updates: Record<string, unknown> = {}
+  if (esCliente)    updates.confirmed_by_client = true
+  if (esTrabajador) updates.confirmed_by_worker = true
+
+  const clienteConfirma   = esCliente    ? true : (app.confirmed_by_client as boolean)
+  const trabajadorConfirma = esTrabajador ? true : (app.confirmed_by_worker as boolean)
+
+  if (clienteConfirma && trabajadorConfirma) {
+    updates.completed_at = new Date().toISOString()
+  }
+
+  const { createServiceClient } = await import('@/lib/supabase/service')
+  await createServiceClient().from('applications').update(updates).eq('id', app.id)
 
   revalidatePath(`/post/${postId}`)
 }

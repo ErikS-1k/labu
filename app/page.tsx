@@ -33,10 +33,10 @@ export default async function Home() {
         <span className="text-lg font-bold tracking-tight">Labu</span>
         {user ? (
           <Link
-            href="/panel"
+            href={`/perfil/${user.id}`}
             className="rounded-lg border border-white/20 px-4 py-1.5 text-sm text-white/80 transition-colors hover:bg-white/5"
           >
-            {firstName ? `Hola, ${firstName}` : 'Panel'}
+            {firstName ? `Hola, ${firstName}` : 'Mi perfil'}
           </Link>
         ) : (
           <Link

@@ -29,14 +29,15 @@ export default async function PostPage({
     .eq('is_active', true)
     .single()
 
+
   if (!post) notFound()
 
   const { data: { user } } = await supabase.auth.getUser()
-  const esAutor        = user?.id === post.user_id
-  const estaCompletado = !!post.completed_at
+  const esAutor         = user?.id === post.user_id
   const esRequerimiento = post.type === 'requerimiento'
 
-  const puedeCalificar = user && !esAutor && estaCompletado
+  // estaCompletado y estado de confirmaciones se leen desde la aplicación aceptada (ver más abajo)
+  const puedeCalificar = !!user
 
   // Queries paralelas según el contexto
   const [
@@ -45,32 +46,32 @@ export default async function PostPage({
     { data: miPostulacion },
     { data: postulaciones },
   ] = await Promise.all([
-    // Últimos 3 trabajos completados del autor
-    supabase.from('posts')
-      .select('id, title, completed_at')
-      .eq('user_id', post.user_id)
+    // Últimas 3 aplicaciones completadas del autor (como cliente)
+    supabase.from('applications')
+      .select('id, completed_at, posts!inner(id, title, user_id)')
+      .eq('posts.user_id', post.user_id)
       .not('completed_at', 'is', null)
       .order('completed_at', { ascending: false })
       .limit(3),
 
     // ¿Ya calificó este post?
-    puedeCalificar
+    user
       ? supabase.from('ratings').select('id').eq('post_id', id).eq('from_user_id', user!.id).maybeSingle()
       : Promise.resolve({ data: null }),
 
-    // Mi postulación (si soy no-autor de un requerimiento)
+    // Mi postulación (si soy no-autor de un requerimiento) — incluye estado de confirmación
     user && !esAutor && esRequerimiento
       ? supabase.from('applications')
-          .select('id, status, message')
+          .select('id, status, message, confirmed_by_client, confirmed_by_worker, completed_at')
           .eq('post_id', id)
           .eq('applicant_id', user.id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
 
-    // Todas las postulaciones (si soy el autor del requerimiento)
+    // Todas las postulaciones (si soy el autor del requerimiento) — incluye estado de confirmación
     esAutor && esRequerimiento
       ? supabase.from('applications')
-          .select('id, status, message, created_at, applicant_id, users(first_name, last_name, username, email, phone, rating_avg, rating_count)')
+          .select('id, status, message, created_at, applicant_id, confirmed_by_client, confirmed_by_worker, completed_at, users(first_name, last_name, username, email, phone, rating_avg, rating_count)')
           .eq('post_id', id)
           .order('created_at', { ascending: true })
       : Promise.resolve({ data: null }),
@@ -78,6 +79,13 @@ export default async function PostPage({
 
   // Info de contacto del demandante (solo si mi postulación está aceptada)
   const postulacionAceptada = miPostulacion?.status === 'aceptado'
+
+  // Estado de completado: viene de la aplicación aceptada, no del post
+  const aplicacionAceptadaData = (postulaciones as any[])?.find((p: any) => p.status === 'aceptado') ?? null
+  const appParaCompletado = esAutor ? aplicacionAceptadaData : (postulacionAceptada ? miPostulacion : null)
+  const estaCompletado    = !!(appParaCompletado as any)?.completed_at
+  const confirmedByClient = !!((appParaCompletado as any)?.confirmed_by_client)
+  const confirmedByWorker = !!((appParaCompletado as any)?.confirmed_by_worker)
 
   const priceUnitLabel = PRICE_TYPES.find(p => p.value === post.price_type)?.label ?? ''
   const priceLabel = post.price
@@ -189,18 +197,21 @@ export default async function PostPage({
                 Trabajos recientes
               </p>
               <ul className="flex flex-col gap-1.5">
-                {recientes.map(r => (
-                  <li key={r.id} className="flex items-center justify-between text-sm">
-                    <Link href={`/post/${r.id}`} className="truncate text-zinc-700 hover:underline">
-                      {r.title}
-                    </Link>
-                    <span className="ml-3 shrink-0 text-xs text-zinc-400">
-                      {new Date(r.completed_at as string).toLocaleDateString('es-AR', {
-                        day: 'numeric', month: 'short',
-                      })}
-                    </span>
-                  </li>
-                ))}
+                {(recientes as any[]).map(r => {
+                  const rPost = r.posts as { id: string; title: string } | null
+                  return (
+                    <li key={r.id} className="flex items-center justify-between text-sm">
+                      <Link href={`/post/${rPost?.id ?? '#'}`} className="truncate text-zinc-700 hover:underline">
+                        {rPost?.title ?? 'Trabajo completado'}
+                      </Link>
+                      <span className="ml-3 shrink-0 text-xs text-zinc-400">
+                        {new Date(r.completed_at as string).toLocaleDateString('es-AR', {
+                          day: 'numeric', month: 'short',
+                        })}
+                      </span>
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           )}
@@ -361,19 +372,59 @@ export default async function PostPage({
 
       {/* ── MARCAR COMPLETADO / RATING ───────────────────────────── */}
 
-      {esAutor && !estaCompletado && (
-        <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
-          <p className="mb-3 text-sm text-zinc-500">
-            ¿Terminaste este trabajo? Marcalo como completado para que quede en tu historial.
-          </p>
-          <form action={marcarCompletado}>
-            <input type="hidden" name="post_id" value={post.id} />
-            <button type="submit" className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-700 transition-colors hover:bg-zinc-50">
-              Marcar como completado
-            </button>
-          </form>
-        </div>
-      )}
+      {(() => {
+        if (estaCompletado) return null
+
+        const soyTrabajadorAceptado = miPostulacion?.status === 'aceptado'
+
+        // Requerimiento — autor
+        if (esRequerimiento && esAutor && aplicacionAceptadaData) return (
+          <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+            {!confirmedByClient ? (
+              <>
+                <p className="mb-3 text-sm text-zinc-500">
+                  ¿Terminó el trabajo? Confirmá la finalización. El trabajo se cierra cuando ambas partes confirmen.
+                </p>
+                <form action={marcarCompletado}>
+                  <input type="hidden" name="post_id" value={post.id} />
+                  <button type="submit" className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-700 transition-colors hover:bg-zinc-50">
+                    Confirmar finalización
+                  </button>
+                </form>
+              </>
+            ) : (
+              <p className="text-sm text-zinc-500">
+                Confirmaste la finalización. Esperando que el trabajador también confirme.
+              </p>
+            )}
+          </div>
+        )
+
+        // Requerimiento — trabajador aceptado
+        if (esRequerimiento && soyTrabajadorAceptado && !estaCompletado) return (
+          <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+            {!confirmedByWorker ? (
+              <>
+                <p className="mb-3 text-sm text-zinc-500">
+                  ¿Terminaste el trabajo? Confirmá la finalización. El trabajo se cierra cuando ambas partes confirmen.
+                </p>
+                <form action={marcarCompletado}>
+                  <input type="hidden" name="post_id" value={post.id} />
+                  <button type="submit" className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-700 transition-colors hover:bg-zinc-50">
+                    Confirmar finalización
+                  </button>
+                </form>
+              </>
+            ) : (
+              <p className="text-sm text-zinc-500">
+                Confirmaste la finalización. Esperando que el demandante también confirme.
+              </p>
+            )}
+          </div>
+        )
+
+        return null
+      })()}
 
       {estaCompletado && (
         <div className="mt-4 rounded-full border border-green-200 bg-green-50 px-4 py-2 text-center text-sm font-medium text-green-700">
@@ -381,15 +432,46 @@ export default async function PostPage({
         </div>
       )}
 
-      {puedeCalificar && !yaCalifique && autor && (
-        <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
-          <RatingForm postId={post.id} toUserId={post.user_id} toUserName={autorNombre} />
-        </div>
-      )}
+      {/* Rating — cada parte califica a la otra */}
+      {(() => {
+        if (!estaCompletado || !user) return null
 
-      {puedeCalificar && yaCalifique && (
-        <p className="mt-4 text-center text-sm text-zinc-400">Ya calificaste este trabajo.</p>
-      )}
+        const soyTrabajadorAceptado = miPostulacion?.status === 'aceptado'
+
+        // Autor de requerimiento califica al trabajador aceptado
+        if (esRequerimiento && esAutor && aplicacionAceptadaData) {
+          const ap = aplicacionAceptadaData.users as { first_name: string | null; username: string | null } | null
+          const trabajadorNombre = ap?.first_name ?? ap?.username ?? 'el trabajador'
+          if (yaCalifique) return <p className="mt-4 text-center text-sm text-zinc-400">Ya calificaste este trabajo.</p>
+          return (
+            <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+              <RatingForm postId={post.id} toUserId={aplicacionAceptadaData.applicant_id} toUserName={trabajadorNombre} />
+            </div>
+          )
+        }
+
+        // Trabajador aceptado califica al autor
+        if (esRequerimiento && soyTrabajadorAceptado) {
+          if (yaCalifique) return <p className="mt-4 text-center text-sm text-zinc-400">Ya calificaste este trabajo.</p>
+          return (
+            <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+              <RatingForm postId={post.id} toUserId={post.user_id} toUserName={autorNombre} />
+            </div>
+          )
+        }
+
+        // Oferta: cualquier no-autor puede calificar al autor (flujo original)
+        if (!esRequerimiento && !esAutor) {
+          if (yaCalifique) return <p className="mt-4 text-center text-sm text-zinc-400">Ya calificaste este trabajo.</p>
+          return (
+            <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+              <RatingForm postId={post.id} toUserId={post.user_id} toUserName={autorNombre} />
+            </div>
+          )
+        }
+
+        return null
+      })()}
     </main>
   )
 }
