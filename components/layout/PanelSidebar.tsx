@@ -96,12 +96,12 @@ export default function PanelSidebar({ userId, userName, unreadCount, isLoggedIn
     <aside className="group hidden md:flex h-screen w-14 hover:w-56 flex-col border-r border-zinc-200 bg-white transition-[width] duration-200 ease-in-out overflow-hidden shrink-0">
 
       {/* Logo */}
-      <div className="flex items-center gap-0 px-[17px] py-5 border-b border-zinc-100">
+      <Link href="/" className="flex items-center gap-0 px-[17px] py-5 border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
         <span className="text-lg font-bold tracking-tight text-zinc-900 shrink-0">L</span>
         <span className="overflow-hidden whitespace-nowrap text-lg font-bold tracking-tight text-zinc-900 opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
           abu
         </span>
-      </div>
+      </Link>
 
       {/* Nav items */}
       <nav className="flex flex-col gap-1 p-2 flex-1">
