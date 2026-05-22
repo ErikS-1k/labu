@@ -6,9 +6,10 @@ import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 type Props = {
-  userId: string
+  userId: string | null
   userName: string | null
   unreadCount: number
+  isLoggedIn: boolean
 }
 
 function IconHome() {
@@ -55,7 +56,7 @@ function IconUser() {
   )
 }
 
-export default function BottomNav({ userId, userName, unreadCount }: Props) {
+export default function BottomNav({ userId, userName, unreadCount, isLoggedIn }: Props) {
   const [count, setCount] = useState(unreadCount)
   const pathname = usePathname()
 
@@ -66,6 +67,7 @@ export default function BottomNav({ userId, userName, unreadCount }: Props) {
   }, [pathname])
 
   useEffect(() => {
+    if (!userId) return
     const supabase = createClient()
     const channel = supabase
       .channel('bottomnav-unread')
@@ -93,23 +95,33 @@ export default function BottomNav({ userId, userName, unreadCount }: Props) {
       <Link href="/panel" className={iconClass('/panel')}>
         <IconHome />
       </Link>
-      <Link href="/publicar" className={iconClass('/publicar')}>
-        <IconPlus />
-      </Link>
       <Link href="/buscar" className={iconClass('/buscar')}>
         <IconSearch />
       </Link>
-      <Link href="/mensajes" className={`${iconClass('/mensajes')} relative`}>
-        <IconMessage />
-        {count > 0 && (
-          <span className="absolute right-1.5 top-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
-            {count > 9 ? '9+' : count}
-          </span>
-        )}
-      </Link>
-      <Link href={`/perfil/${userId}`} className={iconClass(`/perfil/${userId}`)}>
-        <IconUser />
-      </Link>
+      {isLoggedIn && (
+        <Link href="/publicar" className={iconClass('/publicar')}>
+          <IconPlus />
+        </Link>
+      )}
+      {isLoggedIn && (
+        <Link href="/mensajes" className={`${iconClass('/mensajes')} relative`}>
+          <IconMessage />
+          {count > 0 && (
+            <span className="absolute right-1.5 top-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
+              {count > 9 ? '9+' : count}
+            </span>
+          )}
+        </Link>
+      )}
+      {isLoggedIn && userId ? (
+        <Link href={`/perfil/${userId}`} className={iconClass(`/perfil/${userId}`)}>
+          <IconUser />
+        </Link>
+      ) : (
+        <Link href="/login" className={iconClass('/login')}>
+          <IconUser />
+        </Link>
+      )}
     </nav>
   )
 }

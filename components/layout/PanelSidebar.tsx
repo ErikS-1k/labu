@@ -6,9 +6,10 @@ import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 type Props = {
-  userId: string
+  userId: string | null
   userName: string | null
   unreadCount: number
+  isLoggedIn: boolean
 }
 
 function IconHome() {
@@ -55,7 +56,7 @@ function IconUser() {
   )
 }
 
-export default function PanelSidebar({ userId, userName, unreadCount }: Props) {
+export default function PanelSidebar({ userId, userName, unreadCount, isLoggedIn }: Props) {
   const [count, setCount] = useState(unreadCount)
   const pathname = usePathname()
 
@@ -66,6 +67,7 @@ export default function PanelSidebar({ userId, userName, unreadCount }: Props) {
   }, [pathname])
 
   useEffect(() => {
+    if (!userId) return
     const supabase = createClient()
     const channel = supabase
       .channel('sidebar-unread')
@@ -110,13 +112,6 @@ export default function PanelSidebar({ userId, userName, unreadCount }: Props) {
           </span>
         </Link>
 
-        <Link href="/publicar" className={itemClass('/publicar')}>
-          <span className="shrink-0"><IconPlus /></span>
-          <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
-            Publicar
-          </span>
-        </Link>
-
         <Link href="/buscar" className={itemClass('/buscar')}>
           <span className="shrink-0"><IconSearch /></span>
           <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
@@ -124,26 +119,46 @@ export default function PanelSidebar({ userId, userName, unreadCount }: Props) {
           </span>
         </Link>
 
-        <Link href="/mensajes" className={itemClass('/mensajes')}>
-          <span className="relative shrink-0">
-            <IconMessage />
-            {count > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
-                {count > 9 ? '9+' : count}
-              </span>
-            )}
-          </span>
-          <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
-            Mensajes
-          </span>
-        </Link>
+        {isLoggedIn && (
+          <Link href="/publicar" className={itemClass('/publicar')}>
+            <span className="shrink-0"><IconPlus /></span>
+            <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
+              Publicar
+            </span>
+          </Link>
+        )}
 
-        <Link href={`/perfil/${userId}`} className={itemClass(`/perfil/${userId}`)}>
-          <span className="shrink-0"><IconUser /></span>
-          <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
-            {userName ?? 'Mi perfil'}
-          </span>
-        </Link>
+        {isLoggedIn && (
+          <Link href="/mensajes" className={itemClass('/mensajes')}>
+            <span className="relative shrink-0">
+              <IconMessage />
+              {count > 0 && (
+                <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
+                  {count > 9 ? '9+' : count}
+                </span>
+              )}
+            </span>
+            <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
+              Mensajes
+            </span>
+          </Link>
+        )}
+
+        {isLoggedIn && userId ? (
+          <Link href={`/perfil/${userId}`} className={itemClass(`/perfil/${userId}`)}>
+            <span className="shrink-0"><IconUser /></span>
+            <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
+              {userName ?? 'Mi perfil'}
+            </span>
+          </Link>
+        ) : (
+          <Link href="/login" className={itemClass('/login')}>
+            <span className="shrink-0"><IconUser /></span>
+            <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
+              Entrar
+            </span>
+          </Link>
+        )}
       </nav>
     </aside>
   )
