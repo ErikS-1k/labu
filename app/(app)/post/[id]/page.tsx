@@ -505,8 +505,8 @@ export default async function PostPage({
 
         const soyTrabajadorAceptado = miPostulacion?.status === 'aceptado'
 
-        // Requerimiento — autor
-        if (esRequerimiento && esAutor && aplicacionAceptadaData) return (
+        // Autor del post (cliente en req / trabajador en oferta)
+        if (esAutor && aplicacionAceptadaData) return (
           <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
             {!confirmedByClient ? (
               <>
@@ -522,14 +522,14 @@ export default async function PostPage({
               </>
             ) : (
               <p className="text-sm text-zinc-500">
-                Confirmaste la finalización. Esperando que el trabajador también confirme.
+                Confirmaste la finalización. Esperando que la otra parte también confirme.
               </p>
             )}
           </div>
         )
 
-        // Requerimiento — trabajador aceptado
-        if (esRequerimiento && soyTrabajadorAceptado && !estaCompletado) return (
+        // Postulante/solicitante aceptado
+        if (soyTrabajadorAceptado && !estaCompletado) return (
           <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
             {!confirmedByWorker ? (
               <>
@@ -545,7 +545,7 @@ export default async function PostPage({
               </>
             ) : (
               <p className="text-sm text-zinc-500">
-                Confirmaste la finalización. Esperando que el demandante también confirme.
+                Confirmaste la finalización. Esperando que la otra parte también confirme.
               </p>
             )}
           </div>
@@ -566,30 +566,20 @@ export default async function PostPage({
 
         const soyTrabajadorAceptado = miPostulacion?.status === 'aceptado'
 
-        // Autor de requerimiento califica al trabajador aceptado
-        if (esRequerimiento && esAutor && aplicacionAceptadaData) {
+        // Autor del post califica al postulante aceptado
+        if (esAutor && aplicacionAceptadaData) {
           const ap = aplicacionAceptadaData.users as { first_name: string | null; username: string | null } | null
-          const trabajadorNombre = ap?.first_name ?? ap?.username ?? 'el trabajador'
+          const otraParteNombre = ap?.first_name ?? ap?.username ?? 'la otra parte'
           if (yaCalifique) return <p className="mt-4 text-center text-sm text-zinc-400">Ya calificaste este trabajo.</p>
           return (
             <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
-              <RatingForm postId={post.id} toUserId={aplicacionAceptadaData.applicant_id} toUserName={trabajadorNombre} />
+              <RatingForm postId={post.id} toUserId={aplicacionAceptadaData.applicant_id} toUserName={otraParteNombre} />
             </div>
           )
         }
 
-        // Trabajador aceptado califica al autor
-        if (esRequerimiento && soyTrabajadorAceptado) {
-          if (yaCalifique) return <p className="mt-4 text-center text-sm text-zinc-400">Ya calificaste este trabajo.</p>
-          return (
-            <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
-              <RatingForm postId={post.id} toUserId={post.user_id} toUserName={autorNombre} />
-            </div>
-          )
-        }
-
-        // Oferta: cualquier no-autor puede calificar al autor (flujo original)
-        if (!esRequerimiento && !esAutor) {
+        // Postulante/solicitante aceptado califica al autor
+        if (soyTrabajadorAceptado) {
           if (yaCalifique) return <p className="mt-4 text-center text-sm text-zinc-400">Ya calificaste este trabajo.</p>
           return (
             <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">

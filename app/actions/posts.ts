@@ -79,7 +79,7 @@ export async function marcarCompletado(formData: FormData) {
     .eq('id', postId)
     .maybeSingle()
 
-  if (!post || post.type !== 'requerimiento') return
+  if (!post) return
 
   // Buscar la postulación aceptada de este post
   const { data: app } = await supabase
