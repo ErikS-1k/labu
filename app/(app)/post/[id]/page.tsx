@@ -10,9 +10,10 @@ import RatingForm from '@/components/ratings/RatingForm'
 import PostularseForm from '@/components/applications/PostularseForm'
 
 const MODALITY_LABEL: Record<string, string> = {
-  inmediato:  'Inmediato',
-  temporal:   'Temporal',
-  permanente: 'Permanente',
+  inmediato:   'Inmediato',
+  temporal:    'Temporal',
+  por_proyecto:'Por proyecto',
+  permanente:  'Permanente',
 }
 
 export default async function PostPage({

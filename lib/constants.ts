@@ -1,8 +1,9 @@
 
 export const MODALIDADES = [
   { value: 'inmediato', label: 'Inmediato' },
-  { value: 'temporal',  label: 'Temporal' },
-  { value: 'permanente', label: 'Permanente' },
+  { value: 'temporal',     label: 'Temporal' },
+  { value: 'por_proyecto', label: 'Por proyecto' },
+  { value: 'permanente',   label: 'Permanente' },
 ] as const
 
 export const PRICE_TYPES = [

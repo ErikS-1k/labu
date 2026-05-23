@@ -7,7 +7,7 @@ import { logout } from '@/app/actions/auth'
 export const metadata: Metadata = { title: 'Perfil — Labu' }
 
 const MODALITY_LABEL: Record<string, string> = {
-  inmediato: 'Inmediato', temporal: 'Temporal', permanente: 'Permanente',
+  inmediato: 'Inmediato', temporal: 'Temporal', por_proyecto: 'Por proyecto', permanente: 'Permanente',
 }
 
 const TIPO_LABEL: Record<string, string> = {

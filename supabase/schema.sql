@@ -9,7 +9,7 @@
 -- ============================================================
 
 create type post_type as enum ('oferta', 'requerimiento');
-create type post_modality as enum ('inmediato', 'temporal', 'permanente');
+create type post_modality as enum ('inmediato', 'temporal', 'por_proyecto', 'permanente');
 create type price_type as enum ('hora', 'dia', 'trabajo', 'mes', 'a_convenir');
 create type verification_type as enum ('dni', 'matricula', 'portfolio');
 create type verification_status as enum ('pendiente', 'verificado', 'rechazado');

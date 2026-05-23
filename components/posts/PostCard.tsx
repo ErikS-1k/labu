@@ -16,9 +16,10 @@ export type PostCardData = {
 }
 
 const MODALITY_LABEL: Record<string, string> = {
-  inmediato:  'Inmediato',
-  temporal:   'Temporal',
-  permanente: 'Permanente',
+  inmediato:   'Inmediato',
+  temporal:    'Temporal',
+  por_proyecto:'Por proyecto',
+  permanente:  'Permanente',
 }
 
 export default function PostCard({ post }: { post: PostCardData }) {
