@@ -101,7 +101,7 @@ export default function PanelSidebar({ userId, userName, unreadCount, isLoggedIn
     return `flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
       isActive(href)
         ? 'bg-surface-2 text-white'
-        : 'text-zinc-500 hover:bg-surface-2 hover:text-zinc-800'
+        : 'text-zinc-400 hover:bg-surface-2 hover:text-white'
     }`
   }
 
@@ -109,7 +109,7 @@ export default function PanelSidebar({ userId, userName, unreadCount, isLoggedIn
     <aside className="group hidden md:flex h-screen w-14 hover:w-56 flex-col border-r border-surface-2 bg-surface-0 transition-[width] duration-200 ease-in-out overflow-hidden shrink-0">
 
       {/* Logo */}
-      <Link href="/" className="flex items-center gap-0 px-[17px] py-5 border-b border-zinc-100 hover:bg-surface-2 transition-colors">
+      <Link href="/" className="flex items-center gap-0 px-[17px] py-5 border-b border-surface-2 hover:bg-surface-2 transition-colors">
         <span className="text-lg font-bold tracking-tight text-white shrink-0">L</span>
         <span className="overflow-hidden whitespace-nowrap text-lg font-bold tracking-tight text-white opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
           abu
