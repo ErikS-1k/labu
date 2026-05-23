@@ -358,3 +358,34 @@ create policy "Usuario edita sus propias secciones"
 
 grant select, insert, update, delete on public.profile_sections to authenticated;
 grant select                          on public.profile_sections to anon;
+
+
+-- ============================================================
+-- TABLA: notifications
+-- Notificaciones internas del usuario (postulaciones, ratings).
+-- INSERT usa createServiceClient() porque el actor no es el destinatario.
+-- ============================================================
+
+create table public.notifications (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references public.users(id) on delete cascade,
+  type       text not null check (type in ('nueva_postulacion','postulacion_aceptada','postulacion_rechazada','nuevo_rating')),
+  message    text not null,
+  link       text not null,
+  read       boolean not null default false,
+  created_at timestamptz default now()
+);
+
+alter table public.notifications enable row level security;
+
+create policy "Solo ves tus propias notificaciones"
+  on public.notifications for select
+  using (auth.uid() = user_id);
+
+create policy "Solo marcás como leídas las tuyas"
+  on public.notifications for update
+  using (auth.uid() = user_id);
+
+create index notifications_user_id_read_idx on public.notifications(user_id, read);
+
+grant select, update on public.notifications to authenticated;

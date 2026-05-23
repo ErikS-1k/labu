@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { crearNotificacion } from './notifications'
 
 export async function calificar(
   _prevState: { error: string | null; ok: boolean },
@@ -29,6 +30,16 @@ export async function calificar(
 
   if (error?.code === '23505') return { error: 'Ya calificaste este trabajo.', ok: false }
   if (error) return { error: 'No se pudo guardar. Intentá de nuevo.', ok: false }
+
+  const { data: post } = await supabase.from('posts').select('title').eq('id', postId).single()
+  if (post) {
+    await crearNotificacion({
+      userId:  toUserId,
+      type:    'nuevo_rating',
+      message: `Recibiste una calificación de ${score} estrellas en "${post.title}"`,
+      link:    `/post/${postId}`,
+    })
+  }
 
   revalidatePath(`/post/${postId}`)
   return { error: null, ok: true }
