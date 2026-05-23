@@ -124,7 +124,7 @@ export default function PanelSidebar({ userId, userName, unreadCount, isLoggedIn
         <img
           src="/logo.png"
           alt="Labu"
-          className="h-8 w-8 shrink-0 object-contain mix-blend-screen"
+          className="h-8 w-8 shrink-0 object-contain"
         />
         <span className="overflow-hidden whitespace-nowrap text-base font-bold tracking-tight text-white opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
           Labu
