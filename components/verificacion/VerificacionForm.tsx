@@ -35,7 +35,7 @@ export default function VerificacionForm({ userId }: Props) {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="self-start rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-zinc-50"
+          className="self-start rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-surface-2"
         >
           Solicitar verificación
         </button>
@@ -46,14 +46,14 @@ export default function VerificacionForm({ userId }: Props) {
             <button
               type="submit"
               disabled={pending}
-              className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-40"
+              className="rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:opacity-40"
             >
               {pending ? 'Enviando...' : 'Enviar verificación'}
             </button>
             <button
               type="button"
               onClick={() => { setArchivo(null); if (inputRef.current) inputRef.current.value = '' }}
-              className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm text-zinc-400 hover:bg-zinc-50"
+              className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm text-zinc-400 hover:bg-surface-2"
             >
               Cancelar
             </button>

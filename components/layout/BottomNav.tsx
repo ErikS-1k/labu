@@ -86,12 +86,12 @@ export default function BottomNav({ userId, userName, unreadCount, isLoggedIn }:
 
   function iconClass(href: string) {
     return `flex flex-col items-center gap-0.5 px-3 py-1 transition-colors ${
-      isActive(href) ? 'text-zinc-900' : 'text-zinc-400'
+      isActive(href) ? 'text-white' : 'text-zinc-400'
     }`
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-10 flex items-center justify-around border-t border-zinc-200 bg-white md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <nav className="fixed bottom-0 left-0 right-0 z-10 flex items-center justify-around border-t border-surface-2 bg-surface-0 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <Link href="/panel" className={iconClass('/panel')}>
         <IconHome />
       </Link>

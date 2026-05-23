@@ -92,7 +92,7 @@ export default function ConversacionChat({
     <div className="flex h-full flex-col">
       {/* Encabezado */}
       <div className="border-b border-zinc-200 px-4 py-3">
-        <p className="font-semibold text-zinc-900">{receiverName}</p>
+        <p className="font-semibold text-white">{receiverName}</p>
         {postTitle && (
           <p className="truncate text-xs text-zinc-400">Re: {postTitle}</p>
         )}
@@ -113,7 +113,7 @@ export default function ConversacionChat({
             >
               <div className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm leading-relaxed ${
                 msg.sender_id === currentUserId
-                  ? 'bg-zinc-900 text-white'
+                  ? 'bg-white text-zinc-900'
                   : 'bg-zinc-100 text-zinc-800'
               }`}>
                 {msg.content}
@@ -136,7 +136,7 @@ export default function ConversacionChat({
         <button
           type="submit"
           disabled={!content.trim() || sending}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-40"
+          className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:opacity-40"
         >
           Enviar
         </button>

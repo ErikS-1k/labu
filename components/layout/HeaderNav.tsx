@@ -54,10 +54,10 @@ export default function HeaderNav({ isLoggedIn, userId, userName, unreadCount }:
       <nav className="hidden items-center gap-4 text-sm md:flex">
         {isLoggedIn ? (
           <>
-            <Link href="/panel" className="text-zinc-600 hover:text-zinc-900">
+            <Link href="/panel" className="text-zinc-400 hover:text-white">
               Panel
             </Link>
-            <Link href="/publicar" className="rounded-lg bg-zinc-900 px-3 py-1.5 text-white transition-colors hover:bg-zinc-700">
+            <Link href="/publicar" className="rounded-lg bg-white px-3 py-1.5 text-zinc-900 transition-colors hover:bg-zinc-200">
               Publicar
             </Link>
             <form onSubmit={handleSearch}>
@@ -66,10 +66,10 @@ export default function HeaderNav({ isLoggedIn, userId, userName, unreadCount }:
                 value={searchQ}
                 onChange={e => setSearchQ(e.target.value)}
                 placeholder="Buscar..."
-                className="w-36 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm outline-none transition-all focus:w-48 focus:border-zinc-400 focus:bg-white"
+                className="w-36 rounded-lg border border-surface-2 bg-surface-2 px-3 py-1.5 text-sm outline-none transition-all focus:w-48 focus:border-zinc-600"
               />
             </form>
-            <Link href="/mensajes" className="relative text-zinc-600 hover:text-zinc-900">
+            <Link href="/mensajes" className="relative text-zinc-400 hover:text-white">
               Mensajes
               {count > 0 && (
                 <span className="absolute -right-3 -top-2 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
@@ -77,14 +77,14 @@ export default function HeaderNav({ isLoggedIn, userId, userName, unreadCount }:
                 </span>
               )}
             </Link>
-            <Link href={`/perfil/${userId}`} className="text-sm font-medium text-zinc-700 hover:text-zinc-900">
+            <Link href={`/perfil/${userId}`} className="text-sm font-medium text-zinc-300 hover:text-white">
               {userName ?? 'Mi perfil'}
             </Link>
           </>
         ) : (
           <Link
             href="/login"
-            className="rounded-lg border border-zinc-300 px-3 py-1.5 text-zinc-700 transition-colors hover:bg-zinc-50"
+            className="rounded-lg border border-zinc-300 px-3 py-1.5 text-zinc-700 transition-colors hover:bg-surface-2"
           >
             Entrar
           </Link>
@@ -95,7 +95,7 @@ export default function HeaderNav({ isLoggedIn, userId, userName, unreadCount }:
       <div className="flex items-center gap-2 md:hidden">
         <button
           onClick={() => setOpen(o => !o)}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 text-zinc-600 hover:bg-surface-2"
           aria-label="Menú"
         >
           {open ? '✕' : '☰'}
@@ -103,7 +103,7 @@ export default function HeaderNav({ isLoggedIn, userId, userName, unreadCount }:
         {isLoggedIn && (
           <Link
             href="/publicar"
-            className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm text-white transition-colors hover:bg-zinc-700"
+            className="rounded-lg bg-white px-3 py-1.5 text-sm text-zinc-900 transition-colors hover:bg-zinc-200"
           >
             Publicar
           </Link>
@@ -112,17 +112,17 @@ export default function HeaderNav({ isLoggedIn, userId, userName, unreadCount }:
 
       {/* Mobile drawer */}
       {open && (
-        <div className="absolute left-0 right-0 top-full border-b border-zinc-200 bg-white px-4 py-3 shadow-sm md:hidden">
+        <div className="absolute left-0 right-0 top-full border-b border-surface-2 bg-surface-0 px-4 py-3 shadow-sm md:hidden">
           <nav className="flex flex-col gap-1 text-sm">
-            <Link href="/buscar" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-zinc-700 hover:bg-zinc-50">
+            <Link href="/buscar" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-zinc-700 hover:bg-surface-2">
               Buscar
             </Link>
-            <Link href="/panel" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-zinc-700 hover:bg-zinc-50">
+            <Link href="/panel" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-zinc-700 hover:bg-surface-2">
               Panel
             </Link>
             {isLoggedIn ? (
               <>
-                <Link href="/mensajes" onClick={() => setOpen(false)} className="relative flex items-center gap-2 rounded-lg px-3 py-2.5 text-zinc-700 hover:bg-zinc-50">
+                <Link href="/mensajes" onClick={() => setOpen(false)} className="relative flex items-center gap-2 rounded-lg px-3 py-2.5 text-zinc-700 hover:bg-surface-2">
                   Mensajes
                   {count > 0 && (
                     <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white">
@@ -130,19 +130,19 @@ export default function HeaderNav({ isLoggedIn, userId, userName, unreadCount }:
                     </span>
                   )}
                 </Link>
-                <Link href={`/perfil/${userId}`} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-zinc-700 hover:bg-zinc-50">
+                <Link href={`/perfil/${userId}`} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-zinc-700 hover:bg-surface-2">
                   {userName ? `${userName} — Mi perfil` : 'Mi perfil'}
                 </Link>
                 <div className="mt-1 border-t border-zinc-100 pt-1">
                   <form action={logout}>
-                    <button type="submit" className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-zinc-400 hover:bg-zinc-50">
+                    <button type="submit" className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-zinc-400 hover:bg-surface-2">
                       Cerrar sesión
                     </button>
                   </form>
                 </div>
               </>
             ) : (
-              <Link href="/login" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-zinc-700 hover:bg-zinc-50">
+              <Link href="/login" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-zinc-700 hover:bg-surface-2">
                 Entrar
               </Link>
             )}

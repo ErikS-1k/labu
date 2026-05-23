@@ -89,7 +89,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
       <button
         onClick={handleOpen}
         className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors w-full ${
-          isOpen ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800'
+          isOpen ? 'bg-surface-2 text-white' : 'text-zinc-500 hover:bg-surface-2 hover:text-zinc-200'
         }`}
       >
         <span className="relative shrink-0">
@@ -111,11 +111,11 @@ export default function NotificationBell({ userId }: { userId: string }) {
           <div className="fixed inset-0 z-40" onClick={handleClose} />
 
           {/* Panel — fixed para no quedar clippeado por overflow-hidden del sidebar */}
-          <div className="fixed left-14 top-auto z-50 mt-0 w-80 rounded-xl border border-zinc-200 bg-white shadow-lg"
+          <div className="fixed left-14 top-auto z-50 mt-0 w-80 rounded-xl border border-surface-2 bg-surface-1 shadow-lg"
             style={{ bottom: 'auto' }}
           >
             <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-3">
-              <span className="text-sm font-semibold text-zinc-900">Notificaciones</span>
+              <span className="text-sm font-semibold text-white">Notificaciones</span>
               {unread > 0 && (
                 <button onClick={markAllRead} className="text-xs text-zinc-400 hover:text-zinc-600">
                   Marcar todas como leídas
@@ -132,7 +132,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
                     key={n.id}
                     href={n.link}
                     onClick={handleClose}
-                    className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-zinc-50 ${!n.read ? 'bg-blue-50/50' : ''}`}
+                    className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-surface-2 ${!n.read ? 'bg-blue-50/50' : ''}`}
                   >
                     {!n.read && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" />}
                     {n.read && <span className="mt-1.5 h-2 w-2 shrink-0" />}

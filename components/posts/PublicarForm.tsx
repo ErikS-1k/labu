@@ -119,7 +119,7 @@ export default function PublicarForm() {
         </div>
         <div className="flex flex-1 flex-col gap-1">
           <label htmlFor="price_type" className="text-sm font-medium text-zinc-700">Unidad</label>
-          <select id="price_type" name="price_type" className={`${inputClass} bg-white`}>
+          <select id="price_type" name="price_type" className={`${inputClass}`}>
             {PRICE_TYPES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
           </select>
         </div>
@@ -138,7 +138,7 @@ export default function PublicarForm() {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50"
+        className="rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:opacity-50"
       >
         {pending ? 'Publicando...' : 'Publicar'}
       </button>

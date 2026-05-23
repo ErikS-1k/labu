@@ -46,7 +46,7 @@ export default function EditarPerfilForm({ first_name, last_name, username, head
           <button
             type="button"
             onClick={() => avatarRef.current?.click()}
-            className="text-sm text-zinc-600 underline hover:text-zinc-900"
+            className="text-sm text-zinc-400 underline hover:text-white"
           >
             Cambiar foto
           </button>
@@ -147,7 +147,7 @@ export default function EditarPerfilForm({ first_name, last_name, username, head
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-40"
+        className="rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:opacity-40"
       >
         {pending ? 'Guardando...' : 'Guardar cambios'}
       </button>

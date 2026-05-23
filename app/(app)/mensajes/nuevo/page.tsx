@@ -41,7 +41,7 @@ export default async function NuevoMensajePage({
         ← {post.title}
       </Link>
 
-      <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white">
+      <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-surface-2 bg-surface-1">
         <ConversacionChat
           conversationId={conversation_id}
           currentUserId={user.id}

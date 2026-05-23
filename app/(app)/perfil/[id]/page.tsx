@@ -124,7 +124,7 @@ export default async function PerfilPage({
     <main className="mx-auto max-w-2xl px-4 py-8">
 
       {/* Tarjeta de perfil */}
-      <div className="rounded-xl border border-zinc-200 bg-white p-6">
+      <div className="rounded-xl border border-surface-2 bg-surface-1 p-6">
         <div className="flex items-start gap-4">
           <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full bg-zinc-200">
             {perfil.avatar_url
@@ -134,7 +134,7 @@ export default async function PerfilPage({
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-bold text-zinc-900">{nombre}</h1>
+              <h1 className="text-xl font-bold text-white">{nombre}</h1>
               {estaVerif && (
                 <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">
                   Verificado
@@ -167,14 +167,14 @@ export default async function PerfilPage({
           <div className="mt-4 border-t border-zinc-100 pt-4">
             <Link
               href="/perfil/editar"
-              className="mb-4 inline-block rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-zinc-50"
+              className="mb-4 inline-block rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-surface-2"
             >
               Editar perfil
             </Link>
             {!verificacion && (
               <Link
                 href="/verificacion"
-                className="mb-2 inline-block rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-zinc-50"
+                className="mb-2 inline-block rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-surface-2"
               >
                 Solicitar verificación
               </Link>
@@ -197,19 +197,19 @@ export default async function PerfilPage({
               <Link
                 key={post.id}
                 href={`/post/${post.id}`}
-                className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm transition-shadow hover:shadow-sm"
+                className="flex items-center justify-between rounded-xl border border-surface-2 bg-surface-1 px-4 py-3 text-sm transition-shadow hover:shadow-sm"
               >
                 <div className="min-w-0">
-                  <p className="truncate font-medium text-zinc-900">{post.title}</p>
+                  <p className="truncate font-medium text-white">{post.title}</p>
                   <p className="text-xs text-zinc-400">
                     {post.category && `${post.category} · `}
                     {(post.modality as string[]).map(m => MODALITY_LABEL[m]).join(', ')}
                   </p>
                 </div>
                 <span className={`ml-3 shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                  post.type === 'oferta' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
+                  post.type === 'oferta' ? 'bg-blue-900/40 text-blue-400' : 'bg-orange-900/40 text-orange-400'
                 }`}>
-                  {post.type === 'oferta' ? 'Oferta' : 'Req.'}
+                  {post.type === 'oferta' ? 'Servicio' : 'Búsq.'}
                 </span>
               </Link>
             ))}
@@ -227,7 +227,7 @@ export default async function PerfilPage({
               </h2>
               <div className="flex flex-col gap-2">
                 {seccionesPorTipo[tipo]!.map(s => (
-                  <div key={s.id} className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
+                  <div key={s.id} className="rounded-xl border border-surface-2 bg-surface-1 px-4 py-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         {s.url ? (
@@ -235,12 +235,12 @@ export default async function PerfilPage({
                             href={s.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm font-medium text-zinc-900 hover:underline"
+                            className="text-sm font-medium text-white hover:underline"
                           >
                             {s.title}
                           </a>
                         ) : (
-                          <p className="text-sm font-medium text-zinc-900">{s.title}</p>
+                          <p className="text-sm font-medium text-white">{s.title}</p>
                         )}
                         {s.subtitle && (
                           <p className="text-xs text-zinc-500">{s.subtitle}</p>
@@ -277,7 +277,7 @@ export default async function PerfilPage({
               const r = job.rating
               const quien = r?.from_user?.first_name ?? r?.from_user?.username ?? 'Cliente'
               return (
-                <div key={job.id} className="rounded-xl border border-zinc-200 bg-white p-4">
+                <div key={job.id} className="rounded-xl border border-surface-2 bg-surface-1 p-4">
                   {/* Cabecera del trabajo */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -290,11 +290,11 @@ export default async function PerfilPage({
                         )}
                       </div>
                       {p ? (
-                        <Link href={`/post/${p.id}`} className="font-medium text-zinc-900 hover:underline">
+                        <Link href={`/post/${p.id}`} className="font-medium text-white hover:underline">
                           {p.title}
                         </Link>
                       ) : (
-                        <p className="font-medium text-zinc-900">Trabajo completado</p>
+                        <p className="font-medium text-white">Trabajo completado</p>
                       )}
                     </div>
                     <span className="shrink-0 text-xs text-zinc-400">
@@ -326,7 +326,7 @@ export default async function PerfilPage({
             {ratingsComoCliente.map(r => {
               const quien = r.from_user?.first_name ?? r.from_user?.username ?? 'Trabajador'
               return (
-                <div key={r.id} className="rounded-xl border border-zinc-200 bg-white p-4">
+                <div key={r.id} className="rounded-xl border border-surface-2 bg-surface-1 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="mb-1 flex items-center gap-2">
@@ -335,11 +335,11 @@ export default async function PerfilPage({
                         </span>
                       </div>
                       {r.post ? (
-                        <Link href={`/post/${r.post.id}`} className="font-medium text-zinc-900 hover:underline">
+                        <Link href={`/post/${r.post.id}`} className="font-medium text-white hover:underline">
                           {r.post.title}
                         </Link>
                       ) : (
-                        <p className="font-medium text-zinc-900">Trabajo completado</p>
+                        <p className="font-medium text-white">Trabajo completado</p>
                       )}
                     </div>
                   </div>
@@ -373,17 +373,17 @@ export default async function PerfilPage({
               const post = p.posts as { id: string; title: string; type: string } | null
               const statusLabel = p.status === 'aceptado' ? 'Aceptado' : p.status === 'rechazado' ? 'Rechazado' : 'Pendiente'
               const statusColor = p.status === 'aceptado'
-                ? 'bg-green-100 text-green-700'
+                ? 'bg-green-900/40 text-green-400'
                 : p.status === 'rechazado'
-                ? 'bg-zinc-100 text-zinc-500'
-                : 'bg-yellow-100 text-yellow-700'
+                ? 'bg-surface-2 text-zinc-400'
+                : 'bg-yellow-900/40 text-yellow-400'
               return (
                 <Link
                   key={p.id}
                   href={post ? `/post/${post.id}` : '#'}
-                  className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm transition-shadow hover:shadow-sm"
+                  className="flex items-center justify-between rounded-xl border border-surface-2 bg-surface-1 px-4 py-3 text-sm transition-shadow hover:shadow-sm"
                 >
-                  <p className="truncate font-medium text-zinc-900">{post?.title ?? 'Requerimiento'}</p>
+                  <p className="truncate font-medium text-white">{post?.title ?? 'Requerimiento'}</p>
                   <span className={`ml-3 shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${statusColor}`}>
                     {statusLabel}
                   </span>

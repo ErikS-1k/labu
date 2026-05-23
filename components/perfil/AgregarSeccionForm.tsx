@@ -22,7 +22,7 @@ export default function AgregarSeccionForm() {
   }
 
   return (
-    <form ref={formRef} action={action} className="mt-4 flex flex-col gap-3 rounded-lg border border-zinc-300 bg-white p-4">
+    <form ref={formRef} action={action} className="mt-4 flex flex-col gap-3 rounded-lg border border-surface-2 bg-surface-1 p-4">
       <p className="text-sm font-medium text-zinc-700">Agregar sección</p>
 
       <div className="flex gap-3">
@@ -77,7 +77,7 @@ export default function AgregarSeccionForm() {
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-medium text-zinc-500">URL (opcional)</label>
+        <label className="mb-1 block text-xs font-medium text-zinc-500">URL de tu CV o portfolio (opcional)</label>
         <input
           name="url"
           type="url"
@@ -103,7 +103,7 @@ export default function AgregarSeccionForm() {
       <button
         type="submit"
         disabled={pending}
-        className="self-start rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-40"
+        className="self-start rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:opacity-40"
       >
         {pending ? 'Guardando...' : 'Agregar'}
       </button>

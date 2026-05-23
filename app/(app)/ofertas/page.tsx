@@ -14,7 +14,7 @@ export default async function OfertasPage({
   const { busqueda, categoria, modalidad } = await searchParams
   const supabase = await createClient()
 
-  const baseSelect = 'id, type, title, description, category, modality, price, price_type, location, created_at, users(username, rating_avg)'
+  const baseSelect = 'id, type, title, description, category, modality, price, price_type, location, created_at, users(username, rating_avg, avatar_url)'
 
   // Posts inmediatos al tope (solo si no hay filtros activos)
   const hayFiltros = busqueda || categoria || modalidad
@@ -51,8 +51,8 @@ export default async function OfertasPage({
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="mb-1 text-2xl font-bold text-zinc-900">Ofertas de trabajo</h1>
-      <p className="mb-6 text-sm text-zinc-500">Personas que ofrecen sus servicios</p>
+      <h1 className="mb-1 text-2xl font-bold text-white">Servicios disponibles</h1>
+      <p className="mb-6 text-sm text-zinc-400">Personas que ofrecen sus servicios</p>
 
       <Suspense>
         <FeedFilters />
@@ -63,14 +63,14 @@ export default async function OfertasPage({
         <section className="mt-6">
           <div className="mb-3 flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-green-400" />
-            <h2 className="text-sm font-semibold text-zinc-700">Disponibles ahora</h2>
+            <h2 className="text-sm font-semibold text-zinc-300">Disponibles ahora</h2>
           </div>
           <div className="flex flex-col gap-3">
             {inmediatos.map(post => <PostCard key={post.id} post={post} />)}
           </div>
           {feed.length > 0 && (
             <p className="mt-5 mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-              Todas las ofertas
+              Todos los servicios
             </p>
           )}
         </section>
@@ -81,7 +81,7 @@ export default async function OfertasPage({
           ? feed.map(post => <PostCard key={post.id} post={post} />)
           : !inmediatos.length && (
             <p className="py-16 text-center text-sm text-zinc-400">
-              No hay ofertas todavía.{' '}
+              No hay servicios todavía.{' '}
               <a href="/publicar" className="underline">¡Publicá la tuya!</a>
             </p>
           )

@@ -21,7 +21,7 @@ export default function HeaderSearchBar() {
         value={q}
         onChange={e => setQ(e.target.value)}
         placeholder="Buscar en Labu..."
-        className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm outline-none transition-colors focus:border-zinc-400 focus:bg-white focus:ring-2 focus:ring-zinc-100"
+        className="w-full rounded-lg border border-surface-2 bg-surface-2 px-3 py-1.5 text-sm outline-none transition-colors focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600"
       />
     </form>
   )

@@ -75,9 +75,9 @@ export default async function Home() {
           )}
           <Link
             href="/panel"
-            className="rounded-xl border border-white/20 px-7 py-3 text-sm font-semibold text-white/80 transition-colors hover:bg-white/5"
+            className="rounded-xl bg-white/10 border border-white/20 px-7 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/20"
           >
-            Panel
+            Comenzar
           </Link>
         </div>
       </div>

@@ -1,10 +1,10 @@
-import Link from 'next/link'
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import PostCard, { type PostCardData } from '@/components/posts/PostCard'
 import FeedFilters from '@/components/posts/FeedFilters'
+import PanelSection from '@/components/panel/PanelSection'
 
-const baseSelect = 'id, type, title, description, category, modality, price, price_type, location, created_at, users(username, rating_avg)'
+const baseSelect = 'id, type, title, description, category, modality, price, price_type, location, created_at, users(username, rating_avg, avatar_url)'
 
 async function FeedOfertas({ busqueda, categoria, modalidad }: { busqueda?: string; categoria?: string; modalidad?: string }) {
   const supabase = await createClient()
@@ -13,21 +13,22 @@ async function FeedOfertas({ busqueda, categoria, modalidad }: { busqueda?: stri
 
   if (!hayFiltros) {
     const { data } = await supabase.from('posts').select(baseSelect)
-      .eq('type', 'oferta').eq('is_active', true)      .contains('modality', ['inmediato']).order('created_at', { ascending: false }).limit(4)
+      .eq('type', 'oferta').eq('is_active', true).contains('modality', ['inmediato'])
+      .order('created_at', { ascending: false }).limit(4)
     inmediatos = (data ?? []) as unknown as PostCardData[]
   }
 
   let query = supabase.from('posts').select(baseSelect)
-    .eq('type', 'oferta').eq('is_active', true)    .order('created_at', { ascending: false })
+    .eq('type', 'oferta').eq('is_active', true).order('created_at', { ascending: false })
 
   if (busqueda)  query = query.or(`title.ilike.%${busqueda}%,description.ilike.%${busqueda}%`)
   if (categoria) query = query.ilike('category', `%${categoria}%`)
   if (modalidad) query = query.contains('modality', [modalidad])
 
   const { data: posts } = await query
-  const ids = new Set(inmediatos.map(p => p.id))
+  const ids  = new Set(inmediatos.map(p => p.id))
   const resto = (posts ?? []) as unknown as PostCardData[]
-  const feed = hayFiltros ? resto : resto.filter(p => !ids.has(p.id))
+  const feed  = hayFiltros ? resto : resto.filter(p => !ids.has(p.id))
 
   return (
     <div>
@@ -35,12 +36,12 @@ async function FeedOfertas({ busqueda, categoria, modalidad }: { busqueda?: stri
         <section className="mb-6">
           <div className="mb-3 flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-green-400" />
-            <p className="text-sm font-semibold text-zinc-700">Disponibles ahora</p>
+            <p className="text-sm font-semibold text-zinc-300">Disponibles ahora</p>
           </div>
           <div className="flex flex-col gap-3">
             {inmediatos.map(p => <PostCard key={p.id} post={p} />)}
           </div>
-          {feed.length > 0 && <p className="mt-5 mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Todas las ofertas</p>}
+          {feed.length > 0 && <p className="mt-5 mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Todos los servicios</p>}
         </section>
       )}
       <div className="flex flex-col gap-3">
@@ -48,7 +49,7 @@ async function FeedOfertas({ busqueda, categoria, modalidad }: { busqueda?: stri
           ? feed.map(p => <PostCard key={p.id} post={p} />)
           : !inmediatos.length && (
             <p className="py-12 text-center text-sm text-zinc-400">
-              No hay ofertas todavía. <a href="/publicar" className="underline">¡Publicá la tuya!</a>
+              No hay servicios todavía. <a href="/publicar" className="underline">¡Publicá el tuyo!</a>
             </p>
           )
         }
@@ -57,28 +58,29 @@ async function FeedOfertas({ busqueda, categoria, modalidad }: { busqueda?: stri
   )
 }
 
-async function FeedRequerimientos({ busqueda, categoria, modalidad }: { busqueda?: string; categoria?: string; modalidad?: string }) {
+async function FeedBusquedas({ busqueda, categoria, modalidad }: { busqueda?: string; categoria?: string; modalidad?: string }) {
   const supabase = await createClient()
   const hayFiltros = busqueda || categoria || modalidad
   let urgentes: PostCardData[] = []
 
   if (!hayFiltros) {
     const { data } = await supabase.from('posts').select(baseSelect)
-      .eq('type', 'requerimiento').eq('is_active', true)      .contains('modality', ['inmediato']).order('created_at', { ascending: false }).limit(4)
+      .eq('type', 'requerimiento').eq('is_active', true).contains('modality', ['inmediato'])
+      .order('created_at', { ascending: false }).limit(4)
     urgentes = (data ?? []) as unknown as PostCardData[]
   }
 
   let query = supabase.from('posts').select(baseSelect)
-    .eq('type', 'requerimiento').eq('is_active', true)    .order('created_at', { ascending: false })
+    .eq('type', 'requerimiento').eq('is_active', true).order('created_at', { ascending: false })
 
   if (busqueda)  query = query.or(`title.ilike.%${busqueda}%,description.ilike.%${busqueda}%`)
   if (categoria) query = query.ilike('category', `%${categoria}%`)
   if (modalidad) query = query.contains('modality', [modalidad])
 
   const { data: posts } = await query
-  const ids = new Set(urgentes.map(p => p.id))
+  const ids   = new Set(urgentes.map(p => p.id))
   const resto = (posts ?? []) as unknown as PostCardData[]
-  const feed = hayFiltros ? resto : resto.filter(p => !ids.has(p.id))
+  const feed  = hayFiltros ? resto : resto.filter(p => !ids.has(p.id))
 
   return (
     <div>
@@ -86,12 +88,12 @@ async function FeedRequerimientos({ busqueda, categoria, modalidad }: { busqueda
         <section className="mb-6">
           <div className="mb-3 flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-green-400" />
-            <p className="text-sm font-semibold text-zinc-700">Urgentes ahora</p>
+            <p className="text-sm font-semibold text-zinc-300">Urgentes ahora</p>
           </div>
           <div className="flex flex-col gap-3">
             {urgentes.map(p => <PostCard key={p.id} post={p} />)}
           </div>
-          {feed.length > 0 && <p className="mt-5 mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Todos los requerimientos</p>}
+          {feed.length > 0 && <p className="mt-5 mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Todas las búsquedas</p>}
         </section>
       )}
       <div className="flex flex-col gap-3">
@@ -99,7 +101,7 @@ async function FeedRequerimientos({ busqueda, categoria, modalidad }: { busqueda
           ? feed.map(p => <PostCard key={p.id} post={p} />)
           : !urgentes.length && (
             <p className="py-12 text-center text-sm text-zinc-400">
-              No hay requerimientos todavía. <a href="/publicar" className="underline">¡Publicá el tuyo!</a>
+              No hay búsquedas todavía. <a href="/publicar" className="underline">¡Publicá la tuya!</a>
             </p>
           )
         }
@@ -111,71 +113,84 @@ async function FeedRequerimientos({ busqueda, categoria, modalidad }: { busqueda
 export default async function PanelPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; busqueda?: string; categoria?: string; modalidad?: string }>
+  searchParams: Promise<Record<string, string | undefined>>
 }) {
-  const { tab, busqueda, categoria, modalidad } = await searchParams
-  const tabActiva = tab === 'ofertas' || tab === 'requerimientos' ? tab : null
+  const params = await searchParams
+  const ofOpen  = params.of  === '1'
+  const reqOpen = params.req === '1'
 
   return (
     <div>
-      {/* Hero negro con tabs */}
+      {/* Hero */}
       <div
-        className="relative overflow-hidden bg-black py-16 text-white"
+        className="relative overflow-hidden bg-surface-0 py-14 text-white"
         style={{
-          backgroundImage: 'radial-gradient(circle, #ffffff12 1px, transparent 1px)',
+          backgroundImage: 'radial-gradient(circle, #ffffff10 1px, transparent 1px)',
           backgroundSize: '28px 28px',
         }}
       >
         <div className="absolute inset-0" style={{
-          background: 'radial-gradient(ellipse at 50% 60%, transparent 20%, #000000 75%)',
+          background: 'radial-gradient(ellipse at 50% 60%, transparent 20%, #0f0f0f 75%)',
         }} />
-
-        <div className="relative mx-auto max-w-2xl px-4 text-center">
-          {!tabActiva && (
-            <p className="mb-8 text-sm font-medium tracking-widest text-zinc-500 uppercase">
-              ¿Qué estás buscando hoy?
-            </p>
-          )}
-
-          <div className="flex justify-center gap-4">
-            <Link
-              href="/panel?tab=ofertas"
-              className={`rounded-2xl border px-10 py-5 text-lg font-semibold transition-all duration-200 ${
-                tabActiva === 'ofertas'
-                  ? 'border-white bg-white/10 text-white shadow-[0_0_24px_rgba(255,255,255,0.15)]'
-                  : 'border-white/20 text-zinc-400 hover:border-white/40 hover:text-white/80'
-              }`}
-            >
-              Ofertas
-            </Link>
-            <Link
-              href="/panel?tab=requerimientos"
-              className={`rounded-2xl border px-10 py-5 text-lg font-semibold transition-all duration-200 ${
-                tabActiva === 'requerimientos'
-                  ? 'border-white bg-white/10 text-white shadow-[0_0_24px_rgba(255,255,255,0.15)]'
-                  : 'border-white/20 text-zinc-400 hover:border-white/40 hover:text-white/80'
-              }`}
-            >
-              Requerimientos
-            </Link>
-          </div>
+        <div className="relative mx-auto max-w-3xl px-4 text-center">
+          <p className="text-sm font-medium tracking-widest text-zinc-500 uppercase mb-3">
+            ¿Qué estás buscando hoy?
+          </p>
+          <h1 className="text-3xl font-bold text-white">Encontrá trabajo o talento</h1>
+          <p className="mt-2 text-sm text-zinc-400">Abrí la sección que te interesa para explorar el feed.</p>
         </div>
       </div>
 
-      {/* Feed */}
-      {tabActiva && (
-        <div className="mx-auto max-w-2xl px-4 py-8">
-          <Suspense>
-            <FeedFilters />
-          </Suspense>
-          <div className="mt-6">
-            {tabActiva === 'ofertas'
-              ? <FeedOfertas busqueda={busqueda} categoria={categoria} modalidad={modalidad} />
-              : <FeedRequerimientos busqueda={busqueda} categoria={categoria} modalidad={modalidad} />
-            }
-          </div>
+      {/* Dos columnas */}
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+          {/* Servicios (Ofertas) */}
+          <PanelSection
+            title="Ofrezco mis servicios"
+            subtitle="Personas que ofrecen trabajo o freelance"
+            openParam="of"
+            isOpen={ofOpen}
+          >
+            <Suspense>
+              <FeedFilters
+                paramPrefix="of_"
+                preserveParams={['of', 'req']}
+              />
+            </Suspense>
+            <div className="mt-6">
+              <FeedOfertas
+                busqueda={params.of_busqueda}
+                categoria={params.of_categoria}
+                modalidad={params.of_modalidad}
+              />
+            </div>
+          </PanelSection>
+
+          {/* Búsquedas (Requerimientos) */}
+          <PanelSection
+            title="Necesito contratar"
+            subtitle="Personas que buscan un servicio o profesional"
+            openParam="req"
+            isOpen={reqOpen}
+          >
+            <Suspense>
+              <FeedFilters
+                paramPrefix="req_"
+                preserveParams={['of', 'req']}
+              />
+            </Suspense>
+            <div className="mt-6">
+              <FeedBusquedas
+                busqueda={params.req_busqueda}
+                categoria={params.req_categoria}
+                modalidad={params.req_modalidad}
+              />
+            </div>
+          </PanelSection>
+
         </div>
-      )}
+      </div>
     </div>
   )
 }

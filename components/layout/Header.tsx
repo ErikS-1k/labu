@@ -18,10 +18,10 @@ export default async function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white">
+    <header className="sticky top-0 z-10 border-b border-surface-2 bg-surface-0">
       <div className="relative mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
         <HeaderNav isLoggedIn={!!user} userId={user?.id ?? null} userName={userName} unreadCount={unreadCount} />
-        <Link href="/" className="text-lg font-bold tracking-tight text-zinc-900">
+        <Link href="/" className="text-lg font-bold tracking-tight text-white">
           Labu
         </Link>
       </div>

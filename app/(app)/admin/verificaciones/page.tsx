@@ -33,7 +33,7 @@ export default async function AdminVerificacionesPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="mb-1 text-2xl font-bold text-zinc-900">Verificaciones pendientes</h1>
+      <h1 className="mb-1 text-2xl font-bold text-white">Verificaciones pendientes</h1>
       <p className="mb-6 text-sm text-zinc-500">
         {conUrls.length === 0 ? 'No hay solicitudes' : `${conUrls.length} solicitud${conUrls.length !== 1 ? 'es' : ''}`}
       </p>
@@ -52,10 +52,10 @@ export default async function AdminVerificacionesPage() {
             const usuario = s.users as unknown as { username: string | null; first_name: string | null; last_name: string | null } | null
             const nombre = [usuario?.first_name, usuario?.last_name].filter(Boolean).join(' ') || usuario?.username || 'Usuario'
             return (
-              <div key={s.id} className="rounded-xl border border-zinc-200 bg-white p-5">
+              <div key={s.id} className="rounded-xl border border-surface-2 bg-surface-1 p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="font-medium text-zinc-900">{nombre}</p>
+                    <p className="font-medium text-white">{nombre}</p>
                     <p className="text-sm text-zinc-400">
                       {new Date(s.created_at).toLocaleDateString('es-AR', {
                         day: 'numeric', month: 'long', year: 'numeric',

@@ -28,14 +28,14 @@ export default async function VerificacionPage() {
         ← Volver al perfil
       </Link>
 
-      <h1 className="mb-2 text-xl font-bold text-zinc-900">Verificá tu identidad</h1>
+      <h1 className="mb-2 text-xl font-bold text-white">Verificá tu identidad</h1>
       <p className="mb-8 text-sm text-zinc-500">
         El badge de verificación le muestra a otros usuarios que sos una persona real.
         Aumenta la confianza y tus chances de ser contratado o de conseguir candidatos serios.
       </p>
 
       {/* Qué subir */}
-      <div className="mb-6 rounded-xl border border-zinc-200 bg-white p-5">
+      <div className="mb-6 rounded-xl border border-surface-2 bg-surface-1 p-5">
         <h2 className="mb-3 text-sm font-semibold text-zinc-700">Qué necesitás subir</h2>
         <ul className="flex flex-col gap-2 text-sm text-zinc-600">
           <li className="flex items-start gap-2">
@@ -54,7 +54,7 @@ export default async function VerificacionPage() {
       </div>
 
       {/* Cómo funciona */}
-      <div className="mb-8 rounded-xl border border-zinc-200 bg-white p-5">
+      <div className="mb-8 rounded-xl border border-surface-2 bg-surface-1 p-5">
         <h2 className="mb-3 text-sm font-semibold text-zinc-700">Cómo funciona</h2>
         <ol className="flex flex-col gap-3">
           {[
@@ -73,7 +73,7 @@ export default async function VerificacionPage() {
       </div>
 
       {/* Formulario */}
-      <div className="rounded-xl border border-zinc-200 bg-white p-5">
+      <div className="rounded-xl border border-surface-2 bg-surface-1 p-5">
         <h2 className="mb-4 text-sm font-semibold text-zinc-700">Subir documento</h2>
         <VerificacionForm userId={user.id} />
       </div>

@@ -18,7 +18,7 @@ export default function CerrarPostButton({ postId }: { postId: string }) {
       <button
         type="button"
         onClick={handleClick}
-        className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs text-zinc-500 transition-colors hover:bg-zinc-50"
+        className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs text-zinc-500 transition-colors hover:bg-surface-2"
       >
         Cerrar
       </button>

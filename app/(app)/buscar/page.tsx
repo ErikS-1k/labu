@@ -37,7 +37,7 @@ export default async function BuscarPage({
 
         supabase
           .from('posts')
-          .select('id, type, title, description, category, modality, price, price_type, location, created_at, users(username, rating_avg)')
+          .select('id, type, title, description, category, modality, price, price_type, location, created_at, users(username, rating_avg, avatar_url)')
           .eq('type', 'oferta')
           .eq('is_active', true)
           .or(`title.ilike.%${safe}%,description.ilike.%${safe}%,category.ilike.%${safe}%,location.ilike.%${safe}%`)
@@ -46,7 +46,7 @@ export default async function BuscarPage({
 
         supabase
           .from('posts')
-          .select('id, type, title, description, category, modality, price, price_type, location, created_at, users(username, rating_avg)')
+          .select('id, type, title, description, category, modality, price, price_type, location, created_at, users(username, rating_avg, avatar_url)')
           .eq('type', 'requerimiento')
           .eq('is_active', true)
           .or(`title.ilike.%${safe}%,description.ilike.%${safe}%,category.ilike.%${safe}%,location.ilike.%${safe}%`)
@@ -67,8 +67,8 @@ export default async function BuscarPage({
   const TABS = [
     { key: 'todo',           label: 'Todo',           count: nTotal },
     { key: 'perfiles',       label: 'Perfiles',       count: nPerfiles },
-    { key: 'ofertas',        label: 'Ofertas',        count: nOfertas },
-    { key: 'requerimientos', label: 'Requerimientos', count: nRequerimientos },
+    { key: 'ofertas',        label: 'Servicios',      count: nOfertas },
+    { key: 'requerimientos', label: 'Búsquedas',      count: nRequerimientos },
   ]
 
   const mostrarPerfiles       = tab === 'todo' || tab === 'perfiles'
@@ -81,15 +81,15 @@ export default async function BuscarPage({
 
       {/* Tabs — solo cuando hay búsqueda activa */}
       {q && (
-        <div className="mt-4 flex gap-1 overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-50 p-1">
+        <div className="mt-4 flex gap-1 overflow-x-auto rounded-xl border border-surface-2 bg-surface-1 p-1">
           {TABS.map(t => (
             <Link
               key={t.key}
               href={`/buscar?q=${encodeURIComponent(q)}&tab=${t.key}`}
               className={`shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                 tab === t.key
-                  ? 'bg-white text-zinc-900 shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-700'
+                  ? 'bg-surface-3 text-white shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
               {t.label}
@@ -110,15 +110,15 @@ export default async function BuscarPage({
           <div className="mt-6 flex justify-center gap-3">
             <Link
               href="/ofertas"
-              className="rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-50"
+              className="rounded-lg border border-surface-2 bg-surface-1 px-4 py-2.5 text-sm text-zinc-200 transition-colors hover:bg-surface-2"
             >
-              Ver Ofertas
+              Ver Servicios
             </Link>
             <Link
               href="/requerimientos"
-              className="rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-50"
+              className="rounded-lg border border-surface-2 bg-surface-1 px-4 py-2.5 text-sm text-zinc-200 transition-colors hover:bg-surface-2"
             >
-              Ver Requerimientos
+              Ver Búsquedas
             </Link>
           </div>
         </div>
@@ -151,29 +151,29 @@ export default async function BuscarPage({
                     <Link
                       key={u.id}
                       href={`/perfil/${u.id}`}
-                      className="flex items-start gap-4 rounded-xl border border-zinc-200 bg-white p-4 transition-shadow hover:shadow-sm"
+                      className="flex items-start gap-4 rounded-xl border border-surface-2 bg-surface-1 p-4 transition-shadow hover:shadow-sm"
                     >
-                      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-zinc-200">
+                      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-surface-2">
                         {u.avatar_url
                           ? <img src={u.avatar_url} alt={nombre} className="h-full w-full object-cover" />
-                          : <span className="flex h-full w-full items-center justify-center text-lg font-semibold text-zinc-600">{inicial}</span>
+                          : <span className="flex h-full w-full items-center justify-center text-lg font-semibold text-zinc-300">{inicial}</span>
                         }
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
-                          <p className="font-semibold text-zinc-900">{nombre}</p>
+                          <p className="font-semibold text-white">{nombre}</p>
                           {(u.rating_count ?? 0) > 0 && (
                             <span className="shrink-0 text-xs text-zinc-400">★ {u.rating_avg}</span>
                           )}
                         </div>
                         {u.headline && (
-                          <p className="text-xs font-medium text-zinc-500">{u.headline}</p>
+                          <p className="text-xs font-medium text-zinc-400">{u.headline}</p>
                         )}
                         {u.location && (
                           <p className="mt-0.5 text-xs text-zinc-400">{u.location}</p>
                         )}
                         {u.bio && (
-                          <p className="mt-1.5 line-clamp-2 text-sm leading-snug text-zinc-600">
+                          <p className="mt-1.5 line-clamp-2 text-sm leading-snug text-zinc-300">
                             {u.bio}
                           </p>
                         )}
@@ -190,7 +190,7 @@ export default async function BuscarPage({
             <section>
               {tab === 'todo' && (
                 <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                  Ofertas
+                  Servicios
                 </h2>
               )}
               <div className="flex flex-col gap-2">
@@ -206,7 +206,7 @@ export default async function BuscarPage({
             <section>
               {tab === 'todo' && (
                 <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                  Requerimientos
+                  Búsquedas
                 </h2>
               )}
               <div className="flex flex-col gap-2">

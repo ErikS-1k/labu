@@ -38,16 +38,16 @@ export default async function MisPublicacionesPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-zinc-900">Mis publicaciones</h1>
-        <Link href="/publicar" className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm text-white transition-colors hover:bg-zinc-700">
+        <h1 className="text-xl font-bold text-white">Mis publicaciones</h1>
+        <Link href="/publicar" className="rounded-lg bg-white px-3 py-1.5 text-sm text-zinc-900 transition-colors hover:bg-zinc-200">
           + Publicar
         </Link>
       </div>
 
       {(!posts || posts.length === 0) ? (
-        <div className="rounded-xl border border-zinc-100 bg-zinc-50 px-6 py-12 text-center">
+        <div className="rounded-xl border border-surface-2 bg-surface-1 px-6 py-12 text-center">
           <p className="text-zinc-500">Todavía no publicaste nada.</p>
-          <Link href="/publicar" className="mt-4 inline-block rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-700">
+          <Link href="/publicar" className="mt-4 inline-block rounded-lg bg-white px-4 py-2 text-sm text-zinc-900 hover:bg-zinc-200">
             Crear primera publicación
           </Link>
         </div>
@@ -55,21 +55,21 @@ export default async function MisPublicacionesPage() {
         <div className="flex flex-col gap-3">
           {posts.map(post => {
             const appCount = countsByPost[post.id] ?? 0
-            const label = post.type === 'oferta' ? 'Oferta' : 'Requerimiento'
+            const label = post.type === 'oferta' ? 'Servicio' : 'Búsqueda'
             const modalities = (post.modality as string[] | null) ?? []
 
             return (
-              <div key={post.id} className="rounded-xl border border-zinc-200 bg-white p-4">
+              <div key={post.id} className="rounded-xl border border-surface-2 bg-surface-1 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
                       <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        post.type === 'oferta' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
+                        post.type === 'oferta' ? 'bg-blue-900/40 text-blue-400' : 'bg-orange-900/40 text-orange-400'
                       }`}>
                         {label}
                       </span>
                       <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        post.is_active ? 'bg-green-100 text-green-700' : 'bg-zinc-100 text-zinc-500'
+                        post.is_active ? 'bg-green-900/40 text-green-400' : 'bg-surface-2 text-zinc-400'
                       }`}>
                         {post.is_active ? 'Activo' : 'Cerrado'}
                       </span>
@@ -77,7 +77,7 @@ export default async function MisPublicacionesPage() {
                         <span key={m} className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 capitalize">{m}</span>
                       ))}
                     </div>
-                    <p className="font-medium text-zinc-900 leading-snug truncate">{post.title}</p>
+                    <p className="font-medium text-white leading-snug truncate">{post.title}</p>
                     <div className="mt-1 flex items-center gap-3 text-xs text-zinc-400">
                       {post.category && <span>{post.category}</span>}
                       <span>{formatDate(post.created_at)}</span>
@@ -88,7 +88,7 @@ export default async function MisPublicacionesPage() {
                   <div className="flex shrink-0 items-center gap-2">
                     <Link
                       href={`/post/${post.id}`}
-                      className="rounded-lg bg-zinc-900 px-3 py-1.5 text-xs text-white transition-colors hover:bg-zinc-700"
+                      className="rounded-lg bg-white px-3 py-1.5 text-xs text-zinc-900 transition-colors hover:bg-zinc-200"
                     >
                       Ver
                     </Link>

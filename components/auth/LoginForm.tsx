@@ -46,14 +46,14 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50"
+        className="mt-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:opacity-50"
       >
         {pending ? 'Entrando...' : 'Entrar'}
       </button>
 
       <p className="text-center text-sm text-zinc-500">
         ¿No tenés cuenta?{' '}
-        <Link href="/registro" className="font-medium text-zinc-900 hover:underline">
+        <Link href="/registro" className="font-medium text-white hover:underline">
           Registrate
         </Link>
       </p>

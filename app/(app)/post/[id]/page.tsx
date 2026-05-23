@@ -95,7 +95,7 @@ export default async function PostPage({
     : post.price_type === 'a_convenir' ? 'A convenir' : null
 
   const backHref  = post.type === 'oferta' ? '/ofertas' : '/requerimientos'
-  const backLabel = post.type === 'oferta' ? 'Ofertas' : 'Requerimientos'
+  const backLabel = post.type === 'oferta' ? 'Servicios' : 'Búsquedas'
 
   const autor = post.users as {
     username:     string | null
@@ -119,12 +119,12 @@ export default async function PostPage({
       </Link>
 
       {/* Tarjeta del post */}
-      <div className="rounded-xl border border-zinc-200 bg-white p-6">
+      <div className="rounded-xl border border-surface-2 bg-surface-1 p-6">
         <div className="mb-3 flex flex-wrap gap-2">
           <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-            post.type === 'oferta' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
+            post.type === 'oferta' ? 'bg-blue-900/40 text-blue-400' : 'bg-orange-900/40 text-orange-400'
           }`}>
-            {post.type === 'oferta' ? 'Oferta' : 'Requerimiento'}
+            {post.type === 'oferta' ? 'Servicio' : 'Búsqueda'}
           </span>
           {(post.modality as string[]).includes('inmediato') && (
             <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
@@ -132,13 +132,13 @@ export default async function PostPage({
             </span>
           )}
           {post.category && (
-            <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs text-zinc-500">
+            <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs text-zinc-400">
               {post.category}
             </span>
           )}
         </div>
 
-        <h1 className="text-xl font-bold text-zinc-900">{post.title}</h1>
+        <h1 className="text-xl font-bold text-white">{post.title}</h1>
 
         {post.description && (
           <p className="mt-4 text-sm leading-relaxed text-zinc-600">{post.description}</p>
@@ -148,7 +148,7 @@ export default async function PostPage({
           {priceLabel && (
             <div className="flex justify-between">
               <span className="text-zinc-400">Precio</span>
-              <span className="font-medium text-zinc-900">{priceLabel}</span>
+              <span className="font-medium text-white">{priceLabel}</span>
             </div>
           )}
           <div className="flex justify-between">
@@ -171,7 +171,7 @@ export default async function PostPage({
 
       {/* Tarjeta del autor */}
       {autor && (
-        <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+        <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-400">
             Publicado por
           </p>
@@ -180,7 +180,7 @@ export default async function PostPage({
               {autorInicial}
             </div>
             <div>
-              <p className="font-semibold text-zinc-900">{autorNombre}</p>
+              <p className="font-semibold text-white">{autorNombre}</p>
               {(autor.rating_count ?? 0) > 0 && (
                 <p className="text-xs text-zinc-400">
                   ★ {autor.rating_avg} · {autor.rating_count} calificaciones
@@ -253,7 +253,7 @@ export default async function PostPage({
         <div className={`mt-4 rounded-xl border px-4 py-3 text-sm ${
           miPostulacion.status === 'rechazado'
             ? 'border-red-200 bg-red-50 text-red-700'
-            : 'border-zinc-200 bg-zinc-50 text-zinc-600'
+            : 'border-surface-2 bg-surface-2 text-zinc-400'
         }`}>
           {miPostulacion.status === 'pendiente' && 'Solicitud enviada · pendiente de revisión.'}
           {miPostulacion.status === 'rechazado' && 'Tu solicitud fue rechazada.'}
@@ -262,7 +262,7 @@ export default async function PostPage({
 
       {/* Solicitante: formulario si aún no envió solicitud */}
       {!esRequerimiento && user && !esAutor && !miPostulacion && !estaCompletado && (
-        <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+        <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
           <p className="mb-3 text-sm font-semibold text-zinc-800">Solicitar contacto</p>
           <PostularseForm
             postId={post.id}
@@ -275,7 +275,7 @@ export default async function PostPage({
 
       {/* Autor de la oferta: lista de solicitudes entrantes */}
       {!esRequerimiento && esAutor && (
-        <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+        <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
           <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-zinc-400">
             Solicitudes de contacto ({(postulaciones ?? []).length})
           </p>
@@ -293,15 +293,15 @@ export default async function PostPage({
                 return (
                   <div key={p.id} className={`rounded-lg border p-4 ${
                     p.status === 'aceptado' ? 'border-green-200 bg-green-50' :
-                    p.status === 'rechazado' ? 'border-zinc-100 bg-zinc-50 opacity-60' :
-                    'border-zinc-200'
+                    p.status === 'rechazado' ? 'border-surface-2 bg-surface-1 opacity-60' :
+                    'border-surface-2'
                   }`}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <Link
                           href={`/perfil/${p.applicant_id}`}
                           target="_blank"
-                          className="font-medium text-zinc-900 hover:underline"
+                          className="font-medium text-white hover:underline"
                         >
                           {nombre}
                         </Link>
@@ -337,7 +337,7 @@ export default async function PostPage({
                       )}
                       {p.status !== 'pendiente' && (
                         <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                          p.status === 'aceptado' ? 'bg-green-100 text-green-700' : 'bg-zinc-100 text-zinc-500'
+                          p.status === 'aceptado' ? 'bg-green-900/40 text-green-400' : 'bg-surface-2 text-zinc-400'
                         }`}>
                           {p.status === 'aceptado' ? 'Aceptado' : 'Rechazado'}
                         </span>
@@ -347,7 +347,7 @@ export default async function PostPage({
                       <form action={iniciarConversacion} className="mt-3">
                         <input type="hidden" name="post_id"     value={post.id} />
                         <input type="hidden" name="receiver_id" value={p.applicant_id} />
-                        <button type="submit" className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-xs font-medium text-white hover:bg-zinc-700">
+                        <button type="submit" className="w-full rounded-lg bg-white px-4 py-2 text-xs font-medium text-zinc-900 hover:bg-zinc-200">
                           Iniciar conversación
                         </button>
                       </form>
@@ -394,7 +394,7 @@ export default async function PostPage({
         <div className={`mt-4 rounded-xl border px-4 py-3 text-sm ${
           miPostulacion.status === 'rechazado'
             ? 'border-red-200 bg-red-50 text-red-700'
-            : 'border-zinc-200 bg-zinc-50 text-zinc-600'
+            : 'border-surface-2 bg-surface-2 text-zinc-400'
         }`}>
           {miPostulacion.status === 'pendiente' && 'Postulación enviada · pendiente de revisión.'}
           {miPostulacion.status === 'rechazado' && 'Tu postulación fue rechazada.'}
@@ -403,7 +403,7 @@ export default async function PostPage({
 
       {/* Postulante: formulario si aún no se postuló */}
       {esRequerimiento && user && !esAutor && !miPostulacion && !estaCompletado && (
-        <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+        <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
           <p className="mb-3 text-sm font-semibold text-zinc-800">Postularse</p>
           <PostularseForm postId={post.id} />
         </div>
@@ -411,7 +411,7 @@ export default async function PostPage({
 
       {/* Autor del requerimiento: lista de postulaciones */}
       {esRequerimiento && esAutor && (
-        <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+        <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
           <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-zinc-400">
             Postulaciones ({(postulaciones ?? []).length})
           </p>
@@ -429,15 +429,15 @@ export default async function PostPage({
                 return (
                   <div key={p.id} className={`rounded-lg border p-4 ${
                     p.status === 'aceptado' ? 'border-green-200 bg-green-50' :
-                    p.status === 'rechazado' ? 'border-zinc-100 bg-zinc-50 opacity-60' :
-                    'border-zinc-200'
+                    p.status === 'rechazado' ? 'border-surface-2 bg-surface-1 opacity-60' :
+                    'border-surface-2'
                   }`}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <Link
                           href={`/perfil/${p.applicant_id}`}
                           target="_blank"
-                          className="font-medium text-zinc-900 hover:underline"
+                          className="font-medium text-white hover:underline"
                         >
                           {nombre}
                         </Link>
@@ -475,7 +475,7 @@ export default async function PostPage({
                       )}
                       {p.status !== 'pendiente' && (
                         <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                          p.status === 'aceptado' ? 'bg-green-100 text-green-700' : 'bg-zinc-100 text-zinc-500'
+                          p.status === 'aceptado' ? 'bg-green-900/40 text-green-400' : 'bg-surface-2 text-zinc-400'
                         }`}>
                           {p.status === 'aceptado' ? 'Aceptado' : 'Rechazado'}
                         </span>
@@ -485,7 +485,7 @@ export default async function PostPage({
                       <form action={iniciarConversacion} className="mt-3">
                         <input type="hidden" name="post_id"     value={post.id} />
                         <input type="hidden" name="receiver_id" value={p.applicant_id} />
-                        <button type="submit" className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-xs font-medium text-white hover:bg-zinc-700">
+                        <button type="submit" className="w-full rounded-lg bg-white px-4 py-2 text-xs font-medium text-zinc-900 hover:bg-zinc-200">
                           Iniciar conversación
                         </button>
                       </form>
@@ -507,7 +507,7 @@ export default async function PostPage({
 
         // Autor del post (cliente en req / trabajador en oferta)
         if (esAutor && aplicacionAceptadaData) return (
-          <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+          <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
             {!confirmedByClient ? (
               <>
                 <p className="mb-3 text-sm text-zinc-500">
@@ -515,7 +515,7 @@ export default async function PostPage({
                 </p>
                 <form action={marcarCompletado}>
                   <input type="hidden" name="post_id" value={post.id} />
-                  <button type="submit" className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-700 transition-colors hover:bg-zinc-50">
+                  <button type="submit" className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-700 transition-colors hover:bg-surface-2">
                     Confirmar finalización
                   </button>
                 </form>
@@ -530,7 +530,7 @@ export default async function PostPage({
 
         // Postulante/solicitante aceptado
         if (soyTrabajadorAceptado && !estaCompletado) return (
-          <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+          <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
             {!confirmedByWorker ? (
               <>
                 <p className="mb-3 text-sm text-zinc-500">
@@ -538,7 +538,7 @@ export default async function PostPage({
                 </p>
                 <form action={marcarCompletado}>
                   <input type="hidden" name="post_id" value={post.id} />
-                  <button type="submit" className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-700 transition-colors hover:bg-zinc-50">
+                  <button type="submit" className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-700 transition-colors hover:bg-surface-2">
                     Confirmar finalización
                   </button>
                 </form>
@@ -572,7 +572,7 @@ export default async function PostPage({
           const otraParteNombre = ap?.first_name ?? ap?.username ?? 'la otra parte'
           if (yaCalifique) return <p className="mt-4 text-center text-sm text-zinc-400">Ya calificaste este trabajo.</p>
           return (
-            <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+            <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
               <RatingForm postId={post.id} toUserId={aplicacionAceptadaData.applicant_id} toUserName={otraParteNombre} />
             </div>
           )
@@ -582,7 +582,7 @@ export default async function PostPage({
         if (soyTrabajadorAceptado) {
           if (yaCalifique) return <p className="mt-4 text-center text-sm text-zinc-400">Ya calificaste este trabajo.</p>
           return (
-            <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+            <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
               <RatingForm postId={post.id} toUserId={post.user_id} toUserName={autorNombre} />
             </div>
           )

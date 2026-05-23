@@ -21,11 +21,11 @@ export default function SearchForm({ initialQ }: { initialQ: string }) {
         onChange={e => setQ(e.target.value)}
         placeholder="Buscá por nombre, rubro o zona..."
         autoFocus
-        className="flex-1 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
+        className="flex-1 rounded-lg border border-surface-2 bg-surface-2 px-4 py-2.5 text-sm outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600"
       />
       <button
         type="submit"
-        className="rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+        className="rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200"
       >
         Buscar
       </button>

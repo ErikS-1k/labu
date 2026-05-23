@@ -44,7 +44,7 @@ export default async function MensajesPage() {
 
   return (
     <main className="mx-auto max-w-xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-zinc-900">Mensajes</h1>
+      <h1 className="mb-6 text-2xl font-bold text-white">Mensajes</h1>
 
       {conversaciones.length === 0 ? (
         <p className="py-16 text-center text-sm text-zinc-400">
@@ -61,17 +61,17 @@ export default async function MensajesPage() {
               <Link
                 key={conv.conversation_id}
                 href={`/mensajes/${conv.conversation_id}`}
-                className="flex items-start gap-3 rounded-xl border border-zinc-200 bg-white p-4 transition-shadow hover:shadow-sm"
+                className="flex items-start gap-3 rounded-xl border border-surface-2 bg-surface-1 p-4 transition-shadow hover:shadow-sm"
               >
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-sm font-semibold text-zinc-600">
                   {nombre[0].toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <p className={`truncate text-sm font-medium ${noLeido ? 'text-zinc-900' : 'text-zinc-600'}`}>
+                    <p className={`truncate text-sm font-medium ${noLeido ? 'text-white' : 'text-zinc-400'}`}>
                       {nombre}
                     </p>
-                    {noLeido && <span className="h-2 w-2 shrink-0 rounded-full bg-zinc-900" />}
+                    {noLeido && <span className="h-2 w-2 shrink-0 rounded-full bg-white" />}
                   </div>
                   {conv.post && (
                     <p className="truncate text-xs text-zinc-400">Re: {conv.post.title}</p>

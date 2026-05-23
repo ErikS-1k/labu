@@ -14,7 +14,7 @@ export default async function RequerimientosPage({
   const { busqueda, categoria, modalidad } = await searchParams
   const supabase = await createClient()
 
-  const baseSelect = 'id, type, title, description, category, modality, price, price_type, location, created_at, users(username, rating_avg)'
+  const baseSelect = 'id, type, title, description, category, modality, price, price_type, location, created_at, users(username, rating_avg, avatar_url)'
 
   // Posts urgentes al tope (solo si no hay filtros activos)
   const hayFiltros = busqueda || categoria || modalidad
@@ -51,8 +51,8 @@ export default async function RequerimientosPage({
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="mb-1 text-2xl font-bold text-zinc-900">Requerimientos</h1>
-      <p className="mb-6 text-sm text-zinc-500">Personas que buscan trabajo o un servicio</p>
+      <h1 className="mb-1 text-2xl font-bold text-white">Búsquedas activas</h1>
+      <p className="mb-6 text-sm text-zinc-400">Personas que buscan trabajo o un servicio</p>
 
       <Suspense>
         <FeedFilters />
@@ -63,14 +63,14 @@ export default async function RequerimientosPage({
         <section className="mt-6">
           <div className="mb-3 flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-green-400" />
-            <h2 className="text-sm font-semibold text-zinc-700">Urgentes ahora</h2>
+            <h2 className="text-sm font-semibold text-zinc-300">Urgentes ahora</h2>
           </div>
           <div className="flex flex-col gap-3">
             {urgentes.map(post => <PostCard key={post.id} post={post} />)}
           </div>
           {feed.length > 0 && (
             <p className="mt-5 mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-              Todos los requerimientos
+              Todas las búsquedas
             </p>
           )}
         </section>
@@ -81,7 +81,7 @@ export default async function RequerimientosPage({
           ? feed.map(post => <PostCard key={post.id} post={post} />)
           : !urgentes.length && (
             <p className="py-16 text-center text-sm text-zinc-400">
-              No hay requerimientos todavía.{' '}
+              No hay búsquedas todavía.{' '}
               <a href="/publicar" className="underline">¡Publicá el tuyo!</a>
             </p>
           )

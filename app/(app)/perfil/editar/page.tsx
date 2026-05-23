@@ -52,7 +52,7 @@ export default async function EditarPerfilPage() {
         {/* Editar perfil */}
         <div className="flex-1">
           <h1 className="mb-6 text-xl font-bold text-foreground">Editar perfil</h1>
-          <div className="rounded-xl border border-zinc-200 bg-white p-6">
+          <div className="rounded-xl border border-surface-2 bg-surface-1 p-6">
             <EditarPerfilForm
               first_name={perfil?.first_name ?? null}
               last_name={perfil?.last_name ?? null}
@@ -73,12 +73,12 @@ export default async function EditarPerfilPage() {
           {secciones && secciones.length > 0 && (
             <div className="mb-4 flex flex-col gap-2">
               {secciones.map(s => (
-                <div key={s.id} className="flex items-start justify-between gap-3 rounded-lg border border-zinc-300 bg-white px-4 py-3">
+                <div key={s.id} className="flex items-start justify-between gap-3 rounded-lg border border-surface-2 bg-surface-1 px-4 py-3">
                   <div className="min-w-0">
                     <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
                       {TIPO_LABEL[s.type] ?? s.type}
                     </p>
-                    <p className="mt-0.5 truncate text-sm font-medium text-zinc-900">{s.title}</p>
+                    <p className="mt-0.5 truncate text-sm font-medium text-white">{s.title}</p>
                     {s.subtitle && (
                       <p className="text-xs text-zinc-500">{s.subtitle}</p>
                     )}

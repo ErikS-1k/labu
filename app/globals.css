@@ -1,31 +1,26 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-surface-0: #0f0f0f;
+  --color-surface-1: #1a1a1a;
+  --color-surface-2: #262626;
+  --color-surface-3: #2f2f2f;
+  --font-sans: var(--font-inter);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #0f0f0f;
+  color: white;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 16px;
 }
 
 input, textarea, select {
-  color: #3f3f46;
-  background-color: #ffffff;
+  color: white;
+  background-color: #262626;
+  border-color: #262626;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #71717a;
 }
