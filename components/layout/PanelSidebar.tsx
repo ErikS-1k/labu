@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import NotificationBell from './NotificationBell'
+import { logout } from '@/app/actions/auth'
 
 type Props = {
   userId: string | null
@@ -56,6 +57,16 @@ function IconMessage() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+  )
+}
+
+function IconLogout() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
     </svg>
   )
 }
@@ -186,6 +197,23 @@ export default function PanelSidebar({ userId, userName, unreadCount, isLoggedIn
           </Link>
         )}
       </nav>
+
+      {/* Cerrar sesión */}
+      {isLoggedIn && (
+        <div className="border-t border-surface-2 p-2">
+          <form action={logout}>
+            <button
+              type="submit"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-zinc-400 transition-colors hover:bg-surface-2 hover:text-white"
+            >
+              <span className="shrink-0"><IconLogout /></span>
+              <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
+                Cerrar sesión
+              </span>
+            </button>
+          </form>
+        </div>
+      )}
     </aside>
   )
 }
