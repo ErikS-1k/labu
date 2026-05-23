@@ -1,5 +1,7 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
+import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 
 export async function crearNotificacion(params: {
@@ -14,4 +16,16 @@ export async function crearNotificacion(params: {
     message: params.message,
     link:    params.link,
   })
+}
+
+export async function marcarTodasLeidas() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+  await supabase
+    .from('notifications')
+    .update({ read: true })
+    .eq('user_id', user.id)
+    .eq('read', false)
+  revalidatePath('/notificaciones')
 }
