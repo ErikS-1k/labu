@@ -31,14 +31,23 @@ export async function postularse(
   if (error?.code === '23505') return { error: 'Ya enviaste una solicitud para esta publicación.', ok: false }
   if (error) return { error: 'No se pudo enviar. Intentá de nuevo.', ok: false }
 
-  await crearNotificacion({
-    userId:  post.user_id,
-    type:    'nueva_postulacion',
-    message: `Tenés una nueva postulación en "${post.title}"`,
-    link:    `/post/${postId}`,
-  })
+  await Promise.all([
+    crearNotificacion({
+      userId:  post.user_id,
+      type:    'nueva_postulacion',
+      message: `Tenés una nueva postulación en "${post.title}"`,
+      link:    `/post/${postId}`,
+    }),
+    crearNotificacion({
+      userId:  user.id,
+      type:    'postulacion_enviada',
+      message: `Tu postulación a "${post.title}" fue enviada. Te avisamos cuando el empleador responda.`,
+      link:    `/post/${postId}`,
+    }),
+  ])
 
   revalidatePath(`/post/${postId}`)
+  revalidatePath('/notificaciones')
   return { error: null, ok: true }
 }
 

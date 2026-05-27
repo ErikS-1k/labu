@@ -11,6 +11,7 @@ type Props = {
   userId: string | null
   userName: string | null
   unreadCount: number
+  unreadNotifCount: number
   isLoggedIn: boolean
 }
 
@@ -80,7 +81,7 @@ function IconUser() {
   )
 }
 
-export default function PanelSidebar({ userId, userName, unreadCount, isLoggedIn }: Props) {
+export default function PanelSidebar({ userId, userName, unreadCount, unreadNotifCount, isLoggedIn }: Props) {
   const [count, setCount] = useState(unreadCount)
   const pathname = usePathname()
 
@@ -182,7 +183,7 @@ export default function PanelSidebar({ userId, userName, unreadCount, isLoggedIn
         )}
 
         {isLoggedIn && userId && (
-          <NotificationBell userId={userId} />
+          <NotificationBell userId={userId} initialCount={unreadNotifCount} />
         )}
 
         {isLoggedIn && userId ? (

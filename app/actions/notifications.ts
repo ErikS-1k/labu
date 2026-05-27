@@ -6,6 +6,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 
 export type NotificationType =
   | 'nueva_postulacion'
+  | 'postulacion_enviada'
   | 'postulacion_aceptada'
   | 'postulacion_rechazada'
   | 'nuevo_rating'
@@ -20,7 +21,7 @@ export async function crearNotificacion(params: {
   type: NotificationType
   message: string
   link: string
-}) {
+}): Promise<void> {
   const { error } = await createServiceClient()
     .from('notifications')
     .insert({
@@ -31,7 +32,7 @@ export async function crearNotificacion(params: {
     })
 
   if (error) {
-    console.error('[crearNotificacion] fallo al insertar:', error.message, params)
+    console.error('[crearNotificacion]', error.message, params)
   }
 }
 
@@ -39,7 +40,7 @@ export async function marcarTodasLeidas() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
-  await supabase
+  await createServiceClient()
     .from('notifications')
     .update({ read: true })
     .eq('user_id', user.id)

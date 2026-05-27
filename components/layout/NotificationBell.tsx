@@ -14,8 +14,8 @@ function IconBell() {
   )
 }
 
-export default function NotificationBell({ userId }: { userId: string }) {
-  const [unread, setUnread] = useState(0)
+export default function NotificationBell({ userId, initialCount = 0 }: { userId: string; initialCount?: number }) {
+  const [unread, setUnread] = useState(initialCount)
   const pathname = usePathname()
 
   const isActive = pathname === '/notificaciones'
@@ -23,15 +23,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
   useEffect(() => {
     const supabase = createClient()
 
-    // Cargar count inicial
-    supabase
-      .from('notifications')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('read', false)
-      .then(({ count }) => setUnread(count ?? 0))
-
-    // Realtime: nuevas notificaciones incrementan el badge
+    // El count inicial viene del layout (server-side) — solo Realtime para actualizaciones en vivo
     const channel = supabase
       .channel('notif-bell')
       .on('postgres_changes', {

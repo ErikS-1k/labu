@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { marcarTodasLeidas } from '@/app/actions/notifications'
 import AutoMarcarLeidas from './AutoMarcarLeidas'
 
@@ -9,6 +10,7 @@ export const metadata: Metadata = { title: 'Notificaciones — Labu' }
 
 const TYPE_CONFIG: Record<string, { label: string; cls: string }> = {
   nueva_postulacion:        { label: 'Nueva postulación',       cls: 'bg-blue-900/40 text-blue-400' },
+  postulacion_enviada:      { label: 'Postulación enviada',     cls: 'bg-zinc-700 text-zinc-300' },
   postulacion_aceptada:     { label: 'Postulación aceptada',    cls: 'bg-green-900/40 text-green-400' },
   postulacion_rechazada:    { label: 'Postulación rechazada',   cls: 'bg-red-900/40 text-red-400' },
   nuevo_rating:             { label: 'Nueva calificación',      cls: 'bg-yellow-900/40 text-yellow-400' },
@@ -36,7 +38,7 @@ export default async function NotificacionesPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: notifs } = await supabase
+  const { data: notifs } = await createServiceClient()
     .from('notifications')
     .select('*')
     .eq('user_id', user.id)
