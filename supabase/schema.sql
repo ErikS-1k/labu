@@ -31,11 +31,12 @@ create table public.users (
   avatar_url   text,
   bio          text,
   location     text,
-  phone        text,        -- PRIVADO
-  email        text,        -- PRIVADO
-  rating_avg   numeric default 0,
-  rating_count integer default 0,
-  created_at   timestamp with time zone default now()
+  phone            text,        -- PRIVADO
+  email            text,        -- PRIVADO
+  fecha_nacimiento date,
+  rating_avg       numeric default 0,
+  rating_count     integer default 0,
+  created_at       timestamp with time zone default now()
 );
 
 

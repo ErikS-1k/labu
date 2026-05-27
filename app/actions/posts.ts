@@ -56,6 +56,41 @@ export async function eliminarPost(formData: FormData) {
   redirect(type === 'oferta' ? '/ofertas' : '/requerimientos')
 }
 
+export async function editarPost(
+  _prevState: { error: string } | null,
+  formData: FormData
+) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Tenés que estar logueado.' }
+
+  const postId   = formData.get('post_id') as string
+  const priceRaw = formData.get('price') as string
+  const modality = formData.getAll('modality') as string[]
+
+  if (modality.length === 0) return { error: 'Seleccioná al menos una modalidad.' }
+
+  // .eq('user_id', user.id) garantiza que solo el dueño puede editar
+  const { error } = await supabase
+    .from('posts')
+    .update({
+      type:        formData.get('type') as string,
+      title:       formData.get('title') as string,
+      description: (formData.get('description') as string) || null,
+      category:    (formData.get('category') as string) || null,
+      modality,
+      price:       priceRaw ? parseFloat(priceRaw) : null,
+      price_type:  (formData.get('price_type') as string) || null,
+      location:    (formData.get('location') as string) || null,
+    })
+    .eq('id', postId)
+    .eq('user_id', user.id)
+
+  if (error) return { error: 'No se pudo guardar. Intentá de nuevo.' }
+
+  redirect('/mis-publicaciones')
+}
+
 export async function cerrarPost(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

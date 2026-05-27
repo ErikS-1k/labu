@@ -92,6 +92,12 @@ export default async function MisPublicacionesPage() {
                     >
                       Ver
                     </Link>
+                    <Link
+                      href={`/editar/${post.id}`}
+                      className="rounded-lg border border-surface-2 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:bg-surface-2 hover:text-white"
+                    >
+                      Editar
+                    </Link>
                     {post.is_active && <CerrarPostButton postId={post.id} />}
                     <EliminarPostButton
                       postId={post.id}

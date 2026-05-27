@@ -14,7 +14,7 @@ export default async function OfertasPage({
   const { busqueda, categoria, modalidad } = await searchParams
   const supabase = await createClient()
 
-  const baseSelect = 'id, type, title, description, category, modality, price, price_type, location, created_at, users(username, rating_avg, avatar_url)'
+  const baseSelect = 'id, type, title, description, category, modality, price, price_type, location, created_at, users(username, first_name, fecha_nacimiento, rating_avg, avatar_url)'
 
   // Posts inmediatos al tope (solo si no hay filtros activos)
   const hayFiltros = busqueda || categoria || modalidad

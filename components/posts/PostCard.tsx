@@ -12,7 +12,23 @@ export type PostCardData = {
   price_type: string | null
   location: string | null
   created_at: string
-  users: { username: string | null; rating_avg: number | null; avatar_url?: string | null } | null
+  users: {
+    username: string | null
+    first_name: string | null
+    rating_avg: number | null
+    avatar_url?: string | null
+    fecha_nacimiento?: string | null
+  } | null
+}
+
+function calcularEdad(fecha: string | null | undefined): number | null {
+  if (!fecha) return null
+  const hoy = new Date()
+  const nac = new Date(fecha)
+  let edad = hoy.getFullYear() - nac.getFullYear()
+  const mDiff = hoy.getMonth() - nac.getMonth()
+  if (mDiff < 0 || (mDiff === 0 && hoy.getDate() < nac.getDate())) edad--
+  return edad
 }
 
 const MODALITY_LABEL: Record<string, string> = {
@@ -53,8 +69,9 @@ export default function PostCard({ post }: { post: PostCardData }) {
     ? 'A convenir'
     : null
 
-  const username   = post.users?.username ?? ''
-  const inicial    = username[0]?.toUpperCase() ?? 'U'
+  const nombre     = post.users?.first_name ?? post.users?.username ?? ''
+  const inicial    = nombre[0]?.toUpperCase() ?? 'U'
+  const edad       = calcularEdad(post.users?.fecha_nacimiento)
   const typeConfig = TYPE_CONFIG[post.type]
 
   return (
@@ -78,8 +95,10 @@ export default function PostCard({ post }: { post: PostCardData }) {
               {inicial}
             </span>
           )}
-          {post.users?.username && (
-            <span className="truncate text-sm text-zinc-400">@{post.users.username}</span>
+          {nombre && (
+            <span className="truncate text-sm text-zinc-400">
+              {nombre}{edad !== null ? `, ${edad}` : ''}
+            </span>
           )}
         </div>
         {priceLabel && (

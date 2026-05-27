@@ -26,7 +26,7 @@ export default async function PostPage({
 
   const { data: post } = await supabase
     .from('posts')
-    .select('*, users(username, first_name, avatar_url, bio, location, rating_avg, rating_count, email, phone)')
+    .select('*, users(username, first_name, fecha_nacimiento, avatar_url, bio, location, rating_avg, rating_count, email, phone)')
     .eq('id', id)
     .eq('is_active', true)
     .single()
@@ -98,19 +98,37 @@ export default async function PostPage({
   const backLabel = post.type === 'oferta' ? 'Servicios' : 'Búsquedas'
 
   const autor = post.users as {
-    username:     string | null
-    first_name:   string | null
-    avatar_url:   string | null
-    bio:          string | null
-    location:     string | null
-    rating_avg:   number | null
-    rating_count: number | null
-    email:        string | null
-    phone:        string | null
+    username:         string | null
+    first_name:       string | null
+    fecha_nacimiento: string | null
+    avatar_url:       string | null
+    bio:              string | null
+    location:         string | null
+    rating_avg:       number | null
+    rating_count:     number | null
+    email:            string | null
+    phone:            string | null
   } | null
 
   const autorNombre  = autor?.first_name ?? autor?.username ?? 'Usuario'
   const autorInicial = autorNombre[0].toUpperCase()
+
+  function calcularEdad(fecha: string | null | undefined): number | null {
+    if (!fecha) return null
+    const hoy = new Date()
+    const nac = new Date(fecha)
+    let edad = hoy.getFullYear() - nac.getFullYear()
+    const mDiff = hoy.getMonth() - nac.getMonth()
+    if (mDiff < 0 || (mDiff === 0 && hoy.getDate() < nac.getDate())) edad--
+    return edad
+  }
+  const autorEdad = calcularEdad(autor?.fecha_nacimiento)
+
+  const AVATAR_COLORS = ['bg-violet-700', 'bg-blue-700', 'bg-emerald-700', 'bg-amber-700', 'bg-rose-700', 'bg-cyan-700']
+  const avatarBg = (username: string | null | undefined) => {
+    if (!username) return 'bg-zinc-600'
+    return AVATAR_COLORS[username.charCodeAt(0) % AVATAR_COLORS.length]
+  }
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
@@ -176,11 +194,17 @@ export default async function PostPage({
             Publicado por
           </p>
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-lg font-semibold text-zinc-600">
-              {autorInicial}
-            </div>
+            {autor?.avatar_url ? (
+              <img src={autor.avatar_url} className="h-12 w-12 shrink-0 rounded-full object-cover" alt="" />
+            ) : (
+              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-white ${avatarBg(autor?.username)}`}>
+                {autorInicial}
+              </div>
+            )}
             <div>
-              <p className="font-semibold text-white">{autorNombre}</p>
+              <p className="font-semibold text-white">
+                {autorNombre}{autorEdad !== null ? `, ${autorEdad}` : ''}
+              </p>
               {(autor.rating_count ?? 0) > 0 && (
                 <p className="text-xs text-zinc-400">
                   ★ {autor.rating_avg} · {autor.rating_count} calificaciones
