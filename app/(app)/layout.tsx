@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import PanelSidebar from '@/components/layout/PanelSidebar'
 import BottomNav from '@/components/layout/BottomNav'
+import FloatingPublishMenu from '@/components/layout/FloatingPublishMenu'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -35,6 +36,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         unreadCount={unreadCount}
         isLoggedIn={!!user}
       />
+
+      <FloatingPublishMenu isLoggedIn={!!user} />
     </div>
   )
 }

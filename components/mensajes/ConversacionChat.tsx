@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { enviarMensaje } from '@/app/actions/mensajes'
 
 type Mensaje = {
   id: string
@@ -73,12 +74,11 @@ export default function ConversacionChat({
     setSending(true)
     setContent('')
 
-    const { error } = await supabase.from('messages').insert({
-      conversation_id: conversationId,
-      sender_id:       currentUserId,
-      receiver_id:     receiverId,
-      post_id:         postId,
-      content:         trimmed,
+    const { error } = await enviarMensaje({
+      conversationId,
+      receiverId,
+      postId,
+      content: trimmed,
     })
 
     setSending(false)

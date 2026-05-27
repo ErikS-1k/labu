@@ -2,6 +2,8 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
+import { crearNotificacion } from './notifications'
 
 export async function iniciarConversacion(formData: FormData) {
   const supabase = await createClient()
@@ -25,4 +27,39 @@ export async function iniciarConversacion(formData: FormData) {
   // Si no existe, generar un nuevo ID y pasar contexto por URL
   const newId = crypto.randomUUID()
   redirect(`/mensajes/nuevo?post_id=${postId}&receiver_id=${receiverId}&conversation_id=${newId}`)
+}
+
+export async function enviarMensaje(params: {
+  conversationId: string
+  receiverId: string
+  postId: string | null
+  content: string
+}): Promise<{ error: string | null }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { error } = await createServiceClient()
+    .from('messages')
+    .insert({
+      conversation_id: params.conversationId,
+      sender_id:       user.id,
+      receiver_id:     params.receiverId,
+      post_id:         params.postId,
+      content:         params.content,
+    })
+
+  if (error) {
+    console.error('[enviarMensaje]', error.message)
+    return { error: 'No se pudo enviar el mensaje. Intentá de nuevo.' }
+  }
+
+  await crearNotificacion({
+    userId:  params.receiverId,
+    type:    'nuevo_mensaje',
+    message: 'Tenés un mensaje nuevo',
+    link:    `/mensajes/${params.conversationId}`,
+  })
+
+  return { error: null }
 }

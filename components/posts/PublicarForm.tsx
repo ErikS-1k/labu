@@ -7,9 +7,9 @@ import { MODALIDADES, PRICE_TYPES } from '@/lib/constants'
 const inputClass =
   'rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200'
 
-export default function PublicarForm() {
+export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?: 'oferta' | 'requerimiento' }) {
   const [state, action, pending] = useActionState(publicarPost, null)
-  const [tipo, setTipo] = useState<'oferta' | 'requerimiento'>('oferta')
+  const [tipo, setTipo] = useState<'oferta' | 'requerimiento'>(defaultTipo)
 
   return (
     <form action={action} className="flex flex-col gap-5">
@@ -23,7 +23,7 @@ export default function PublicarForm() {
         <div className="flex flex-wrap gap-4">
           <label className="flex cursor-pointer items-center gap-2">
             <input
-              type="radio" name="type" value="oferta" required defaultChecked
+              type="radio" name="type" value="oferta" required defaultChecked={defaultTipo === 'oferta'}
               onChange={() => setTipo('oferta')}
               className="accent-zinc-900"
             />
@@ -31,7 +31,7 @@ export default function PublicarForm() {
           </label>
           <label className="flex cursor-pointer items-center gap-2">
             <input
-              type="radio" name="type" value="requerimiento"
+              type="radio" name="type" value="requerimiento" defaultChecked={defaultTipo === 'requerimiento'}
               onChange={() => setTipo('requerimiento')}
               className="accent-zinc-900"
             />

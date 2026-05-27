@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { crearNotificacion } from './notifications'
 
 export async function publicarPost(
   _prevState: { error: string } | null,
@@ -75,7 +76,7 @@ export async function marcarCompletado(formData: FormData) {
 
   const { data: post } = await supabase
     .from('posts')
-    .select('id, user_id, type')
+    .select('id, user_id, type, title')
     .eq('id', postId)
     .maybeSingle()
 
@@ -91,7 +92,7 @@ export async function marcarCompletado(formData: FormData) {
 
   if (!app || app.completed_at) return
 
-  const esCliente   = post.user_id === user.id
+  const esCliente    = post.user_id === user.id
   const esTrabajador = app.applicant_id === user.id
 
   if (!esCliente && !esTrabajador) return
@@ -100,15 +101,46 @@ export async function marcarCompletado(formData: FormData) {
   if (esCliente)    updates.confirmed_by_client = true
   if (esTrabajador) updates.confirmed_by_worker = true
 
-  const clienteConfirma   = esCliente    ? true : (app.confirmed_by_client as boolean)
+  const clienteConfirma    = esCliente    ? true : (app.confirmed_by_client as boolean)
   const trabajadorConfirma = esTrabajador ? true : (app.confirmed_by_worker as boolean)
 
-  if (clienteConfirma && trabajadorConfirma) {
+  const ahoraCompleto = clienteConfirma && trabajadorConfirma
+  if (ahoraCompleto) {
     updates.completed_at = new Date().toISOString()
   }
 
   const { createServiceClient } = await import('@/lib/supabase/service')
   await createServiceClient().from('applications').update(updates).eq('id', app.id)
+
+  // Notificar a ambas partes cuando el trabajo queda 100% completado
+  if (ahoraCompleto) {
+    await Promise.all([
+      crearNotificacion({
+        userId:  post.user_id,
+        type:    'trabajo_completado',
+        message: `El trabajo "${post.title}" fue marcado como completado`,
+        link:    `/post/${postId}`,
+      }),
+      crearNotificacion({
+        userId:  app.applicant_id,
+        type:    'trabajo_completado',
+        message: `El trabajo "${post.title}" fue marcado como completado`,
+        link:    `/post/${postId}`,
+      }),
+      crearNotificacion({
+        userId:  post.user_id,
+        type:    'recordatorio_calificacion',
+        message: `¿Cómo fue tu experiencia en "${post.title}"? Dejá una calificación.`,
+        link:    `/post/${postId}`,
+      }),
+      crearNotificacion({
+        userId:  app.applicant_id,
+        type:    'recordatorio_calificacion',
+        message: `¿Cómo fue tu experiencia en "${post.title}"? Dejá una calificación.`,
+        link:    `/post/${postId}`,
+      }),
+    ])
+  }
 
   revalidatePath(`/post/${postId}`)
 }

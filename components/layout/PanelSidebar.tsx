@@ -136,7 +136,7 @@ export default function PanelSidebar({ userId, userName, unreadCount, isLoggedIn
         <Link href="/panel" className={itemClass('/panel')}>
           <span className="shrink-0"><IconHome /></span>
           <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
-            Panel
+            Inicio
           </span>
         </Link>
 

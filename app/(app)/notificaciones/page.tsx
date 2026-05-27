@@ -8,10 +8,15 @@ import AutoMarcarLeidas from './AutoMarcarLeidas'
 export const metadata: Metadata = { title: 'Notificaciones — Labu' }
 
 const TYPE_CONFIG: Record<string, { label: string; cls: string }> = {
-  nueva_postulacion:     { label: 'Nueva postulación',    cls: 'bg-blue-900/40 text-blue-400' },
-  postulacion_aceptada:  { label: 'Postulación aceptada', cls: 'bg-green-900/40 text-green-400' },
-  postulacion_rechazada: { label: 'Postulación rechazada', cls: 'bg-red-900/40 text-red-400' },
-  nuevo_rating:          { label: 'Nueva calificación',   cls: 'bg-yellow-900/40 text-yellow-400' },
+  nueva_postulacion:        { label: 'Nueva postulación',       cls: 'bg-blue-900/40 text-blue-400' },
+  postulacion_aceptada:     { label: 'Postulación aceptada',    cls: 'bg-green-900/40 text-green-400' },
+  postulacion_rechazada:    { label: 'Postulación rechazada',   cls: 'bg-red-900/40 text-red-400' },
+  nuevo_rating:             { label: 'Nueva calificación',      cls: 'bg-yellow-900/40 text-yellow-400' },
+  nuevo_mensaje:            { label: 'Mensaje nuevo',           cls: 'bg-indigo-900/40 text-indigo-400' },
+  trabajo_completado:       { label: 'Trabajo completado',      cls: 'bg-emerald-900/40 text-emerald-400' },
+  verificacion_aprobada:    { label: 'Verificación aprobada',   cls: 'bg-green-900/40 text-green-400' },
+  verificacion_rechazada:   { label: 'Verificación rechazada',  cls: 'bg-red-900/40 text-red-400' },
+  recordatorio_calificacion:{ label: 'Calificación pendiente',  cls: 'bg-orange-900/40 text-orange-400' },
 }
 
 function formatTime(ts: string) {

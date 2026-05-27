@@ -4,11 +4,12 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { MODALIDADES } from '@/lib/constants'
 
 interface Props {
-  paramPrefix?: string  // ej: 'of_' o 'req_' para el panel; '' para feeds individuales
-  preserveParams?: string[]  // params a preservar en la URL al filtrar (ej: ['of', 'req'])
+  paramPrefix?: string
+  preserveParams?: string[]
+  showTypeTabs?: boolean
 }
 
-export default function FeedFilters({ paramPrefix = '', preserveParams = [] }: Props) {
+export default function FeedFilters({ paramPrefix = '', preserveParams = [], showTypeTabs = false }: Props) {
   const router       = useRouter()
   const pathname     = usePathname()
   const searchParams = useSearchParams()
@@ -16,6 +17,7 @@ export default function FeedFilters({ paramPrefix = '', preserveParams = [] }: P
   const busquedaKey  = `${paramPrefix}busqueda`
   const categoriaKey = `${paramPrefix}categoria`
   const modalidadKey = `${paramPrefix}modalidad`
+  const tipoKey      = `${paramPrefix}tipo`
 
   function buildParams(overrides: Record<string, string>) {
     const params = new URLSearchParams()
@@ -38,6 +40,10 @@ export default function FeedFilters({ paramPrefix = '', preserveParams = [] }: P
     router.push(`${pathname}?${buildParams({ [modalidadKey]: value })}`)
   }
 
+  function updateTipo(value: string) {
+    router.push(`${pathname}?${buildParams({ [tipoKey]: value })}`)
+  }
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const data      = new FormData(e.currentTarget)
@@ -48,39 +54,54 @@ export default function FeedFilters({ paramPrefix = '', preserveParams = [] }: P
 
   const inputClass = 'rounded-lg border border-surface-2 bg-surface-2 px-3 py-2 text-sm outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-600'
 
+  const tipoActual = searchParams.get(tipoKey) ?? ''
+
+  const tabClass = (value: string) =>
+    `rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+      tipoActual === value
+        ? 'bg-white text-black'
+        : 'bg-surface-2 text-zinc-300 hover:bg-surface-3 hover:text-white'
+    }`
+
   return (
     <div className="flex flex-col gap-3">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-        <div className="flex gap-2">
-          <input
-            name="busqueda"
-            defaultValue={searchParams.get(busquedaKey) ?? ''}
-            placeholder="Buscar en títulos y descripciones..."
-            className={`${inputClass} flex-1`}
-          />
-          <button
-            type="submit"
-            className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200"
-          >
-            Buscar
-          </button>
+      {showTypeTabs && (
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={() => updateTipo('')}               className={tabClass('')}>Todos</button>
+          <button type="button" onClick={() => updateTipo('oferta')}        className={tabClass('oferta')}>Ofrece sus servicios</button>
+          <button type="button" onClick={() => updateTipo('requerimiento')} className={tabClass('requerimiento')}>Necesita contratar</button>
         </div>
-        <input
-          name="categoria"
-          defaultValue={searchParams.get(categoriaKey) ?? ''}
-          placeholder="Filtrar por categoría (ej: Plomería, Diseño web...)"
-          className={inputClass}
-        />
-      </form>
-
-      <select
-        value={searchParams.get(modalidadKey) ?? ''}
-        onChange={e => updateModalidad(e.target.value)}
-        className={inputClass}
-      >
-        <option value="">Todas las modalidades</option>
-        {MODALIDADES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-      </select>
+      )}
+      <div className="flex flex-wrap gap-2">
+        <form onSubmit={handleSubmit} className="contents">
+          <div className="relative min-w-[160px] flex-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              name="busqueda"
+              defaultValue={searchParams.get(busquedaKey) ?? ''}
+              placeholder="Buscar..."
+              className={`${inputClass} w-full pl-8`}
+            />
+          </div>
+          <input
+            name="categoria"
+            defaultValue={searchParams.get(categoriaKey) ?? ''}
+            placeholder="Categoría"
+            className={`${inputClass} w-36`}
+          />
+          <button type="submit" className="sr-only">Buscar</button>
+        </form>
+        <select
+          value={searchParams.get(modalidadKey) ?? ''}
+          onChange={e => updateModalidad(e.target.value)}
+          className={`${inputClass} w-auto`}
+        >
+          <option value="">Modalidad</option>
+          {MODALIDADES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+        </select>
+      </div>
     </div>
   )
 }
