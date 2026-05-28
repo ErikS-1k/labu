@@ -3,11 +3,14 @@ import { PRICE_TYPES } from '@/lib/constants'
 
 export type PostCardData = {
   id: string
+  user_id: string
   type: 'oferta' | 'requerimiento'
   title: string
   description: string | null
   category: string | null
   modality: string[]
+  presencialidad: string | null
+  temporal_duration: string | null
   price: number | null
   price_type: string | null
   location: string | null
@@ -65,9 +68,7 @@ export default function PostCard({ post }: { post: PostCardData }) {
   const priceUnitLabel = PRICE_TYPES.find(p => p.value === post.price_type)?.label ?? ''
   const priceLabel = post.price
     ? `$${post.price.toLocaleString('es-AR')} ${priceUnitLabel}`
-    : post.price_type === 'a_convenir'
-    ? 'A convenir'
-    : null
+    : 'A convenir'
 
   const nombre     = post.users?.first_name ?? post.users?.username ?? ''
   const inicial    = nombre[0]?.toUpperCase() ?? 'U'
@@ -75,10 +76,10 @@ export default function PostCard({ post }: { post: PostCardData }) {
   const typeConfig = TYPE_CONFIG[post.type]
 
   return (
-    <Link
-      href={`/post/${post.id}`}
-      className="block rounded-xl border border-surface-2 bg-surface-1 p-4 transition-colors hover:bg-surface-2"
-    >
+    <div className="relative rounded-xl border border-surface-2 bg-surface-1 p-4 transition-colors hover:bg-surface-2">
+      {/* Stretched link — cubre toda la card, lleva al post */}
+      <Link href={`/post/${post.id}`} className="absolute inset-0 rounded-xl" aria-label={post.title} />
+
       {/* Badge de tipo */}
       <div className={`mb-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${typeConfig.badge}`}>
         <span className={`h-1.5 w-1.5 rounded-full ${typeConfig.dot}`} />
@@ -87,7 +88,10 @@ export default function PostCard({ post }: { post: PostCardData }) {
 
       {/* Usuario + precio */}
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 min-w-0">
+        <Link
+          href={`/perfil/${post.user_id}`}
+          className="relative z-10 flex items-center gap-2 min-w-0 hover:underline"
+        >
           {post.users?.avatar_url ? (
             <img src={post.users.avatar_url} className="h-6 w-6 shrink-0 rounded-full object-cover" alt="" />
           ) : (
@@ -100,16 +104,14 @@ export default function PostCard({ post }: { post: PostCardData }) {
               {nombre}{edad !== null ? `, ${edad}` : ''}
             </span>
           )}
-        </div>
-        {priceLabel && (
-          <span className="shrink-0 text-sm font-semibold text-zinc-200">{priceLabel}</span>
-        )}
+        </Link>
+        <span className="shrink-0 text-sm font-semibold text-zinc-200">{priceLabel}</span>
       </div>
 
       {/* Título */}
       <h3 className="mt-2 font-semibold leading-snug text-white">{post.title}</h3>
 
-      {/* Chips: categoría + modalidades */}
+      {/* Chips: categoría + modalidades + presencialidad */}
       <div className="mt-3 flex flex-wrap gap-1.5">
         {post.category && (
           <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs text-zinc-400">
@@ -119,9 +121,17 @@ export default function PostCard({ post }: { post: PostCardData }) {
         {post.modality.map(m => (
           <span key={m} className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs text-zinc-400">
             {MODALITY_LABEL[m] ?? m}
+            {m === 'temporal' && post.temporal_duration ? ` · ${post.temporal_duration}` : ''}
           </span>
         ))}
+        {post.presencialidad && (
+          <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs text-zinc-400">
+            {post.presencialidad === 'presencial' ? 'Presencial'
+             : post.presencialidad === 'virtual' ? 'Virtual'
+             : 'Presencial / Virtual'}
+          </span>
+        )}
       </div>
-    </Link>
+    </div>
   )
 }

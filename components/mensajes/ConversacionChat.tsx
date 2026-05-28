@@ -46,6 +46,11 @@ export default function ConversacionChat({
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  // Actualizar el badge del sidebar: re-fetch del layout para reflejar mensajes leídos
+  useEffect(() => {
+    router.refresh()
+  }, [conversationId])
+
   // Suscripción Realtime — escucha mensajes nuevos de esta conversación
   useEffect(() => {
     const channel = supabase

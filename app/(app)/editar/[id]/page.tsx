@@ -17,7 +17,7 @@ export default async function EditarPostPage({
 
   const { data: post } = await supabase
     .from('posts')
-    .select('id, type, title, description, category, modality, price, price_type, location, user_id')
+    .select('id, type, title, description, category, modality, presencialidad, temporal_duration, price, price_type, location, user_id')
     .eq('id', id)
     .eq('user_id', user.id)
     .single()

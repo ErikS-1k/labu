@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 export default function FloatingPublishMenu({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const pathname = usePathname()
 
   useEffect(() => {
     if (!open) return
@@ -17,6 +19,8 @@ export default function FloatingPublishMenu({ isLoggedIn }: { isLoggedIn: boolea
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [open])
+
+  if (pathname === '/publicar') return null
 
   if (!isLoggedIn) {
     return (

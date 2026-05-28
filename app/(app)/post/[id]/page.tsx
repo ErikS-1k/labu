@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 import { PRICE_TYPES } from '@/lib/constants'
 import { iniciarConversacion } from '@/app/actions/mensajes'
 import { marcarCompletado } from '@/app/actions/posts'
-import EliminarPostButton from '@/components/posts/EliminarPostButton'
 import { aceptarPostulacion, rechazarPostulacion } from '@/app/actions/applications'
 import RatingForm from '@/components/ratings/RatingForm'
 import PostularseForm from '@/components/applications/PostularseForm'
@@ -92,7 +91,7 @@ export default async function PostPage({
   const priceUnitLabel = PRICE_TYPES.find(p => p.value === post.price_type)?.label ?? ''
   const priceLabel = post.price
     ? `$${post.price.toLocaleString('es-AR')} ${priceUnitLabel}`
-    : post.price_type === 'a_convenir' ? 'A convenir' : null
+    : 'A convenir'
 
   const backHref  = post.type === 'oferta' ? '/ofertas' : '/requerimientos'
   const backLabel = post.type === 'oferta' ? 'Servicios' : 'Búsquedas'
@@ -175,6 +174,22 @@ export default async function PostPage({
               {(post.modality as string[]).map(m => MODALITY_LABEL[m]).join(', ')}
             </span>
           </div>
+          {(post.modality as string[]).includes('temporal') && (post as any).temporal_duration && (
+            <div className="flex justify-between">
+              <span className="text-zinc-400">Duración</span>
+              <span className="text-zinc-700">{(post as any).temporal_duration}</span>
+            </div>
+          )}
+          {(post as any).presencialidad && (
+            <div className="flex justify-between">
+              <span className="text-zinc-400">Presencialidad</span>
+              <span className="text-zinc-700">
+                {(post as any).presencialidad === 'presencial' ? 'Presencial'
+                 : (post as any).presencialidad === 'virtual' ? 'Virtual'
+                 : 'Presencial / Virtual'}
+              </span>
+            </div>
+          )}
           {post.location && (
             <div className="flex justify-between">
               <span className="text-zinc-400">Zona</span>
@@ -184,8 +199,15 @@ export default async function PostPage({
         </div>
       </div>
 
-      {/* Eliminar publicación — solo el autor */}
-      {esAutor && <EliminarPostButton postId={post.id} type={post.type} />}
+      {/* Botón de edición — solo el autor */}
+      {esAutor && (
+        <Link
+          href={`/editar/${post.id}`}
+          className="mt-4 block w-full rounded-xl border border-surface-2 py-2.5 text-center text-sm text-zinc-300 transition-colors hover:bg-surface-2 hover:text-white"
+        >
+          Editar publicación
+        </Link>
+      )}
 
       {/* Tarjeta del autor */}
       {autor && (
@@ -193,7 +215,7 @@ export default async function PostPage({
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-400">
             Publicado por
           </p>
-          <div className="flex items-center gap-3">
+          <Link href={`/perfil/${post.user_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             {autor?.avatar_url ? (
               <img src={autor.avatar_url} className="h-12 w-12 shrink-0 rounded-full object-cover" alt="" />
             ) : (
@@ -214,7 +236,7 @@ export default async function PostPage({
                 <p className="text-xs text-zinc-400">{autor.location}</p>
               )}
             </div>
-          </div>
+          </Link>
 
           {autor.bio && (
             <p className="mt-3 text-sm leading-relaxed text-zinc-500">{autor.bio}</p>

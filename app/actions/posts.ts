@@ -30,9 +30,11 @@ export async function publicarPost(
       description: (formData.get('description') as string) || null,
       category:   (formData.get('category') as string) || null,
       modality,
-      price:      priceRaw ? parseFloat(priceRaw) : null,
-      price_type: (formData.get('price_type') as string) || null,
-      location:   (formData.get('location') as string) || null,
+      price:             priceRaw ? parseFloat(priceRaw) : null,
+      price_type:        priceRaw ? ((formData.get('price_type') as string) || null) : 'a_convenir',
+      location:          (formData.get('location') as string) || null,
+      presencialidad:    (formData.get('presencialidad') as string) || null,
+      temporal_duration: (formData.get('temporal_duration') as string) || null,
     })
     .select('id')
     .single()
@@ -48,11 +50,16 @@ export async function eliminarPost(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
 
-  const postId = formData.get('post_id') as string
-  const type   = formData.get('type')    as string
+  const postId    = formData.get('post_id')    as string
+  const type      = formData.get('type')        as string
+  const returnTo  = formData.get('return_to')   as string | null
 
   await supabase.from('posts').delete().eq('id', postId).eq('user_id', user.id)
 
+  if (returnTo) {
+    revalidatePath(returnTo)
+    return
+  }
   redirect(type === 'oferta' ? '/ofertas' : '/requerimientos')
 }
 
@@ -79,16 +86,18 @@ export async function editarPost(
       description: (formData.get('description') as string) || null,
       category:    (formData.get('category') as string) || null,
       modality,
-      price:       priceRaw ? parseFloat(priceRaw) : null,
-      price_type:  (formData.get('price_type') as string) || null,
-      location:    (formData.get('location') as string) || null,
+      price:             priceRaw ? parseFloat(priceRaw) : null,
+      price_type:        (formData.get('price_type') as string) || null,
+      location:          (formData.get('location') as string) || null,
+      presencialidad:    (formData.get('presencialidad') as string) || null,
+      temporal_duration: (formData.get('temporal_duration') as string) || null,
     })
     .eq('id', postId)
     .eq('user_id', user.id)
 
   if (error) return { error: 'No se pudo guardar. Intentá de nuevo.' }
 
-  redirect('/mis-publicaciones')
+  redirect('/mi-actividad')
 }
 
 export async function cerrarPost(formData: FormData) {
@@ -99,7 +108,7 @@ export async function cerrarPost(formData: FormData) {
   const postId = formData.get('post_id') as string
   await supabase.from('posts').update({ is_active: false }).eq('id', postId).eq('user_id', user.id)
 
-  revalidatePath('/mis-publicaciones')
+  revalidatePath('/mi-actividad')
 }
 
 export async function marcarCompletado(formData: FormData) {

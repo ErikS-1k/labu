@@ -42,5 +42,6 @@ export async function calificar(
   }
 
   revalidatePath(`/post/${postId}`)
+  revalidatePath('/mi-actividad')
   return { error: null, ok: true }
 }

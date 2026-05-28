@@ -19,7 +19,12 @@ export async function postularse(
     .from('posts').select('user_id, type, title').eq('id', postId).single()
 
   if (!post)                     return { error: 'La publicación no existe.', ok: false }
-  if (post.user_id === user.id)  return { error: 'No podés enviar una solicitud a tu propia publicación.', ok: false }
+  if (post.user_id === user.id) {
+    const errMsg = post.type === 'oferta'
+      ? 'No podés solicitar tu propio servicio.'
+      : 'No podés postularte a tu propia publicación.'
+    return { error: errMsg, ok: false }
+  }
 
   const { error } = await supabase.from('applications').insert({
     post_id:      postId,
@@ -28,20 +33,30 @@ export async function postularse(
     status:       'pendiente',
   })
 
-  if (error?.code === '23505') return { error: 'Ya enviaste una solicitud para esta publicación.', ok: false }
+  if (error?.code === '23505') {
+    const errMsg = post.type === 'oferta'
+      ? 'Ya enviaste una solicitud para esta publicación.'
+      : 'Ya te postulaste para esta publicación.'
+    return { error: errMsg, ok: false }
+  }
   if (error) return { error: 'No se pudo enviar. Intentá de nuevo.', ok: false }
 
+  const esOferta = post.type === 'oferta'
   await Promise.all([
     crearNotificacion({
       userId:  post.user_id,
       type:    'nueva_postulacion',
-      message: `Tenés una nueva postulación en "${post.title}"`,
+      message: esOferta
+        ? `Tenés una nueva solicitud de contacto para "${post.title}"`
+        : `Tenés una nueva postulación en "${post.title}"`,
       link:    `/post/${postId}`,
     }),
     crearNotificacion({
       userId:  user.id,
       type:    'postulacion_enviada',
-      message: `Tu postulación a "${post.title}" fue enviada. Te avisamos cuando el empleador responda.`,
+      message: esOferta
+        ? `Tu solicitud para "${post.title}" fue enviada. Te avisamos cuando el oferente responda.`
+        : `Tu postulación a "${post.title}" fue enviada. Te avisamos cuando el empleador responda.`,
       link:    `/post/${postId}`,
     }),
   ])
@@ -65,13 +80,15 @@ export async function aceptarPostulacion(formData: FormData) {
     supabase.from('applications').select('applicant_id').eq('id', applicationId).single(),
   ])
 
-  const { data: post } = await supabase.from('posts').select('title').eq('id', postId).single()
+  const { data: post } = await supabase.from('posts').select('title, type').eq('id', postId).single()
 
   if (app && post) {
     await crearNotificacion({
       userId:  app.applicant_id,
       type:    'postulacion_aceptada',
-      message: `Tu postulación a "${post.title}" fue aceptada`,
+      message: post.type === 'oferta'
+        ? `Tu solicitud para "${post.title}" fue aceptada`
+        : `Tu postulación a "${post.title}" fue aceptada`,
       link:    `/post/${postId}`,
     })
   }
@@ -92,13 +109,15 @@ export async function rechazarPostulacion(formData: FormData) {
     supabase.from('applications').select('applicant_id').eq('id', applicationId).single(),
   ])
 
-  const { data: post } = await supabase.from('posts').select('title').eq('id', postId).single()
+  const { data: post } = await supabase.from('posts').select('title, type').eq('id', postId).single()
 
   if (app && post) {
     await crearNotificacion({
       userId:  app.applicant_id,
       type:    'postulacion_rechazada',
-      message: `Tu postulación a "${post.title}" fue rechazada`,
+      message: post.type === 'oferta'
+        ? `Tu solicitud para "${post.title}" fue rechazada`
+        : `Tu postulación a "${post.title}" fue rechazada`,
       link:    `/post/${postId}`,
     })
   }

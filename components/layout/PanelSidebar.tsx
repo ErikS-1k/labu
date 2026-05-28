@@ -85,11 +85,10 @@ export default function PanelSidebar({ userId, userName, unreadCount, unreadNoti
   const [count, setCount] = useState(unreadCount)
   const pathname = usePathname()
 
+  // Sincronizar cuando el layout re-fetchea unreadCount (ej: al abrir un chat)
   useEffect(() => {
-    if (pathname === '/mensajes' || pathname.startsWith('/mensajes/')) {
-      setCount(0)
-    }
-  }, [pathname])
+    setCount(unreadCount)
+  }, [unreadCount])
 
   useEffect(() => {
     if (!userId) return
@@ -158,10 +157,10 @@ export default function PanelSidebar({ userId, userName, unreadCount, unreadNoti
         )}
 
         {isLoggedIn && (
-          <Link href="/mis-publicaciones" className={itemClass('/mis-publicaciones')}>
+          <Link href="/mi-actividad" className={itemClass('/mi-actividad')}>
             <span className="shrink-0"><IconList /></span>
             <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
-              Mis publicaciones
+              Mi actividad
             </span>
           </Link>
         )}

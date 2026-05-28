@@ -52,11 +52,12 @@ create table public.posts (
   title        text not null,
   description  text,
   category     text,
-  modality     text[] not null,   -- múltiple para ofertas, único para requerimientos
-  price        numeric,
-  price_type   price_type,
-  location     text,
-  is_active    boolean default true,
+  modality          text[] not null,   -- múltiple para ofertas, único para requerimientos
+  temporal_duration text,              -- duración estimada cuando modality incluye 'temporal'
+  price             numeric,
+  price_type        price_type,
+  location          text,
+  is_active         boolean default true,
   created_at   timestamp with time zone default now()
 );
 
@@ -258,6 +259,12 @@ create policy "Solo participantes ven los mensajes"
 create policy "Solo enviás como vos mismo"
   on public.messages for insert
   with check (auth.uid() = sender_id);
+
+-- El receptor puede marcar sus mensajes recibidos como leídos
+create policy "El receptor puede marcar mensajes como leídos"
+  on public.messages for update
+  using (auth.uid() = receiver_id)
+  with check (auth.uid() = receiver_id);
 
 
 -- -- ratings --

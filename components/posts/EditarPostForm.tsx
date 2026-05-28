@@ -4,6 +4,12 @@ import { useActionState, useState } from 'react'
 import { editarPost } from '@/app/actions/posts'
 import { MODALIDADES, PRICE_TYPES } from '@/lib/constants'
 
+const PRESENCIALIDAD_OPTS = [
+  { value: 'presencial', label: 'Presencial' },
+  { value: 'virtual',    label: 'Virtual' },
+  { value: 'ambos',      label: 'Ambos' },
+]
+
 type PostData = {
   id: string
   type: 'oferta' | 'requerimiento'
@@ -11,6 +17,8 @@ type PostData = {
   description: string | null
   category: string | null
   modality: string[]
+  presencialidad: string | null
+  temporal_duration: string | null
   price: number | null
   price_type: string | null
   location: string | null
@@ -20,8 +28,19 @@ const inputClass =
   'rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200'
 
 export default function EditarPostForm({ post }: { post: PostData }) {
-  const [state, action, pending] = useActionState(editarPost, null)
-  const [tipo, setTipo] = useState<'oferta' | 'requerimiento'>(post.type)
+  const [state, action, pending]    = useActionState(editarPost, null)
+  const [tipo, setTipo]             = useState<'oferta' | 'requerimiento'>(post.type)
+  const [modalities, setModalities] = useState<string[]>(post.modality)
+  const [temporalDuration, setTemporalDuration] = useState(post.temporal_duration ?? '')
+  const [presencialidad, setPresencialidad] = useState<string>(post.presencialidad ?? '')
+
+  function toggleMod(value: string) {
+    setModalities(prev =>
+      prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
+    )
+  }
+
+  const muestraTemporalDuration = modalities.includes('temporal')
 
   return (
     <form action={action} className="flex flex-col gap-5">
@@ -91,37 +110,68 @@ export default function EditarPostForm({ post }: { post: PostData }) {
 
       {/* Modalidad */}
       <div>
-        <p className="mb-1 text-sm font-medium text-zinc-700">
+        <p className="mb-2 text-sm font-medium text-zinc-700">
           Modalidad *{' '}
-          {tipo === 'oferta' && <span className="font-normal text-zinc-400">(podés elegir varias)</span>}
+          <span className="font-normal text-zinc-400">(podés elegir varias)</span>
         </p>
-        {tipo === 'oferta' ? (
-          <div className="flex flex-wrap gap-4">
-            {MODALIDADES.map(m => (
-              <label key={m.value} className="flex cursor-pointer items-center gap-2">
-                <input
-                  type="checkbox" name="modality" value={m.value}
-                  defaultChecked={post.modality.includes(m.value)}
-                  className="accent-zinc-900"
-                />
-                <span className="text-sm">{m.label}</span>
-              </label>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-wrap gap-4">
-            {MODALIDADES.map(m => (
-              <label key={m.value} className="flex cursor-pointer items-center gap-2">
-                <input
-                  type="radio" name="modality" value={m.value} required
-                  defaultChecked={post.modality.includes(m.value)}
-                  className="accent-zinc-900"
-                />
-                <span className="text-sm">{m.label}</span>
-              </label>
-            ))}
-          </div>
-        )}
+        {modalities.map(v => <input key={v} type="hidden" name="modality" value={v} />)}
+        <div className="flex flex-wrap gap-2">
+          {MODALIDADES.map(m => (
+            <button
+              key={m.value}
+              type="button"
+              onClick={() => toggleMod(m.value)}
+              className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition-all ${
+                modalities.includes(m.value)
+                  ? 'border-zinc-400 bg-zinc-700 text-white'
+                  : 'border-zinc-300 bg-white text-zinc-500 hover:border-zinc-400 hover:text-zinc-700'
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Duración temporal (solo cuando "Temporal" está seleccionado) */}
+      {muestraTemporalDuration && (
+        <div className="flex flex-col gap-1">
+          <label htmlFor="temporal_duration" className="text-sm font-medium text-zinc-700">
+            Duración estimada <span className="font-normal text-zinc-400">(opcional)</span>
+          </label>
+          <input
+            id="temporal_duration"
+            type="text"
+            name="temporal_duration"
+            value={temporalDuration}
+            onChange={e => setTemporalDuration(e.target.value)}
+            placeholder="ej: 3 días, 2 semanas, 1 mes"
+            maxLength={100}
+            className={inputClass}
+          />
+        </div>
+      )}
+
+      {/* Presencialidad */}
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-medium text-zinc-700">Presencialidad</p>
+        <input type="hidden" name="presencialidad" value={presencialidad} />
+        <div className="flex gap-2">
+          {PRESENCIALIDAD_OPTS.map(op => (
+            <button
+              key={op.value}
+              type="button"
+              onClick={() => setPresencialidad(prev => prev === op.value ? '' : op.value)}
+              className={`flex-1 rounded-lg border py-2.5 text-sm font-medium transition-all ${
+                presencialidad === op.value
+                  ? 'border-zinc-400 bg-zinc-700 text-white'
+                  : 'border-zinc-300 bg-white text-zinc-500 hover:border-zinc-400 hover:text-zinc-700'
+              }`}
+            >
+              {op.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Precio + Unidad */}

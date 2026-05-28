@@ -22,6 +22,16 @@ export default async function ConversacionPage({
 
   if (!messages || messages.length === 0) notFound()
 
+  // Marcar como leídos todos los mensajes recibidos en esta conversación
+  // Usa serviceClient porque RLS no tiene política UPDATE para receptores
+  const { createServiceClient } = await import('@/lib/supabase/service')
+  await createServiceClient()
+    .from('messages')
+    .update({ read: true })
+    .eq('conversation_id', conversation_id)
+    .eq('receiver_id', user.id)
+    .eq('read', false)
+
   const primero = messages[0]
   const receiverId = primero.sender_id === user.id ? primero.receiver_id : primero.sender_id
   const postId     = primero.post_id ?? null
