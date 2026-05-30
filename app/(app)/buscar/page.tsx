@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import PostCard, { PostCardData } from '@/components/posts/PostCard'
 import SearchForm from '@/components/search/SearchForm'
+import EmptyFeedState from '@/components/posts/EmptyFeedState'
 
 export default async function BuscarPage({
   searchParams,
@@ -14,6 +15,7 @@ export default async function BuscarPage({
   const safe = q.replace(/['"\\,]/g, '')
 
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   type PerfilRow = {
     id: string
@@ -124,11 +126,11 @@ export default async function BuscarPage({
         </div>
       )}
 
-      {/* Sin resultados */}
+      {/* Sin resultados totales */}
       {q && nTotal === 0 && (
-        <p className="mt-12 text-center text-sm text-zinc-400">
-          Sin resultados para &ldquo;{q}&rdquo;. Intentá con otro término.
-        </p>
+        <div className="mt-6">
+          <EmptyFeedState busqueda={q} isLoggedIn={!!user} hayFiltros={true} />
+        </div>
       )}
 
       {/* Resultados */}
@@ -143,7 +145,7 @@ export default async function BuscarPage({
                   Perfiles
                 </h2>
               )}
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-4">
                 {(perfiles as PerfilRow[]).map(u => {
                   const nombre  = u.first_name ?? u.username ?? 'Usuario'
                   const inicial = nombre[0].toUpperCase()
@@ -151,7 +153,7 @@ export default async function BuscarPage({
                     <Link
                       key={u.id}
                       href={`/perfil/${u.id}`}
-                      className="flex items-start gap-4 rounded-xl border border-surface-2 bg-surface-1 p-4 transition-shadow hover:shadow-sm"
+                      className="flex items-start gap-4 rounded-xl border border-zinc-700 bg-surface-1 p-5 transition-colors hover:bg-surface-2"
                     >
                       <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-surface-2">
                         {u.avatar_url
@@ -161,16 +163,16 @@ export default async function BuscarPage({
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
-                          <p className="font-semibold text-white">{nombre}</p>
+                          <p className="text-base font-semibold text-white">{nombre}</p>
                           {(u.rating_count ?? 0) > 0 && (
-                            <span className="shrink-0 text-xs text-zinc-400">★ {u.rating_avg}</span>
+                            <span className="shrink-0 text-xs text-zinc-300">★ {u.rating_avg}</span>
                           )}
                         </div>
                         {u.headline && (
-                          <p className="text-xs font-medium text-zinc-400">{u.headline}</p>
+                          <p className="text-sm font-medium text-zinc-300">{u.headline}</p>
                         )}
                         {u.location && (
-                          <p className="mt-0.5 text-xs text-zinc-400">{u.location}</p>
+                          <p className="mt-0.5 text-sm text-zinc-400">{u.location}</p>
                         )}
                         {u.bio && (
                           <p className="mt-1.5 line-clamp-2 text-sm leading-snug text-zinc-300">
@@ -193,7 +195,7 @@ export default async function BuscarPage({
                   Servicios
                 </h2>
               )}
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-4">
                 {(ofertas as PostCardData[]).map(post => (
                   <PostCard key={post.id} post={post} />
                 ))}
@@ -209,7 +211,7 @@ export default async function BuscarPage({
                   Búsquedas
                 </h2>
               )}
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-4">
                 {(requerimientos as PostCardData[]).map(post => (
                   <PostCard key={post.id} post={post} />
                 ))}
@@ -217,15 +219,29 @@ export default async function BuscarPage({
             </section>
           )}
 
-          {/* Tab activo sin resultados en esa categoría */}
-          {tab !== 'todo' && (
-            (tab === 'perfiles' && nPerfiles === 0) ||
-            (tab === 'ofertas' && nOfertas === 0) ||
-            (tab === 'requerimientos' && nRequerimientos === 0)
-          ) && (
+          {/* Tab activo sin resultados */}
+          {tab === 'perfiles' && nPerfiles === 0 && (
             <p className="text-center text-sm text-zinc-400">
-              Sin resultados en esta categoría para &ldquo;{q}&rdquo;.
+              Sin perfiles para &ldquo;{q}&rdquo;.
             </p>
+          )}
+          {tab === 'ofertas' && nOfertas === 0 && (
+            <EmptyFeedState busqueda={q} tipo="oferta" isLoggedIn={!!user} hayFiltros={true} />
+          )}
+          {tab === 'requerimientos' && nRequerimientos === 0 && (
+            <EmptyFeedState busqueda={q} tipo="requerimiento" isLoggedIn={!!user} hayFiltros={true} />
+          )}
+
+          {/* Tab "Todo" con resultados parciales: empty state del lado vacío */}
+          {tab === 'todo' && (nOfertas + nRequerimientos) > 0 && (
+            <>
+              {nOfertas === 0 && (
+                <EmptyFeedState busqueda={q} tipo="oferta" isLoggedIn={!!user} hayFiltros={true} />
+              )}
+              {nRequerimientos === 0 && (
+                <EmptyFeedState busqueda={q} tipo="requerimiento" isLoggedIn={!!user} hayFiltros={true} />
+              )}
+            </>
           )}
 
         </div>

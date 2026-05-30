@@ -19,6 +19,7 @@ input, textarea, select {
   color: white;
   background-color: #262626;
   border-color: #262626;
+  font-size: 16px; /* evita zoom automático en iOS al enfocar */
 }
 
 input::placeholder, textarea::placeholder {

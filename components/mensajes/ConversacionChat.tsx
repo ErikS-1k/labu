@@ -130,18 +130,18 @@ export default function ConversacionChat({
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} className="flex gap-3 border-t border-zinc-200 p-4">
+      <form onSubmit={handleSend} className="flex gap-3 border-t border-zinc-200 p-3">
         <input
           value={content}
           onChange={e => setContent(e.target.value)}
           placeholder="Escribí un mensaje..."
           disabled={sending}
-          className="flex-1 rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
+          className="flex-1 rounded-lg border border-zinc-300 px-4 py-3 text-base outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
         />
         <button
           type="submit"
           disabled={!content.trim() || sending}
-          className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:opacity-40"
+          className="rounded-lg bg-white px-4 py-3 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:opacity-40"
         >
           Enviar
         </button>

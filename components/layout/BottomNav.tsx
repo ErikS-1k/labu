@@ -85,7 +85,7 @@ export default function BottomNav({ userId, userName, unreadCount, isLoggedIn }:
   }
 
   function iconClass(href: string) {
-    return `flex flex-col items-center gap-0.5 px-3 py-1 transition-colors ${
+    return `flex flex-col items-center gap-0.5 px-3 py-3 transition-colors ${
       isActive(href) ? 'text-white' : 'text-zinc-400'
     }`
   }

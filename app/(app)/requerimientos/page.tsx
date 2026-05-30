@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import PostCard, { type PostCardData } from '@/components/posts/PostCard'
 import FeedFilters from '@/components/posts/FeedFilters'
+import EmptyFeedState from '@/components/posts/EmptyFeedState'
 
 export const metadata: Metadata = { title: 'Requerimientos — Labu' }
 
@@ -13,6 +14,7 @@ export default async function RequerimientosPage({
 }) {
   const { busqueda, categoria, modalidad } = await searchParams
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const baseSelect = 'id, user_id, type, title, description, category, modality, presencialidad, temporal_duration, price, price_type, location, created_at, users(username, first_name, fecha_nacimiento, rating_avg, avatar_url)'
 
@@ -65,7 +67,7 @@ export default async function RequerimientosPage({
             <span className="h-2 w-2 rounded-full bg-green-400" />
             <h2 className="text-sm font-semibold text-zinc-300">Urgentes ahora</h2>
           </div>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             {urgentes.map(post => <PostCard key={post.id} post={post} />)}
           </div>
           {feed.length > 0 && (
@@ -76,14 +78,16 @@ export default async function RequerimientosPage({
         </section>
       )}
 
-      <div className={urgentes.length > 0 ? 'flex flex-col gap-3' : 'mt-6 flex flex-col gap-3'}>
+      <div className={urgentes.length > 0 ? 'flex flex-col gap-4' : 'mt-6 flex flex-col gap-4'}>
         {feed.length > 0
           ? feed.map(post => <PostCard key={post.id} post={post} />)
           : !urgentes.length && (
-            <p className="py-16 text-center text-sm text-zinc-400">
-              No hay búsquedas todavía.{' '}
-              <a href="/publicar" className="underline">¡Publicá el tuyo!</a>
-            </p>
+            <EmptyFeedState
+              busqueda={busqueda}
+              tipo="requerimiento"
+              isLoggedIn={!!user}
+              hayFiltros={!!hayFiltros}
+            />
           )
         }
       </div>

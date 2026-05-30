@@ -1,7 +1,8 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useTransition, useState } from 'react'
 import { cerrarPost } from '@/app/actions/posts'
+import { showToast } from '@/lib/toast'
 
 export default function CerrarPostButton({
   postId,
@@ -10,12 +11,17 @@ export default function CerrarPostButton({
   postId: string
   type: 'oferta' | 'requerimiento'
 }) {
-  const formRef = useRef<HTMLFormElement>(null)
   const [open, setOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
   function confirmar() {
     setOpen(false)
-    formRef.current?.requestSubmit()
+    startTransition(async () => {
+      const fd = new FormData()
+      fd.append('post_id', postId)
+      await cerrarPost(fd)
+      showToast('Tu publicación fue cerrada.')
+    })
   }
 
   const descripcion = type === 'oferta'
@@ -24,16 +30,14 @@ export default function CerrarPostButton({
 
   return (
     <>
-      <form ref={formRef} action={cerrarPost}>
-        <input type="hidden" name="post_id" value={postId} />
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs text-zinc-500 transition-colors hover:bg-surface-2"
-        >
-          Cerrar
-        </button>
-      </form>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        disabled={isPending}
+        className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs text-zinc-500 transition-colors hover:bg-surface-2 disabled:opacity-50"
+      >
+        {isPending ? 'Cerrando...' : 'Cerrar'}
+      </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">

@@ -3,6 +3,9 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import PostCard, { type PostCardData } from '@/components/posts/PostCard'
 import FeedFilters from '@/components/posts/FeedFilters'
+import GuestPublishButtons from '@/components/panel/GuestPublishButtons'
+import EmptyFeedState from '@/components/posts/EmptyFeedState'
+import OnboardingModal from '@/components/onboarding/OnboardingModal'
 
 export const metadata = { title: 'Inicio — Labu' }
 
@@ -22,6 +25,19 @@ export default async function PanelPage({
   const supabase   = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const hayFiltros = tipo || busqueda || categoria || modalidad
+
+  // Verificar si es el primer acceso del usuario
+  let firstLogin = false
+  let firstName: string | null = null
+  if (user) {
+    const { data: perfil } = await supabase
+      .from('users')
+      .select('first_name, first_login')
+      .eq('id', user.id)
+      .single()
+    firstLogin = perfil?.first_login ?? false
+    firstName  = perfil?.first_name ?? null
+  }
 
   // Sección "Disponibles ahora" — solo cuando no hay filtros activos
   let inmediatos: PostCardData[] = []
@@ -53,11 +69,41 @@ export default async function PanelPage({
   const inmediatosIds   = new Set(inmediatos.map(p => p.id))
   const feed = ((posts ?? []) as unknown as PostCardData[]).filter(p => !inmediatosIds.has(p.id))
 
+  // Conteos por tipo para empty states parciales en tab "Todos"
+  const nOfertas = feed.filter(p => p.type === 'oferta').length + inmediatos.filter(p => p.type === 'oferta').length
+  const nReqs    = feed.filter(p => p.type === 'requerimiento').length + inmediatos.filter(p => p.type === 'requerimiento').length
+
   return (
+    <>
+    {firstLogin && <OnboardingModal firstName={firstName} />}
     <div className="mx-auto max-w-2xl px-4 py-6">
 
-      {/* Acciones de publicación — solo para logueados */}
-      {user && (
+      {/* Banner para visitantes */}
+      {!user && (
+        <div className="mb-6 rounded-xl border border-surface-2 bg-surface-1 px-5 py-4">
+          <p className="text-sm font-semibold text-white">Estás explorando Labu como visitante</p>
+          <p className="mt-1 text-sm text-zinc-400">
+            Creá una cuenta gratis para publicar tu servicio, buscar trabajo y contactar a otros usuarios.
+          </p>
+          <div className="mt-3 flex gap-2">
+            <Link
+              href="/registro"
+              className="rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200"
+            >
+              Crear cuenta
+            </Link>
+            <Link
+              href="/login"
+              className="rounded-lg border border-surface-2 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-surface-2"
+            >
+              Iniciar sesión
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Acciones de publicación — visibles para todos */}
+      {user ? (
         <div className="mb-8 grid grid-cols-2 gap-3">
           <Link
             href="/publicar?tipo=oferta"
@@ -79,6 +125,8 @@ export default async function PanelPage({
             <span className="text-sm font-semibold text-blue-400">Publicar una búsqueda</span>
           </Link>
         </div>
+      ) : (
+        <GuestPublishButtons />
       )}
 
       {/* Separador "Explorar" */}
@@ -100,7 +148,7 @@ export default async function PanelPage({
             <span className="h-2 w-2 rounded-full bg-green-400" />
             <p className="text-sm font-semibold text-zinc-300">Disponibles ahora</p>
           </div>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             {inmediatos.map(p => <PostCard key={p.id} post={p} />)}
           </div>
           {feed.length > 0 && (
@@ -112,18 +160,33 @@ export default async function PanelPage({
       )}
 
       {/* Feed principal */}
-      <div className="flex flex-col gap-3 mt-6">
-        {feed.length > 0
-          ? feed.map(p => <PostCard key={p.id} post={p} />)
-          : !inmediatos.length && (
-            <p className="py-16 text-center text-sm text-zinc-400">
-              No hay publicaciones todavía.{' '}
-              <a href="/publicar" className="underline">¡Publicá la primera!</a>
-            </p>
-          )
-        }
+      <div className="flex flex-col gap-4 mt-6">
+        {feed.map(p => <PostCard key={p.id} post={p} />)}
+
+        {/* Feed completamente vacío */}
+        {feed.length === 0 && !inmediatos.length && (
+          <EmptyFeedState
+            busqueda={busqueda}
+            tipo={tipo}
+            isLoggedIn={!!user}
+            hayFiltros={!!hayFiltros}
+          />
+        )}
+
+        {/* Tab "Todos" con resultados parciales: mostrar empty state del lado vacío */}
+        {!tipo && busqueda && (nOfertas + nReqs) > 0 && (
+          <>
+            {nOfertas === 0 && (
+              <EmptyFeedState busqueda={busqueda} tipo="oferta" isLoggedIn={!!user} hayFiltros={true} />
+            )}
+            {nReqs === 0 && (
+              <EmptyFeedState busqueda={busqueda} tipo="requerimiento" isLoggedIn={!!user} hayFiltros={true} />
+            )}
+          </>
+        )}
       </div>
 
     </div>
+    </>
   )
 }

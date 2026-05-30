@@ -105,3 +105,10 @@ export async function eliminarSeccion(id: string) {
   revalidatePath(`/perfil/editar`)
   revalidatePath(`/perfil/${user.id}`)
 }
+
+export async function completarOnboarding() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+  await supabase.from('users').update({ first_login: false }).eq('id', user.id)
+}

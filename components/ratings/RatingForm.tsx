@@ -1,7 +1,8 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import { calificar } from '@/app/actions/ratings'
+import { showToast } from '@/lib/toast'
 
 type Props = {
   postId: string
@@ -15,6 +16,10 @@ export default function RatingForm({ postId, toUserId, toUserName }: Props) {
   const [state, action, pending] = useActionState(calificar, init)
   const [score, setScore] = useState(0)
   const [hover, setHover] = useState(0)
+
+  useEffect(() => {
+    if (state.ok) showToast('Tu calificación fue enviada correctamente.')
+  }, [state.ok])
 
   if (state.ok) {
     return (

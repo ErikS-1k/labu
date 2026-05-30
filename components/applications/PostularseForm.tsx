@@ -1,7 +1,8 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect } from 'react'
 import { postularse } from '@/app/actions/applications'
+import { showToast } from '@/lib/toast'
 
 type Props = {
   postId: string
@@ -19,6 +20,15 @@ export default function PostularseForm({
   mensajeOk = 'Postulación enviada. Te avisamos cuando el demandante la revise.',
 }: Props) {
   const [state, action, pending] = useActionState(postularse, init)
+
+  useEffect(() => {
+    if (!state.ok) return
+    const esOferta = textoBoton.toLowerCase().includes('solicitud') || textoBoton.toLowerCase().includes('solicitar') || textoBoton.toLowerCase().includes('enviar')
+    showToast(esOferta
+      ? 'Tu solicitud fue enviada correctamente.'
+      : 'Te postulaste correctamente. Te avisaremos cuando haya una respuesta.'
+    )
+  }, [state.ok])
 
   if (state.ok) {
     return (

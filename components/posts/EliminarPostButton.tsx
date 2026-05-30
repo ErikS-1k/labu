@@ -1,7 +1,9 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useTransition, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { eliminarPost } from '@/app/actions/posts'
+import { showToast } from '@/lib/toast'
 
 export default function EliminarPostButton({
   postId,
@@ -16,24 +18,28 @@ export default function EliminarPostButton({
   className?: string
   returnTo?: string
 }) {
-  const formRef = useRef<HTMLFormElement>(null)
   const [open, setOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   function confirmar() {
     setOpen(false)
-    formRef.current?.requestSubmit()
+    startTransition(async () => {
+      const fd = new FormData()
+      fd.append('post_id', postId)
+      fd.append('type', type)
+      if (returnTo) fd.append('return_to', returnTo)
+      await eliminarPost(fd)
+      showToast('Tu publicación fue eliminada.')
+      if (returnTo) router.refresh()
+    })
   }
 
   return (
     <>
-      <form ref={formRef} action={eliminarPost}>
-        <input type="hidden" name="post_id"    value={postId} />
-        <input type="hidden" name="type"       value={type} />
-        {returnTo && <input type="hidden" name="return_to" value={returnTo} />}
-        <button type="button" onClick={() => setOpen(true)} className={className}>
-          {label}
-        </button>
-      </form>
+      <button type="button" onClick={() => setOpen(true)} disabled={isPending} className={className}>
+        {isPending ? 'Eliminando...' : label}
+      </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">

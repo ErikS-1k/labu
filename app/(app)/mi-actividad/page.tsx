@@ -4,8 +4,8 @@ import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import CerrarPostButton from '@/components/posts/CerrarPostButton'
 import EliminarPostButton from '@/components/posts/EliminarPostButton'
-import { marcarCompletado } from '@/app/actions/posts'
 import CalificarModal from './CalificarModal'
+import MarcarCompletadoButton from '@/components/posts/MarcarCompletadoButton'
 
 export const metadata: Metadata = { title: 'Mi actividad — Labu' }
 
@@ -289,15 +289,7 @@ export default async function MiActividadPage({
                       {/* Acciones */}
                       <div className="shrink-0">
                         {app.status === 'aceptado' && !app.completed_at && (
-                          <form action={marcarCompletado}>
-                            <input type="hidden" name="post_id" value={post.id} />
-                            <button
-                              type="submit"
-                              className="rounded-lg border border-surface-2 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:bg-surface-2"
-                            >
-                              Marcar completado
-                            </button>
-                          </form>
+                          <MarcarCompletadoButton postId={post.id} />
                         )}
                         {app.completed_at && !yaCalifique && (
                           <CalificarModal

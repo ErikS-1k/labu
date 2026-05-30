@@ -1,16 +1,37 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRef, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function SearchForm({ initialQ }: { initialQ: string }) {
   const [q, setQ] = useState(initialQ)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  function buildUrl(query: string) {
+    const params = new URLSearchParams(searchParams.toString())
+    if (query) params.set('q', query)
+    else params.delete('q')
+    return `/buscar${params.toString() ? '?' + params.toString() : ''}`
+  }
+
+  function handleChange(value: string) {
+    setQ(value)
+    clearTimeout(debounceRef.current)
+    if (!value.trim()) {
+      router.replace(buildUrl(''))
+      return
+    }
+    debounceRef.current = setTimeout(() => {
+      router.replace(buildUrl(value.trim()))
+    }, 300)
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const trimmed = q.trim()
-    router.push(trimmed ? `/buscar?q=${encodeURIComponent(trimmed)}` : '/buscar')
+    clearTimeout(debounceRef.current)
+    router.replace(buildUrl(q.trim()))
   }
 
   return (
@@ -18,7 +39,7 @@ export default function SearchForm({ initialQ }: { initialQ: string }) {
       <input
         type="search"
         value={q}
-        onChange={e => setQ(e.target.value)}
+        onChange={e => handleChange(e.target.value)}
         placeholder="Buscá por nombre, rubro o zona..."
         autoFocus
         className="flex-1 rounded-lg border border-surface-2 bg-surface-2 px-4 py-2.5 text-sm outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600"

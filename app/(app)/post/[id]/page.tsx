@@ -7,6 +7,7 @@ import { marcarCompletado } from '@/app/actions/posts'
 import { aceptarPostulacion, rechazarPostulacion } from '@/app/actions/applications'
 import RatingForm from '@/components/ratings/RatingForm'
 import PostularseForm from '@/components/applications/PostularseForm'
+import GuestPostAction from '@/components/posts/GuestPostAction'
 
 const MODALITY_LABEL: Record<string, string> = {
   inmediato:   'Inmediato',
@@ -306,6 +307,11 @@ export default async function PostPage({
         </div>
       )}
 
+      {/* Solicitante guest: prompt de login */}
+      {!esRequerimiento && !user && !esAutor && !estaCompletado && (
+        <GuestPostAction type="oferta" />
+      )}
+
       {/* Solicitante: formulario si aún no envió solicitud */}
       {!esRequerimiento && user && !esAutor && !miPostulacion && !estaCompletado && (
         <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
@@ -368,14 +374,14 @@ export default async function PostPage({
                           <form action={aceptarPostulacion}>
                             <input type="hidden" name="application_id" value={p.id} />
                             <input type="hidden" name="post_id"        value={post.id} />
-                            <button type="submit" className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700">
+                            <button type="submit" className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700">
                               Aceptar
                             </button>
                           </form>
                           <form action={rechazarPostulacion}>
                             <input type="hidden" name="application_id" value={p.id} />
                             <input type="hidden" name="post_id"        value={post.id} />
-                            <button type="submit" className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50">
+                            <button type="submit" className="rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">
                               Rechazar
                             </button>
                           </form>
@@ -447,6 +453,11 @@ export default async function PostPage({
         </div>
       )}
 
+      {/* Postulante guest: prompt de login */}
+      {esRequerimiento && !user && !esAutor && !estaCompletado && (
+        <GuestPostAction type="requerimiento" />
+      )}
+
       {/* Postulante: formulario si aún no se postuló */}
       {esRequerimiento && user && !esAutor && !miPostulacion && !estaCompletado && (
         <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
@@ -506,14 +517,14 @@ export default async function PostPage({
                           <form action={aceptarPostulacion}>
                             <input type="hidden" name="application_id" value={p.id} />
                             <input type="hidden" name="post_id"        value={post.id} />
-                            <button type="submit" className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700">
+                            <button type="submit" className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700">
                               Aceptar
                             </button>
                           </form>
                           <form action={rechazarPostulacion}>
                             <input type="hidden" name="application_id" value={p.id} />
                             <input type="hidden" name="post_id"        value={post.id} />
-                            <button type="submit" className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50">
+                            <button type="submit" className="rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">
                               Rechazar
                             </button>
                           </form>

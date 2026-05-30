@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef, useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { MODALIDADES } from '@/lib/constants'
 
@@ -19,16 +20,11 @@ export default function FeedFilters({ paramPrefix = '', preserveParams = [], sho
   const modalidadKey = `${paramPrefix}modalidad`
   const tipoKey      = `${paramPrefix}tipo`
 
+  const [busquedaValue, setBusquedaValue] = useState(searchParams.get(busquedaKey) ?? '')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
   function buildParams(overrides: Record<string, string>) {
-    const params = new URLSearchParams()
-    for (const key of preserveParams) {
-      const v = searchParams.get(key)
-      if (v) params.set(key, v)
-    }
-    // Preservar todos los params con otros prefijos
-    for (const [k, v] of searchParams.entries()) {
-      if (!k.startsWith(paramPrefix) && !preserveParams.includes(k)) params.set(k, v)
-    }
+    const params = new URLSearchParams(searchParams.toString())
     for (const [k, v] of Object.entries(overrides)) {
       if (v) params.set(k, v)
       else params.delete(k)
@@ -36,20 +32,31 @@ export default function FeedFilters({ paramPrefix = '', preserveParams = [], sho
     return params.toString()
   }
 
+  function handleBusquedaChange(value: string) {
+    setBusquedaValue(value)
+    clearTimeout(debounceRef.current)
+    if (!value.trim()) {
+      router.replace(`${pathname}?${buildParams({ [busquedaKey]: '' })}`)
+      return
+    }
+    debounceRef.current = setTimeout(() => {
+      router.replace(`${pathname}?${buildParams({ [busquedaKey]: value.trim() })}`)
+    }, 300)
+  }
+
   function updateModalidad(value: string) {
-    router.push(`${pathname}?${buildParams({ [modalidadKey]: value })}`)
+    router.replace(`${pathname}?${buildParams({ [modalidadKey]: value })}`)
   }
 
   function updateTipo(value: string) {
-    router.push(`${pathname}?${buildParams({ [tipoKey]: value })}`)
+    router.replace(`${pathname}?${buildParams({ [tipoKey]: value })}`)
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const data      = new FormData(e.currentTarget)
-    const busqueda  = (data.get('busqueda')  as string).trim()
-    const categoria = (data.get('categoria') as string).trim()
-    router.push(`${pathname}?${buildParams({ [busquedaKey]: busqueda, [categoriaKey]: categoria })}`)
+    clearTimeout(debounceRef.current)
+    const categoria = (new FormData(e.currentTarget).get('categoria') as string ?? '').trim()
+    router.replace(`${pathname}?${buildParams({ [busquedaKey]: busquedaValue.trim(), [categoriaKey]: categoria })}`)
   }
 
   const inputClass = 'rounded-lg border border-surface-2 bg-surface-2 px-3 py-2 text-sm outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-600'
@@ -79,8 +86,8 @@ export default function FeedFilters({ paramPrefix = '', preserveParams = [], sho
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
             <input
-              name="busqueda"
-              defaultValue={searchParams.get(busquedaKey) ?? ''}
+              value={busquedaValue}
+              onChange={e => handleBusquedaChange(e.target.value)}
               placeholder="Buscar..."
               className={`${inputClass} w-full pl-8`}
             />

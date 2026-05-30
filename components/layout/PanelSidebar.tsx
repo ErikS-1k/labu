@@ -117,7 +117,7 @@ export default function PanelSidebar({ userId, userName, unreadCount, unreadNoti
   }
 
   return (
-    <aside className="group hidden md:flex h-screen w-14 hover:w-56 flex-col border-r border-surface-2 bg-surface-0 transition-[width] duration-200 ease-in-out overflow-hidden shrink-0">
+    <aside className="group hidden md:flex h-dvh w-14 hover:w-56 flex-col border-r border-surface-2 bg-surface-0 transition-[width] duration-200 ease-in-out overflow-hidden shrink-0">
 
       {/* Logo */}
       <Link href="/" className="flex items-center gap-3 px-3 py-4 border-b border-surface-2 hover:bg-surface-2 transition-colors">

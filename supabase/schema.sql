@@ -36,6 +36,7 @@ create table public.users (
   fecha_nacimiento date,
   rating_avg       numeric default 0,
   rating_count     integer default 0,
+  first_login      boolean default true,  -- true = primer acceso, muestra onboarding
   created_at       timestamp with time zone default now()
 );
 

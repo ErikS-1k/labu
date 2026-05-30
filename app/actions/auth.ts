@@ -32,7 +32,7 @@ export async function registro(prevState: { error: string } | null, formData: Fo
 
   if (error) return { error: error.message }
 
-  redirect('/')
+  redirect('/panel?toast=bienvenido')
 }
 
 export async function logout() {

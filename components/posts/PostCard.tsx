@@ -76,7 +76,7 @@ export default function PostCard({ post }: { post: PostCardData }) {
   const typeConfig = TYPE_CONFIG[post.type]
 
   return (
-    <div className="relative rounded-xl border border-surface-2 bg-surface-1 p-4 transition-colors hover:bg-surface-2">
+    <div className="relative rounded-xl border border-zinc-700 bg-surface-1 p-5 transition-colors hover:bg-surface-2">
       {/* Stretched link — cubre toda la card, lleva al post */}
       <Link href={`/post/${post.id}`} className="absolute inset-0 rounded-xl" aria-label={post.title} />
 
@@ -100,32 +100,32 @@ export default function PostCard({ post }: { post: PostCardData }) {
             </span>
           )}
           {nombre && (
-            <span className="truncate text-sm text-zinc-400">
+            <span className="truncate text-sm text-zinc-300">
               {nombre}{edad !== null ? `, ${edad}` : ''}
             </span>
           )}
         </Link>
-        <span className="shrink-0 text-sm font-semibold text-zinc-200">{priceLabel}</span>
+        <span className="shrink-0 text-sm font-semibold text-zinc-100">{priceLabel}</span>
       </div>
 
       {/* Título */}
-      <h3 className="mt-2 font-semibold leading-snug text-white">{post.title}</h3>
+      <h3 className="mt-2 text-base font-semibold leading-snug text-white">{post.title}</h3>
 
       {/* Chips: categoría + modalidades + presencialidad */}
       <div className="mt-3 flex flex-wrap gap-1.5">
         {post.category && (
-          <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs text-zinc-400">
+          <span className="rounded-full bg-surface-2 px-2.5 py-1 text-xs text-zinc-300">
             {post.category}
           </span>
         )}
         {post.modality.map(m => (
-          <span key={m} className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs text-zinc-400">
+          <span key={m} className="rounded-full bg-surface-2 px-2.5 py-1 text-xs text-zinc-300">
             {MODALITY_LABEL[m] ?? m}
             {m === 'temporal' && post.temporal_duration ? ` · ${post.temporal_duration}` : ''}
           </span>
         ))}
         {post.presencialidad && (
-          <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs text-zinc-400">
+          <span className="rounded-full bg-surface-2 px-2.5 py-1 text-xs text-zinc-300">
             {post.presencialidad === 'presencial' ? 'Presencial'
              : post.presencialidad === 'virtual' ? 'Virtual'
              : 'Presencial / Virtual'}

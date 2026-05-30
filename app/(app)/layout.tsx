@@ -1,8 +1,10 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import PanelSidebar from '@/components/layout/PanelSidebar'
 import BottomNav from '@/components/layout/BottomNav'
 import FloatingPublishMenu from '@/components/layout/FloatingPublishMenu'
+import Toaster from '@/components/ui/Toaster'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -24,7 +26,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-surface-1">
+    <div className="flex h-dvh overflow-hidden bg-surface-1">
       <PanelSidebar
         userId={user?.id ?? null}
         userName={userName}
@@ -43,6 +45,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       />
 
       <FloatingPublishMenu isLoggedIn={!!user} />
+      <Suspense><Toaster /></Suspense>
     </div>
   )
 }
