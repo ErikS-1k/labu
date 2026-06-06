@@ -21,27 +21,27 @@ MVP completo y deployado en Vercel. Todas las funcionalidades principales están
 ### Estructura de rutas
 ```
 app/
-  page.tsx                         → landing con hero + 4 secciones explicativas
+  page.tsx                         → landing dark (hero + características + categorías + cómo funciona + CTA + footer)
   (auth)/
-    login/page.tsx                 → login
-    registro/page.tsx              → registro (nombre + apellido + email + contraseña)
+    login/page.tsx                 → login con toggle de contraseña
+    registro/page.tsx              → registro (nombre + apellido + email + contraseña con toggle)
   (app)/
     layout.tsx                     → sidebar + bottom nav + botón flotante + Toaster
-    panel/page.tsx                 → feed principal con filtros + onboarding modal
+    panel/page.tsx                 → feed principal con filtros + OnboardingBanner
     ofertas/page.tsx               → feed de ofertas con filtros
     requerimientos/page.tsx        → feed de requerimientos con filtros
     buscar/page.tsx                → buscador global (perfiles + posts) con tabs
-    post/[id]/page.tsx             → detalle de post + postulaciones + rating
+    post/[id]/page.tsx             → detalle de post + postulaciones + rating (sin teléfono)
     perfil/[id]/page.tsx           → perfil público/propio
-    perfil/editar/page.tsx         → editar perfil + secciones LinkedIn
+    perfil/editar/page.tsx         → editar perfil + secciones LinkedIn + eliminar foto
     publicar/page.tsx              → crear nuevo post
     editar/[id]/page.tsx           → editar post propio
     mi-actividad/page.tsx          → tabs: Mis publicaciones + Mis trabajos
     mi-actividad/CalificarModal.tsx → modal de calificación (client component)
     mis-publicaciones/page.tsx     → redirect a /mi-actividad
     verificacion/page.tsx          → formulario DNI + explicación proceso
-    mensajes/page.tsx              → lista de conversaciones
-    mensajes/[conversation_id]/page.tsx → chat individual (Supabase Realtime)
+    mensajes/page.tsx              → lista de conversaciones (Realtime via ConversacionList)
+    mensajes/[conversation_id]/page.tsx → chat individual (Supabase Realtime + smart scroll)
     mensajes/nuevo/page.tsx        → iniciar conversación nueva
     admin/verificaciones/page.tsx  → panel admin (solo ADMIN_EMAIL)
 ```
@@ -54,17 +54,23 @@ components/
     BottomNav.tsx             → nav mobile inferior, py-3 para touch targets 44px
     FloatingPublishMenu.tsx   → botón "+", oculto en /publicar, modal para guests
     NotificationBell.tsx      → campana con badge (Realtime)
+    Breadcrumbs.tsx           → breadcrumbs dinámicos
   ui/
     Toaster.tsx               → toasts efímeros (URL param + CustomEvent)
+    ProgressBar.tsx           → barra de progreso NProgress en navegación
   onboarding/
-    OnboardingModal.tsx       → modal 3 pasos para usuarios nuevos (first_login)
+    OnboardingBanner.tsx      → banner persistente 3 pasos (reemplaza el modal)
+                                Paso 1: completar perfil (avatar+bio+location)
+                                Paso 2: publicar (posts count > 0)
+                                Paso 3: explorar (first_login = false)
   auth/
     LoginPromptModal.tsx      → modal reutilizable para acciones de guests
   posts/
     PublicarForm.tsx          → formulario controlado, validación por campo
     EditarPostForm.tsx        → editar post existente
-    PostCard.tsx              → card del feed (border-zinc-700, p-5, text-base)
-    FeedFilters.tsx           → filtros con búsqueda en tiempo real + debounce 300ms
+    PostCard.tsx              → card del feed con íconos de tipo (wrench/briefcase)
+    PostActionsMenu.tsx       → menú de acciones (editar, cerrar, eliminar) en mi-actividad
+    FeedFilters.tsx           → filtros con íconos en tabs + búsqueda en tiempo real + debounce 300ms
     CerrarPostButton.tsx      → modal confirmación + useTransition + toast
     EliminarPostButton.tsx    → modal confirmación + useTransition + toast
     EmptyFeedState.tsx        → empty states inteligentes con mensajes cross-sell
@@ -77,19 +83,22 @@ components/
   ratings/
     RatingForm.tsx            → calificación 1-5 estrellas, toast en state.ok
   mensajes/
-    ConversacionChat.tsx      → chat Realtime, input text-base (evita iOS zoom)
+    ConversacionChat.tsx      → chat Realtime, smart scroll, input text-base (evita iOS zoom)
+    ConversacionList.tsx      → lista de conversaciones con Realtime (client component)
   search/
     SearchForm.tsx            → búsqueda en tiempo real con debounce 300ms
   perfil/
-    EditarPerfilForm.tsx      → avatar upload a bucket "avatars"
+    EditarPerfilForm.tsx      → avatar upload/eliminar, email, phone, all fields
     AgregarSeccionForm.tsx    → secciones estilo LinkedIn
+    SeccionCard.tsx           → card de sección con edición inline
 ```
 
 ### Server actions
 ```
 app/actions/
   auth.ts          → registro (→ /panel?toast=bienvenido), login, logout
-  perfil.ts        → actualizarPerfil, agregarSeccion, eliminarSeccion, completarOnboarding
+  perfil.ts        → actualizarPerfil (incluye email), agregarSeccion, editarSeccion,
+                     eliminarSeccion, eliminarFoto, completarOnboarding
   posts.ts         → publicarPost (→ toast), editarPost (→ toast), eliminarPost,
                      cerrarPost, marcarCompletado
   applications.ts  → postularse, aceptarPostulacion, rechazarPostulacion
@@ -104,6 +113,7 @@ app/actions/
 ```
 lib/
   toast.ts         → showToast(message, type) — dispara CustomEvent 'labu:toast'
+  useProgress.ts   → hook para NProgress (barra de carga en navegación)
   supabase/        → server.ts, client.ts, service.ts
 ```
 
@@ -113,7 +123,9 @@ lib/
 
 ### Tabla `users`
 ```
-first_login     boolean default true  — true = primer acceso, muestra onboarding
+first_login     boolean default true  — true = primer acceso, muestra onboarding banner
+email           text                  — email de contacto, visible solo para el propio usuario
+phone           text                  — teléfono, visible solo para el propio usuario (no se desbloquea más)
 ```
 
 ### Tabla `posts`
@@ -156,20 +168,21 @@ create policy "El receptor puede marcar mensajes como leídos"
 
 ---
 
-## Últimos cambios (commit 25e32e1)
+## Últimos cambios (commits 0e8c314 + 206fd79)
 
 | Área | Cambio |
 |---|---|
-| Landing page | Rediseñada con 4 secciones: Qué es Labu, Cómo funciona, Para quién, CTA final |
-| Onboarding | Modal 3 pasos para usuarios nuevos (`first_login` en tabla `users`) |
-| Toasts | Sistema global de notificaciones efímeras (URL param + CustomEvent) |
-| Búsqueda | Tiempo real con debounce 300ms en feed principal y buscador lateral |
-| Empty states | Mensajes inteligentes con cross-sell según tab y término buscado |
-| Guests | Banner en feed, modal de login suave en acciones, botones visibles para todos |
-| Mobile / iOS | `font-size: 16px` en inputs (evita zoom), `h-dvh` en layout, touch targets 44px |
-| Cards del feed | Borde más visible (`border-zinc-700`), padding mayor (`p-5`), texto más contrastado |
-| Bug fix | `buildParams` en FeedFilters reseteaba el tab al buscar — corregido |
-| Botones | Aceptar/Rechazar en post detail agrandados; CerrarPostButton migrado a `useTransition` |
+| Onboarding | OnboardingModal → OnboardingBanner: banner persistente en /panel, detecta progreso desde datos reales (perfil + posts count + first_login) |
+| Foto de perfil | Botón "Eliminar foto" en /perfil/editar con confirmación inline (no modal); elimina del bucket y limpia avatar_url |
+| Mensajería — headers | Reemplaza "Re: [título del post]" por nombre + profesión/oficio del otro usuario |
+| Mensajería — Realtime lista | ConversacionList.tsx: client component con suscripción Realtime; actualiza último mensaje y sube al tope sin recargar |
+| Mensajería — scroll inteligente | Solo scrollea al fondo si el usuario ya estaba ahí; no interrumpe si está leyendo mensajes anteriores |
+| Íconos | Wrench/briefcase en PostCard badges; íconos en FeedFilters tabs; dollar/clock/globe/map-pin en detalle de post; map-pin en perfil; calendar/users en mi-actividad |
+| Landing page | Rediseño completo: hero con SVG de red + 4 secciones (características, categorías, cómo funciona, CTA) — tema 100% oscuro |
+| Contraseña | Toggle mostrar/ocultar contraseña (ícono ojo) en login y registro |
+| Contacto post-aceptación | Eliminado el teléfono del otro usuario al aceptar. Solo queda el botón "Iniciar conversación" como canal |
+| Email en perfil | Campo "Email de contacto" en /perfil/editar — solo visible para el propio usuario |
+| Safari | min-h-dvh→min-h-screen, backdrop-blur eliminado del nav, color-mix() reemplazado por rgba() explícito |
 
 ---
 
@@ -179,7 +192,9 @@ Leyenda: ✅ funciona en producción · ⚠️ funciona con limitaciones · 🔜
 
 ### Autenticación y perfil
 - ✅ Registro con first_name + last_name → redirige a `/panel?toast=bienvenido`
-- ✅ Perfil editable (bio, zona, headline, teléfono, foto)
+- ✅ Toggle mostrar/ocultar contraseña en login y registro
+- ✅ Perfil editable (bio, zona, headline, teléfono, email, foto)
+- ✅ Eliminar foto de perfil con confirmación inline
 - ✅ Perfil estilo LinkedIn (secciones: experiencia, educación, certificados, proyectos, cursos)
 - ✅ Perfil público sin datos privados (phone, email, last_name)
 
@@ -197,6 +212,7 @@ Leyenda: ✅ funciona en producción · ⚠️ funciona con limitaciones · 🔜
 - ✅ Panel hub con tabs Todos / Ofrece sus servicios / Necesita contratar
 - ✅ Feeds de ofertas y requerimientos con filtros independientes
 - ✅ Búsqueda en tiempo real con debounce 300ms
+- ✅ Íconos en tabs de tipo (wrench = oferta, briefcase = requerimiento)
 - ✅ Sección "Disponibles ahora" (posts con modalidad Inmediato)
 - ✅ Cards legibles: borde visible, padding generoso, texto contrastado
 - ✅ Empty states inteligentes con mensajes cross-sell según tab y término buscado
@@ -217,18 +233,22 @@ Leyenda: ✅ funciona en producción · ⚠️ funciona con limitaciones · 🔜
 
 ### Interacción
 - ✅ Sistema de postulaciones (solicitar en ofertas / postularse en requerimientos)
-- ✅ Aceptar / rechazar con desbloqueo de teléfono
+- ✅ Aceptar / rechazar postulaciones
+- ✅ Al aceptar: solo se desbloquea el botón "Iniciar conversación" (sin teléfono)
 - ✅ Marcar trabajo completado (doble confirmación cliente + trabajador)
 - ✅ Ratings 1-5 estrellas post-trabajo
 
 ### Mi actividad
-- ✅ Tab "Mis publicaciones": posts propios con conteos y acciones
+- ✅ Tab "Mis publicaciones": posts propios con conteos y acciones (menú editar/cerrar/eliminar)
 - ✅ Tab "Mis trabajos": aplicaciones con estados y filtros por rol
 - ✅ Calificación desde modal inline
 - ✅ Marcar completado con toast
 
 ### Mensajería
-- ✅ Chat con Supabase Realtime
+- ✅ Chat con Supabase Realtime — mensajes aparecen sin recargar
+- ✅ Lista de conversaciones con Realtime — último mensaje y orden se actualizan en tiempo real
+- ✅ Smart scroll — solo baja al fondo si el usuario ya estaba ahí
+- ✅ Header del chat muestra nombre + profesión del otro usuario (no título del post)
 - ✅ Mensajes marcados como leídos al abrir la conversación
 - ✅ Badge sidebar actualizado via router.refresh()
 
@@ -238,11 +258,19 @@ Leyenda: ✅ funciona en producción · ⚠️ funciona con limitaciones · 🔜
 - ✅ Duración 4s, animación, botón X manual
 
 ### Onboarding
-- ✅ Modal 3 pasos para usuarios nuevos (`first_login = true`)
-- ✅ "Hacer esto después" cierra y marca done — nunca vuelve a aparecer
+- ✅ Banner persistente 3 pasos en /panel para usuarios nuevos
+- ✅ Paso 1: completar perfil (avatar + bio + zona detectados desde DB)
+- ✅ Paso 2: hacer una publicación (count de posts del usuario)
+- ✅ Paso 3: explorar (first_login = false al clickear "Explorar")
+- ✅ Banner desaparece cuando los 3 pasos están completos
 
 ### Landing page
-- ✅ Hero + Qué es Labu + Cómo funciona + Para quién + CTA final
+- ✅ Hero con ilustración SVG de red de nodos
+- ✅ Sección características (4 items con íconos)
+- ✅ Grilla de categorías (12 rubros, cada uno linkea a /buscar con filtro)
+- ✅ Sección "Cómo funciona" (3 pasos)
+- ✅ CTA final + Footer
+- ✅ Tema 100% oscuro, consistente con el resto de la app
 - ✅ Adapta CTAs si el usuario ya está logueado
 
 ### Notificaciones in-app
@@ -289,6 +317,7 @@ input, textarea, select {
 | Eliminar desde Mi actividad redirigía | prop `returnTo` en EliminarPostButton → `revalidatePath` en lugar de redirect |
 | Tab se reseteaba al buscar | `buildParams` en FeedFilters arrancaba desde URLSearchParams vacío; fix: partir de `searchParams.toString()` |
 | Deploy — middleware deprecated | Renombrar a `proxy.ts` y función a `proxy` |
+| Safari landing page rota | Tailwind v4 usa `color-mix()` para modificadores de opacidad (`/40`, `/20` etc.) — no soportado en Safari < 16.2. Fix: reemplazar con `rgba()` explícito en landing page. También: `min-h-dvh` → `min-h-screen`, `backdrop-blur` eliminado del nav |
 
 ---
 
@@ -302,6 +331,7 @@ input, textarea, select {
 - **Paginación** — feeds tienen límite fijo hoy; cuando haya volumen se nota
 - **SEO** — metadata dinámica por post y perfil para indexado en Google
 - **Validaciones robustas** en server actions (hoy son básicas)
+- **Safari/Tailwind v4** — otros modificadores de opacidad en el resto de la app aún usan `color-mix()`; si hay reportes, reemplazarlos con `rgba()` del mismo modo que en landing
 
 ### V2 (post-validación)
 - Pagos con MercadoPago (escrow: deposita → Labu retiene → libera al completar)
