@@ -166,9 +166,17 @@ create policy "El receptor puede marcar mensajes como leídos"
   with check (auth.uid() = receiver_id);
 ```
 
+### RLS — política SELECT en notifications (PENDIENTE — el usuario debe ejecutar esto)
+Sin esta política, Supabase no entrega eventos `postgres_changes` al cliente, y el Realtime de la campana no funciona. También hay que activar Realtime para la tabla `notifications` en Supabase Dashboard → Database → Replication.
+```sql
+create policy "Users can read own notifications"
+  on public.notifications for select
+  using (auth.uid() = user_id);
+```
+
 ---
 
-## Últimos cambios (commits 0e8c314 + 206fd79)
+## Últimos cambios (commits 0e8c314 + 206fd79 + aa4653c)
 
 | Área | Cambio |
 |---|---|
@@ -183,6 +191,9 @@ create policy "El receptor puede marcar mensajes como leídos"
 | Contacto post-aceptación | Eliminado el teléfono del otro usuario al aceptar. Solo queda el botón "Iniciar conversación" como canal |
 | Email en perfil | Campo "Email de contacto" en /perfil/editar — solo visible para el propio usuario |
 | Safari | min-h-dvh→min-h-screen, backdrop-blur eliminado del nav, color-mix() reemplazado por rgba() explícito |
+| Notificaciones — Realtime lista | NotificacionesList.tsx: client component con Realtime; nuevas notifs aparecen arriba sin recargar |
+| Notificaciones — marcar leídas | Estado local se actualiza inmediatamente (optimistic) al entrar a la página y al clickear el botón |
+| Notificaciones — campana | NotificationBell ya tenía el código correcto; requiere RLS SELECT + Realtime habilitado en Supabase (ver SQL pendiente arriba) |
 
 ---
 
@@ -274,8 +285,11 @@ Leyenda: ✅ funciona en producción · ⚠️ funciona con limitaciones · 🔜
 - ✅ Adapta CTAs si el usuario ya está logueado
 
 ### Notificaciones in-app
-- ✅ Tabla `notifications`, Realtime, badge campana en sidebar
-- ✅ Notificaciones para: postulación, aceptado/rechazado, trabajo completado, recordatorio calificación
+- ✅ Badge campana en sidebar con contador Realtime (incrementa sin recargar)
+- ✅ Página /notificaciones con lista Realtime — nuevas notifs aparecen arriba al instante
+- ✅ Marcar como leídas: optimistic update (puntos azules desaparecen inmediatamente)
+- ✅ Tipos: postulación, aceptado/rechazado, trabajo completado, recordatorio calificación, ratings
+- ⚠️ Requiere configuración en Supabase para el Realtime del badge (ver "SQL pendiente" arriba)
 - 🔜 Notificaciones push (V2)
 
 ### Verificación y admin
