@@ -148,10 +148,10 @@ export default async function Home() {
   const { data: { user } } = await supabase.auth.getUser()
 
   return (
-    <div className="min-h-dvh bg-[#0f0f0f] text-white">
+    <div className="min-h-screen bg-[#0f0f0f] text-white">
 
       {/* ── Nav ── */}
-      <nav className="sticky top-0 z-50 border-b border-surface-2 bg-[#0f0f0f]/95 backdrop-blur">
+      <nav className="sticky top-0 z-50 border-b border-surface-2 bg-[#0f0f0f]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link href="/" className="text-xl font-bold tracking-tight text-white">
             Labu
@@ -223,7 +223,7 @@ export default async function Home() {
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
             {CARACTERISTICAS.map(({ Icon, title, desc }) => (
               <div key={title} className="flex flex-col gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-900/40 text-blue-400">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[rgba(30,58,138,0.4)] text-blue-400">
                   <Icon />
                 </div>
                 <h3 className="font-semibold text-white">{title}</h3>
@@ -245,7 +245,7 @@ export default async function Home() {
               <Link
                 key={cat.label}
                 href={`/buscar?categoria=${encodeURIComponent(cat.label)}`}
-                className="flex items-center gap-2.5 rounded-xl border border-surface-2 bg-surface-1 px-4 py-3 text-sm font-medium text-zinc-300 transition-colors hover:border-blue-500/40 hover:bg-blue-900/20 hover:text-blue-400"
+                className="flex items-center gap-2.5 rounded-xl border border-surface-2 bg-surface-1 px-4 py-3 text-sm font-medium text-zinc-300 transition-colors hover:border-[rgba(59,130,246,0.4)] hover:bg-[rgba(30,58,138,0.2)] hover:text-blue-400"
               >
                 <span className="text-lg leading-none">{cat.emoji}</span>
                 <span className="leading-tight">{cat.label}</span>
@@ -296,7 +296,7 @@ export default async function Home() {
             </Link>
             <Link
               href="/panel"
-              className="rounded-xl border border-white/40 px-8 py-3 text-base font-semibold text-white transition-colors hover:bg-white/10"
+              className="rounded-xl border border-[rgba(255,255,255,0.4)] px-8 py-3 text-base font-semibold text-white transition-colors hover:bg-[rgba(255,255,255,0.1)]"
             >
               Explorar publicaciones
             </Link>
