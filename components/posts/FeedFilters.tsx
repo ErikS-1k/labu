@@ -64,7 +64,7 @@ export default function FeedFilters({ paramPrefix = '', preserveParams = [], sho
   const tipoActual = searchParams.get(tipoKey) ?? ''
 
   const tabClass = (value: string) =>
-    `rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+    `inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
       tipoActual === value
         ? 'bg-white text-black'
         : 'bg-surface-2 text-zinc-300 hover:bg-surface-3 hover:text-white'
@@ -74,9 +74,26 @@ export default function FeedFilters({ paramPrefix = '', preserveParams = [], sho
     <div className="flex flex-col gap-3">
       {showTypeTabs && (
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => updateTipo('')}               className={tabClass('')}>Todos</button>
-          <button type="button" onClick={() => updateTipo('oferta')}        className={tabClass('oferta')}>Ofrece sus servicios</button>
-          <button type="button" onClick={() => updateTipo('requerimiento')} className={tabClass('requerimiento')}>Necesita contratar</button>
+          <button type="button" onClick={() => updateTipo('')} className={tabClass('')}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            Todos
+          </button>
+          <button type="button" onClick={() => updateTipo('oferta')} className={tabClass('oferta')}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+            Ofrece sus servicios
+          </button>
+          <button type="button" onClick={() => updateTipo('requerimiento')} className={tabClass('requerimiento')}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>
+            Necesita contratar
+          </button>
         </div>
       )}
       <div className="flex flex-wrap gap-2">

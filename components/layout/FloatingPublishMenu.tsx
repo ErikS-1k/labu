@@ -85,21 +85,32 @@ export default function FloatingPublishMenu({ isLoggedIn }: { isLoggedIn: boolea
           </div>
         )}
 
-        {/* Botón principal */}
-        <button
-          onClick={() => setOpen(v => !v)}
-          aria-label="Publicar"
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-black shadow-lg transition-colors hover:bg-zinc-200"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-            className={`transition-transform duration-200 ${open ? 'rotate-45' : ''}`}
+        {/* Botón principal con borde giratorio */}
+        <div className="relative h-14 w-14">
+          {/* Capa del gradiente giratorio — queda fuera del área del botón */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              inset: '-3px',
+              background: 'conic-gradient(from 0deg, #1e40af 0deg, #3b82f6 80deg, #bfdbfe 150deg, #ffffff 180deg, #bfdbfe 210deg, #3b82f6 280deg, #1e40af 360deg)',
+              animation: 'spin-border 3s linear infinite',
+            }}
+          />
+          <button
+            onClick={() => setOpen(v => !v)}
+            aria-label="Publicar"
+            className="absolute inset-0 z-10 flex items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-colors hover:bg-blue-500"
           >
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              className={`transition-transform duration-200 ${open ? 'rotate-45' : ''}`}
+            >
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <LoginPromptModal open={modalOpen} onClose={() => setModalOpen(false)} />

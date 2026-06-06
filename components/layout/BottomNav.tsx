@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 type Props = {
@@ -58,7 +58,9 @@ function IconUser() {
 
 export default function BottomNav({ userId, userName, unreadCount, isLoggedIn }: Props) {
   const [count, setCount] = useState(unreadCount)
-  const pathname = usePathname()
+  const pathname     = usePathname()
+  const searchParams = useSearchParams()
+  const fromParam    = searchParams.get('from')
 
   useEffect(() => {
     if (pathname === '/mensajes' || pathname.startsWith('/mensajes/')) {
@@ -80,7 +82,19 @@ export default function BottomNav({ userId, userName, unreadCount, isLoggedIn }:
   }, [userId])
 
   function isActive(href: string) {
-    if (href === '/panel') return pathname === '/panel' || pathname.startsWith('/panel?')
+    const isPost = pathname.startsWith('/post/')
+    if (href === '/panel') return (
+      pathname === '/panel' ||
+      pathname === '/ofertas' ||
+      pathname === '/requerimientos' ||
+      (isPost && (!fromParam || fromParam === 'panel'))
+    )
+    if (href === '/buscar') return pathname === '/buscar' || (isPost && fromParam === 'busqueda')
+    if (userId && href === `/perfil/${userId}`) return (
+      pathname.startsWith('/perfil/') ||
+      pathname === '/verificacion' ||
+      (isPost && fromParam === 'perfil')
+    )
     return pathname === href || pathname.startsWith(href + '/')
   }
 

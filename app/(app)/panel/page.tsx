@@ -5,7 +5,7 @@ import PostCard, { type PostCardData } from '@/components/posts/PostCard'
 import FeedFilters from '@/components/posts/FeedFilters'
 import GuestPublishButtons from '@/components/panel/GuestPublishButtons'
 import EmptyFeedState from '@/components/posts/EmptyFeedState'
-import OnboardingModal from '@/components/onboarding/OnboardingModal'
+import OnboardingBanner from '@/components/onboarding/OnboardingBanner'
 
 export const metadata = { title: 'Inicio — Labu' }
 
@@ -26,18 +26,27 @@ export default async function PanelPage({
   const { data: { user } } = await supabase.auth.getUser()
   const hayFiltros = tipo || busqueda || categoria || modalidad
 
-  // Verificar si es el primer acceso del usuario
-  let firstLogin = false
-  let firstName: string | null = null
+  // Datos del usuario para el banner de onboarding
+  let step1Done = false
+  let step2Done = false
+  let step3Done = true // por defecto true para usuarios no logueados
   if (user) {
-    const { data: perfil } = await supabase
-      .from('users')
-      .select('first_name, first_login')
-      .eq('id', user.id)
-      .single()
-    firstLogin = perfil?.first_login ?? false
-    firstName  = perfil?.first_name ?? null
+    const [{ data: perfil }, { count: postsCount }] = await Promise.all([
+      supabase
+        .from('users')
+        .select('first_name, avatar_url, bio, location, first_login')
+        .eq('id', user.id)
+        .single(),
+      supabase
+        .from('posts')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id),
+    ])
+    step1Done = !!(perfil?.avatar_url && perfil?.bio && perfil?.location)
+    step2Done = (postsCount ?? 0) > 0
+    step3Done = !(perfil?.first_login ?? true)
   }
+  const allDone = step1Done && step2Done && step3Done
 
   // Sección "Disponibles ahora" — solo cuando no hay filtros activos
   let inmediatos: PostCardData[] = []
@@ -74,9 +83,10 @@ export default async function PanelPage({
   const nReqs    = feed.filter(p => p.type === 'requerimiento').length + inmediatos.filter(p => p.type === 'requerimiento').length
 
   return (
-    <>
-    {firstLogin && <OnboardingModal firstName={firstName} />}
     <div className="mx-auto max-w-2xl px-4 py-6">
+      {user && !allDone && (
+        <OnboardingBanner step1Done={step1Done} step2Done={step2Done} step3Done={step3Done} />
+      )}
 
       {/* Banner para visitantes */}
       {!user && (
@@ -149,7 +159,7 @@ export default async function PanelPage({
             <p className="text-sm font-semibold text-zinc-300">Disponibles ahora</p>
           </div>
           <div className="flex flex-col gap-4">
-            {inmediatos.map(p => <PostCard key={p.id} post={p} />)}
+            {inmediatos.map(p => <PostCard key={p.id} post={p} from="panel" />)}
           </div>
           {feed.length > 0 && (
             <p className="mt-5 mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
@@ -161,7 +171,7 @@ export default async function PanelPage({
 
       {/* Feed principal */}
       <div className="flex flex-col gap-4 mt-6">
-        {feed.map(p => <PostCard key={p.id} post={p} />)}
+        {feed.map(p => <PostCard key={p.id} post={p} from="panel" />)}
 
         {/* Feed completamente vacío */}
         {feed.length === 0 && !inmediatos.length && (
@@ -187,6 +197,5 @@ export default async function PanelPage({
       </div>
 
     </div>
-    </>
   )
 }

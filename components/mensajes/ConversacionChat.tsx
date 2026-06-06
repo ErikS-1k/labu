@@ -19,7 +19,7 @@ type Props = {
   postId: string | null
   initialMessages: Mensaje[]
   receiverName: string
-  postTitle?: string | null
+  receiverHeadline?: string | null
   // true cuando todavía no existe en la DB — redirigir al enviar el primer mensaje
   isNew?: boolean
 }
@@ -31,19 +31,29 @@ export default function ConversacionChat({
   postId,
   initialMessages,
   receiverName,
-  postTitle,
+  receiverHeadline,
   isNew = false,
 }: Props) {
   const [messages, setMessages] = useState<Mensaje[]>(initialMessages)
   const [content, setContent] = useState('')
   const [sending, setSending] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const scrollInitialized = useRef(false)
   const router = useRouter()
   const supabase = createClient()
 
-  // Scroll al último mensaje
+  // Scroll inicial instantáneo; luego solo si el usuario ya estaba al fondo
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (!scrollInitialized.current) {
+      bottomRef.current?.scrollIntoView()
+      scrollInitialized.current = true
+      return
+    }
+    const el = scrollRef.current
+    if (!el) return
+    const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100
+    if (isAtBottom) bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
   // Actualizar el badge del sidebar: re-fetch del layout para reflejar mensajes leídos
@@ -98,13 +108,13 @@ export default function ConversacionChat({
       {/* Encabezado */}
       <div className="border-b border-zinc-200 px-4 py-3">
         <p className="font-semibold text-white">{receiverName}</p>
-        {postTitle && (
-          <p className="truncate text-xs text-zinc-400">Re: {postTitle}</p>
+        {receiverHeadline && (
+          <p className="truncate text-xs text-zinc-500">{receiverHeadline}</p>
         )}
       </div>
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
         {messages.length === 0 && (
           <p className="py-12 text-center text-sm text-zinc-400">
             Mandá el primer mensaje para iniciar la conversación.

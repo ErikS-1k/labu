@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import { editarPost } from '@/app/actions/posts'
 import { MODALIDADES, PRICE_TYPES } from '@/lib/constants'
+import { useProgress } from '@/lib/useProgress'
 
 const PRESENCIALIDAD_OPTS = [
   { value: 'presencial', label: 'Presencial' },
@@ -29,10 +30,15 @@ const inputClass =
 
 export default function EditarPostForm({ post }: { post: PostData }) {
   const [state, action, pending]    = useActionState(editarPost, null)
+  useProgress(pending)
   const [tipo, setTipo]             = useState<'oferta' | 'requerimiento'>(post.type)
   const [modalities, setModalities] = useState<string[]>(post.modality)
   const [temporalDuration, setTemporalDuration] = useState(post.temporal_duration ?? '')
   const [presencialidad, setPresencialidad] = useState<string>(post.presencialidad ?? '')
+  const [precio, setPrecio]         = useState(post.price != null ? String(post.price) : '')
+  const [precioTipo, setPrecioTipo] = useState(post.price_type ?? 'hora')
+  const [aDefinir, setADefinir]     = useState(post.price_type === 'a_convenir')
+  const [precioError, setPrecioError] = useState<string | undefined>()
 
   function toggleMod(value: string) {
     setModalities(prev =>
@@ -40,10 +46,30 @@ export default function EditarPostForm({ post }: { post: PostData }) {
     )
   }
 
+  function handleADefinir(checked: boolean) {
+    setADefinir(checked)
+    if (checked) {
+      setPrecio('')
+      setPrecioTipo('a_convenir')
+    } else {
+      setPrecioTipo('hora')
+    }
+    setPrecioError(undefined)
+  }
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    if (!precio && !aDefinir) {
+      e.preventDefault()
+      setPrecioError('Ingresá un precio o marcá "A definir"')
+    } else {
+      setPrecioError(undefined)
+    }
+  }
+
   const muestraTemporalDuration = modalities.includes('temporal')
 
   return (
-    <form action={action} className="flex flex-col gap-5">
+    <form action={action} onSubmit={handleSubmit} className="flex flex-col gap-5">
       {state?.error && (
         <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{state.error}</p>
       )}
@@ -175,22 +201,44 @@ export default function EditarPostForm({ post }: { post: PostData }) {
       </div>
 
       {/* Precio + Unidad */}
-      <div className="flex gap-3">
-        <div className="flex flex-1 flex-col gap-1">
-          <label htmlFor="price" className="text-sm font-medium text-zinc-700">Precio (ARS)</label>
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between">
+          <label htmlFor="price" className="text-sm font-medium text-zinc-700">Precio en ARS *</label>
+          <label className="flex cursor-pointer items-center gap-1.5 text-sm text-zinc-500 select-none">
+            <input
+              type="checkbox"
+              checked={aDefinir}
+              onChange={e => handleADefinir(e.target.checked)}
+              className="rounded accent-zinc-600"
+            />
+            A definir
+          </label>
+        </div>
+        <div className="flex gap-3">
           <input
             id="price" name="price" type="number" min="0" step="100"
-            defaultValue={post.price ?? ''}
-            placeholder="Ej: 5000"
-            className={inputClass}
+            value={precio}
+            onChange={e => {
+              setPrecio(e.target.value)
+              if (e.target.value) setADefinir(false)
+              if (precioError) setPrecioError(undefined)
+            }}
+            disabled={aDefinir}
+            placeholder={aDefinir ? '' : 'Ej: 5000'}
+            className={`flex-1 ${precioError ? 'rounded-lg border border-red-400 px-4 py-2.5 text-sm outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100' : inputClass} disabled:cursor-not-allowed disabled:opacity-40`}
           />
-        </div>
-        <div className="flex flex-1 flex-col gap-1">
-          <label htmlFor="price_type" className="text-sm font-medium text-zinc-700">Unidad</label>
-          <select id="price_type" name="price_type" defaultValue={post.price_type ?? ''} className={inputClass}>
+          {aDefinir && <input type="hidden" name="price_type" value="a_convenir" />}
+          <select
+            id="price_type" name="price_type"
+            value={precioTipo}
+            onChange={e => setPrecioTipo(e.target.value)}
+            disabled={aDefinir}
+            className={`flex-1 ${inputClass} disabled:cursor-not-allowed disabled:opacity-40`}
+          >
             {PRICE_TYPES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
           </select>
         </div>
+        {precioError && <p className="text-xs text-red-500">{precioError}</p>}
       </div>
 
       {/* Zona */}

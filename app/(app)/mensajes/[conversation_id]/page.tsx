@@ -38,7 +38,7 @@ export default async function ConversacionPage({
 
   // Cargar receptor y post en paralelo
   const [{ data: receptor }, { data: post }] = await Promise.all([
-    supabase.from('users').select('id, username, first_name').eq('id', receiverId).single(),
+    supabase.from('users').select('id, username, first_name, headline').eq('id', receiverId).single(),
     postId
       ? supabase.from('posts').select('id, title').eq('id', postId).single()
       : Promise.resolve({ data: null }),
@@ -63,7 +63,7 @@ export default async function ConversacionPage({
             created_at: m.created_at,
           }))}
           receiverName={receptor?.first_name ?? receptor?.username ?? 'Usuario'}
-          postTitle={post?.title}
+          receiverHeadline={receptor?.headline ?? null}
         />
       </div>
     </main>

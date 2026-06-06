@@ -3,6 +3,7 @@
 import { useTransition, useState } from 'react'
 import { cerrarPost } from '@/app/actions/posts'
 import { showToast } from '@/lib/toast'
+import { useProgress } from '@/lib/useProgress'
 
 export default function CerrarPostButton({
   postId,
@@ -13,6 +14,7 @@ export default function CerrarPostButton({
 }) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  useProgress(isPending)
 
   function confirmar() {
     setOpen(false)

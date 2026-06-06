@@ -4,17 +4,9 @@ import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import EditarPerfilForm from '@/components/perfil/EditarPerfilForm'
 import AgregarSeccionForm from '@/components/perfil/AgregarSeccionForm'
-import { eliminarSeccion } from '@/app/actions/perfil'
+import SeccionCard from '@/components/perfil/SeccionCard'
 
 export const metadata: Metadata = { title: 'Editar perfil — Labu' }
-
-const TIPO_LABEL: Record<string, string> = {
-  experiencia: 'Experiencia',
-  educacion:   'Educación',
-  certificado: 'Certificado',
-  proyecto:    'Proyecto',
-  curso:       'Curso',
-}
 
 export default async function EditarPerfilPage() {
   const supabase = await createClient()
@@ -27,7 +19,7 @@ export default async function EditarPerfilPage() {
   ] = await Promise.all([
     supabase
       .from('users')
-      .select('username, first_name, last_name, headline, bio, location, phone, avatar_url')
+      .select('username, first_name, last_name, headline, bio, location, phone, email, avatar_url')
       .eq('id', user.id)
       .single(),
 
@@ -61,42 +53,20 @@ export default async function EditarPerfilPage() {
               bio={perfil?.bio ?? null}
               location={perfil?.location ?? null}
               phone={perfil?.phone ?? null}
+              email={perfil?.email ?? null}
               avatar_url={perfil?.avatar_url ?? null}
             />
           </div>
         </div>
 
-        {/* Información complementaria */}
+        {/* Experiencias */}
         <div className="flex-1">
-          <h2 className="mb-4 text-xl font-bold text-foreground">Información Complementaria</h2>
+          <h2 className="mb-4 text-xl font-bold text-foreground">Experiencias</h2>
 
           {secciones && secciones.length > 0 && (
             <div className="mb-4 flex flex-col gap-2">
               {secciones.map(s => (
-                <div key={s.id} className="flex items-start justify-between gap-3 rounded-lg border border-surface-2 bg-surface-1 px-4 py-3">
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                      {TIPO_LABEL[s.type] ?? s.type}
-                    </p>
-                    <p className="mt-0.5 truncate text-sm font-medium text-white">{s.title}</p>
-                    {s.subtitle && (
-                      <p className="text-xs text-zinc-500">{s.subtitle}</p>
-                    )}
-                    {(s.date_from || s.date_to) && (
-                      <p className="text-xs text-zinc-400">
-                        {[s.date_from, s.date_to].filter(Boolean).join(' – ')}
-                      </p>
-                    )}
-                  </div>
-                  <form action={eliminarSeccion.bind(null, s.id)}>
-                    <button
-                      type="submit"
-                      className="shrink-0 text-xs text-red-400 hover:text-red-600"
-                    >
-                      Eliminar
-                    </button>
-                  </form>
-                </div>
+                <SeccionCard key={s.id} s={s} />
               ))}
             </div>
           )}

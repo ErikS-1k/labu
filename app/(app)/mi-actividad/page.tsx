@@ -2,8 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import CerrarPostButton from '@/components/posts/CerrarPostButton'
-import EliminarPostButton from '@/components/posts/EliminarPostButton'
+import PostActionsMenu from '@/components/posts/PostActionsMenu'
 import CalificarModal from './CalificarModal'
 import MarcarCompletadoButton from '@/components/posts/MarcarCompletadoButton'
 
@@ -42,7 +41,7 @@ export default async function MiActividadPage({
   if (tab === 'publicaciones') {
     const { data } = await supabase
       .from('posts')
-      .select('id, type, title, category, modality, is_active, created_at')
+      .select('id, type, title, description, category, modality, is_active, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
 
@@ -158,53 +157,54 @@ export default async function MiActividadPage({
 
                 return (
                   <div key={post.id} className="rounded-xl border border-surface-2 bg-surface-1 p-4">
+                    {/* Cabecera: badges + menú */}
                     <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-                          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                            post.type === 'oferta' ? 'bg-blue-900/40 text-blue-400' : 'bg-orange-900/40 text-orange-400'
-                          }`}>
-                            {label}
-                          </span>
-                          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                            post.is_active ? 'bg-green-900/40 text-green-400' : 'bg-surface-2 text-zinc-400'
-                          }`}>
-                            {post.is_active ? 'Activo' : 'Cerrado'}
-                          </span>
-                          {modalities.map((m: string) => (
-                            <span key={m} className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400 capitalize">{m}</span>
-                          ))}
-                        </div>
-                        <p className="truncate font-medium leading-snug text-white">{post.title}</p>
-                        <div className="mt-1 flex items-center gap-3 text-xs text-zinc-400">
-                          {post.category && <span>{post.category}</span>}
-                          <span>{formatDate(post.created_at)}</span>
-                          <span>{countLabel}</span>
-                        </div>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          post.type === 'oferta' ? 'bg-blue-900/40 text-blue-400' : 'bg-orange-900/40 text-orange-400'
+                        }`}>
+                          {label}
+                        </span>
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          post.is_active ? 'bg-green-900/40 text-green-400' : 'bg-surface-2 text-zinc-400'
+                        }`}>
+                          {post.is_active ? 'Activo' : 'Desactivado'}
+                        </span>
+                        {modalities.map((m: string) => (
+                          <span key={m} className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400 capitalize">{m}</span>
+                        ))}
                       </div>
+                      <PostActionsMenu postId={post.id} type={post.type} isActive={post.is_active} />
+                    </div>
 
-                      <div className="flex shrink-0 flex-wrap items-center gap-2">
-                        <Link
-                          href={`/post/${post.id}`}
-                          className="rounded-lg bg-white px-3 py-1.5 text-xs text-zinc-900 transition-colors hover:bg-zinc-200"
-                        >
-                          Ver
-                        </Link>
-                        <Link
-                          href={`/editar/${post.id}`}
-                          className="rounded-lg border border-surface-2 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:bg-surface-2 hover:text-white"
-                        >
-                          Editar
-                        </Link>
-                        {post.is_active && <CerrarPostButton postId={post.id} type={post.type} />}
-                        <EliminarPostButton
-                          postId={post.id}
-                          type={post.type}
-                          label="Eliminar"
-                          className="rounded-lg border border-red-900/40 px-3 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-900/20"
-                          returnTo="/mi-actividad"
-                        />
-                      </div>
+                    {/* Título — enlaza al detalle */}
+                    <Link href={`/post/${post.id}?from=mi-actividad`} className="mt-2 block font-medium leading-snug text-white hover:underline">
+                      {post.title}
+                    </Link>
+
+                    {/* Descripción */}
+                    {post.description && (
+                      <p className="mt-2 text-sm leading-relaxed text-zinc-500 line-clamp-3">{post.description}</p>
+                    )}
+
+                    {/* Meta */}
+                    <div className="mt-3 flex items-center gap-3 text-xs text-zinc-500">
+                      {post.category && <span>{post.category}</span>}
+                      <span className="flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+                          <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        {formatDate(post.created_at)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                          <circle cx="9" cy="7" r="4"/>
+                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        {countLabel}
+                      </span>
                     </div>
                   </div>
                 )
@@ -278,7 +278,7 @@ export default async function MiActividadPage({
                             {rolLabel}
                           </span>
                         </div>
-                        <Link href={`/post/${post.id}`} className="font-medium text-white hover:underline leading-snug line-clamp-2">
+                        <Link href={`/post/${post.id}?from=mi-actividad`} className="font-medium text-white hover:underline leading-snug line-clamp-2">
                           {post.title}
                         </Link>
                         <p className="mt-0.5 text-xs text-zinc-500">

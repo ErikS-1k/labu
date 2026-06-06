@@ -18,10 +18,13 @@ const MODALITY_LABEL: Record<string, string> = {
 
 export default async function PostPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ from?: string; pid?: string }>
 }) {
   const { id } = await params
+  const { from, pid } = await searchParams
   const supabase = await createClient()
 
   const { data: post } = await supabase
@@ -94,8 +97,13 @@ export default async function PostPage({
     ? `$${post.price.toLocaleString('es-AR')} ${priceUnitLabel}`
     : 'A convenir'
 
-  const backHref  = post.type === 'oferta' ? '/ofertas' : '/requerimientos'
-  const backLabel = post.type === 'oferta' ? 'Servicios' : 'Búsquedas'
+  const ORIGINS: Record<string, { label: string; href: string }> = {
+    panel:          { label: 'Inicio',       href: '/panel' },
+    busqueda:       { label: 'Búsqueda',     href: '/buscar' },
+    'mi-actividad': { label: 'Mi actividad', href: '/mi-actividad' },
+    perfil:         { label: 'Perfil',       href: pid ? `/perfil/${pid}` : '/panel' },
+  }
+  const origin = from ? ORIGINS[from] : null
 
   const autor = post.users as {
     username:         string | null
@@ -132,9 +140,16 @@ export default async function PostPage({
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <Link href={backHref} className="mb-6 inline-block text-sm text-zinc-400 hover:text-zinc-700">
-        ← {backLabel}
-      </Link>
+      {/* Breadcrumb dinámico según origen */}
+      {origin && (
+        <nav className="mb-6 flex items-center gap-1.5 text-sm">
+          <Link href={origin.href} className="text-zinc-400 transition-colors hover:text-white">
+            {origin.label}
+          </Link>
+          <span className="text-zinc-500">›</span>
+          <span className="font-medium text-white">{post.title}</span>
+        </nav>
+      )}
 
       {/* Tarjeta del post */}
       <div className="rounded-xl border border-surface-2 bg-surface-1 p-6">
@@ -165,25 +180,46 @@ export default async function PostPage({
         <div className="mt-6 flex flex-col gap-2 border-t border-zinc-100 pt-4 text-sm">
           {priceLabel && (
             <div className="flex justify-between">
-              <span className="text-zinc-400">Precio</span>
+              <span className="flex items-center gap-1.5 text-zinc-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+                Precio
+              </span>
               <span className="font-medium text-white">{priceLabel}</span>
             </div>
           )}
           <div className="flex justify-between">
-            <span className="text-zinc-400">Modalidad</span>
+            <span className="flex items-center gap-1.5 text-zinc-400">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              Modalidad
+            </span>
             <span className="text-zinc-700">
               {(post.modality as string[]).map(m => MODALITY_LABEL[m]).join(', ')}
             </span>
           </div>
           {(post.modality as string[]).includes('temporal') && (post as any).temporal_duration && (
             <div className="flex justify-between">
-              <span className="text-zinc-400">Duración</span>
+              <span className="flex items-center gap-1.5 text-zinc-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                Duración
+              </span>
               <span className="text-zinc-700">{(post as any).temporal_duration}</span>
             </div>
           )}
           {(post as any).presencialidad && (
             <div className="flex justify-between">
-              <span className="text-zinc-400">Presencialidad</span>
+              <span className="flex items-center gap-1.5 text-zinc-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+                Presencialidad
+              </span>
               <span className="text-zinc-700">
                 {(post as any).presencialidad === 'presencial' ? 'Presencial'
                  : (post as any).presencialidad === 'virtual' ? 'Virtual'
@@ -193,7 +229,12 @@ export default async function PostPage({
           )}
           {post.location && (
             <div className="flex justify-between">
-              <span className="text-zinc-400">Zona</span>
+              <span className="flex items-center gap-1.5 text-zinc-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+                Zona
+              </span>
               <span className="text-zinc-700">{post.location}</span>
             </div>
           )}
@@ -234,7 +275,12 @@ export default async function PostPage({
                 </p>
               )}
               {autor.location && (
-                <p className="text-xs text-zinc-400">{autor.location}</p>
+                <p className="flex items-center gap-1 text-xs text-zinc-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  {autor.location}
+                </p>
               )}
             </div>
           </Link>
@@ -253,7 +299,7 @@ export default async function PostPage({
                   const rPost = r.posts as { id: string; title: string } | null
                   return (
                     <li key={r.id} className="flex items-center justify-between text-sm">
-                      <Link href={`/post/${rPost?.id ?? '#'}`} className="truncate text-zinc-700 hover:underline">
+                      <Link href={`/post/${rPost?.id ?? '#'}?from=panel`} className="truncate text-zinc-700 hover:underline">
                         {rPost?.title ?? 'Trabajo completado'}
                       </Link>
                       <span className="ml-3 shrink-0 text-xs text-zinc-400">
@@ -279,9 +325,6 @@ export default async function PostPage({
           <p className="mb-3 text-sm font-semibold text-green-800">
             ✓ Tu solicitud fue aceptada
           </p>
-          <div className="flex flex-col gap-1.5 text-sm text-green-900">
-            {autor.phone && <p>📱 {autor.phone}</p>}
-          </div>
           <form action={iniciarConversacion} className="mt-4">
             <input type="hidden" name="post_id"     value={post.id} />
             <input type="hidden" name="receiver_id" value={post.user_id} />
@@ -289,7 +332,7 @@ export default async function PostPage({
               type="submit"
               className="w-full rounded-lg bg-green-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-800"
             >
-              Iniciar conversación
+              Abrir conversación
             </button>
           </form>
         </div>
@@ -363,11 +406,6 @@ export default async function PostPage({
                         {p.message && (
                           <p className="mt-2 text-sm text-zinc-600">{p.message}</p>
                         )}
-                        {p.status === 'aceptado' && (
-                          <div className="mt-2 flex flex-col gap-1 text-sm text-green-800">
-                            {ap?.phone && <p>📱 {ap.phone}</p>}
-                          </div>
-                        )}
                       </div>
                       {p.status === 'pendiente' && (
                         <div className="flex shrink-0 gap-2">
@@ -420,14 +458,6 @@ export default async function PostPage({
           <p className="mb-3 text-sm font-semibold text-green-800">
             ✓ Tu postulación fue aceptada
           </p>
-          <div className="flex flex-col gap-1.5 text-sm text-green-900">
-            {autor.email && (
-              <p>📧 {autor.email}</p>
-            )}
-            {autor.phone && (
-              <p>📱 {autor.phone}</p>
-            )}
-          </div>
           <form action={iniciarConversacion} className="mt-4">
             <input type="hidden" name="post_id"     value={post.id} />
             <input type="hidden" name="receiver_id" value={post.user_id} />
@@ -435,7 +465,7 @@ export default async function PostPage({
               type="submit"
               className="w-full rounded-lg bg-green-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-800"
             >
-              Iniciar conversación
+              Abrir conversación
             </button>
           </form>
         </div>
@@ -503,13 +533,6 @@ export default async function PostPage({
                         )}
                         {p.message && (
                           <p className="mt-2 text-sm text-zinc-600">{p.message}</p>
-                        )}
-                        {/* Info de contacto desbloqueada solo si fue aceptado */}
-                        {p.status === 'aceptado' && (
-                          <div className="mt-2 flex flex-col gap-1 text-sm text-green-800">
-                            {ap?.email && <p>📧 {ap.email}</p>}
-                            {ap?.phone && <p>📱 {ap.phone}</p>}
-                          </div>
                         )}
                       </div>
                       {p.status === 'pendiente' && (

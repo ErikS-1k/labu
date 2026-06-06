@@ -42,7 +42,7 @@ export async function publicarPost(
   if (error) return { error: 'No se pudo publicar. Intentá de nuevo.' }
 
   revalidatePath(type === 'oferta' ? '/ofertas' : '/requerimientos')
-  redirect(`/post/${data.id}?toast=publicacion_creada`)
+  redirect(`/publicar?exito=1&tipo=${type}`)
 }
 
 export async function eliminarPost(formData: FormData) {
@@ -60,7 +60,7 @@ export async function eliminarPost(formData: FormData) {
     revalidatePath(returnTo)
     return
   }
-  redirect(type === 'oferta' ? '/ofertas?toast=publicacion_eliminada' : '/requerimientos?toast=publicacion_eliminada')
+  redirect('/mi-actividad?toast=publicacion_eliminada')
 }
 
 export async function editarPost(

@@ -203,7 +203,12 @@ export default async function PerfilPage({
 
             {/* Location */}
             {perfil.location && (
-              <p className="mt-1 text-xs text-zinc-500">{perfil.location}</p>
+              <p className="mt-1 flex items-center gap-1 text-xs text-zinc-500">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+                {perfil.location}
+              </p>
             )}
           </div>
         </div>
@@ -228,7 +233,7 @@ export default async function PerfilPage({
             {activos.map(post => (
               <Link
                 key={post.id}
-                href={`/post/${post.id}`}
+                href={`/post/${post.id}?from=perfil&pid=${id}`}
                 className="flex items-center justify-between rounded-xl border border-surface-2 bg-surface-1 px-4 py-3 transition-colors hover:bg-surface-2"
               >
                 <div className="min-w-0">
@@ -309,7 +314,7 @@ export default async function PerfilPage({
                     <div className="min-w-0">
                       <p className="mb-1 text-xs font-medium text-blue-400">Trabajador</p>
                       {p ? (
-                        <Link href={`/post/${p.id}`} className="text-sm font-semibold text-white hover:underline">
+                        <Link href={`/post/${p.id}?from=perfil&pid=${id}`} className="text-sm font-semibold text-white hover:underline">
                           {p.title}
                         </Link>
                       ) : (
@@ -349,7 +354,7 @@ export default async function PerfilPage({
                     <div className="min-w-0">
                       <p className="mb-1 text-xs font-medium text-orange-400">Cliente</p>
                       {r.post ? (
-                        <Link href={`/post/${r.post.id}`} className="text-sm font-semibold text-white hover:underline">
+                        <Link href={`/post/${r.post.id}?from=perfil&pid=${id}`} className="text-sm font-semibold text-white hover:underline">
                           {r.post.title}
                         </Link>
                       ) : (
@@ -390,7 +395,7 @@ export default async function PerfilPage({
               return (
                 <Link
                   key={p.id}
-                  href={post ? `/post/${post.id}` : '#'}
+                  href={post ? `/post/${post.id}?from=perfil&pid=${id}` : '#'}
                   className="flex items-center justify-between rounded-xl border border-surface-2 bg-surface-1 px-4 py-3 transition-colors hover:bg-surface-2"
                 >
                   <div className="min-w-0">

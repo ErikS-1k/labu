@@ -197,7 +197,7 @@ export default async function BuscarPage({
               )}
               <div className="flex flex-col gap-4">
                 {(ofertas as PostCardData[]).map(post => (
-                  <PostCard key={post.id} post={post} />
+                  <PostCard key={post.id} post={post} from="busqueda" />
                 ))}
               </div>
             </section>
@@ -213,7 +213,7 @@ export default async function BuscarPage({
               )}
               <div className="flex flex-col gap-4">
                 {(requerimientos as PostCardData[]).map(post => (
-                  <PostCard key={post.id} post={post} />
+                  <PostCard key={post.id} post={post} from="busqueda" />
                 ))}
               </div>
             </section>

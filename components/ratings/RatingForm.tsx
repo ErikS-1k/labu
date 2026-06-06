@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from 'react'
 import { calificar } from '@/app/actions/ratings'
 import { showToast } from '@/lib/toast'
+import { useProgress } from '@/lib/useProgress'
 
 type Props = {
   postId: string
@@ -14,6 +15,7 @@ const init = { error: null as string | null, ok: false }
 
 export default function RatingForm({ postId, toUserId, toUserName }: Props) {
   const [state, action, pending] = useActionState(calificar, init)
+  useProgress(pending)
   const [score, setScore] = useState(0)
   const [hover, setHover] = useState(0)
 

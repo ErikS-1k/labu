@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useState } from 'react'
 import { solicitarVerificacion } from '@/app/actions/verificacion'
+import { useProgress } from '@/lib/useProgress'
 
 type Props = { userId: string }
 
@@ -9,6 +10,7 @@ const init = { error: null as string | null, ok: false }
 
 export default function VerificacionForm({ userId }: Props) {
   const [state, action, pending] = useActionState(solicitarVerificacion, init)
+  useProgress(pending)
   const [archivo, setArchivo] = useState<File | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 

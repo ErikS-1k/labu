@@ -1,262 +1,331 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 
-const RUBROS = [
-  { emoji: '🔧', label: 'Plomero' },
-  { emoji: '⚡', label: 'Electricista' },
-  { emoji: '💻', label: 'Programador' },
-  { emoji: '🎨', label: 'Diseñador' },
-  { emoji: '📚', label: 'Profesor' },
-  { emoji: '🏋️', label: 'Entrenador' },
-  { emoji: '🔨', label: 'Carpintero' },
+// ── Ilustración SVG: nodos conectados ──────────────────────────────────────
+
+function NetworkIllustration() {
+  return (
+    <svg viewBox="0 0 480 360" fill="none" aria-hidden="true" className="w-full">
+      {/* Líneas hub → satélites */}
+      <line x1="240" y1="180" x2="95"  y2="88"  stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+      <line x1="240" y1="180" x2="345" y2="68"  stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+      <line x1="240" y1="180" x2="418" y2="188" stroke="#52525b" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="240" y1="180" x2="348" y2="298" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+      <line x1="240" y1="180" x2="115" y2="298" stroke="#52525b" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="240" y1="180" x2="58"  y2="192" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+      {/* Anillo exterior */}
+      <line x1="95"  y1="88"  x2="345" y2="68"  stroke="#27272a" strokeWidth="1"/>
+      <line x1="345" y1="68"  x2="418" y2="188" stroke="#27272a" strokeWidth="1"/>
+      <line x1="418" y1="188" x2="348" y2="298" stroke="#27272a" strokeWidth="1"/>
+      <line x1="348" y1="298" x2="115" y2="298" stroke="#27272a" strokeWidth="1"/>
+      <line x1="115" y1="298" x2="58"  y2="192" stroke="#27272a" strokeWidth="1"/>
+      <line x1="58"  y1="192" x2="95"  y2="88"  stroke="#27272a" strokeWidth="1"/>
+      {/* Colas hacia mini nodos */}
+      <line x1="95"  y1="88"  x2="172" y2="32"  stroke="#27272a" strokeWidth="1"/>
+      <line x1="345" y1="68"  x2="408" y2="28"  stroke="#27272a" strokeWidth="1"/>
+      <line x1="418" y1="188" x2="460" y2="275" stroke="#27272a" strokeWidth="1"/>
+      {/* Mini nodos flotantes */}
+      <circle cx="172" cy="32"  r="5" fill="#1e3a8a"/>
+      <circle cx="408" cy="28"  r="5" fill="#1e3a8a"/>
+      <circle cx="460" cy="275" r="4" fill="#3f3f46"/>
+      <circle cx="188" cy="338" r="4" fill="#1e3a8a"/>
+      <circle cx="42"  cy="112" r="4" fill="#3f3f46"/>
+      {/* Nodos satélite */}
+      <circle cx="95"  cy="88"  r="16" fill="#0f0f0f" stroke="#3b82f6" strokeWidth="2"/>
+      <circle cx="345" cy="68"  r="13" fill="#1e3a8a" stroke="#3b82f6" strokeWidth="1.5"/>
+      <circle cx="418" cy="188" r="17" fill="#0f0f0f" stroke="#3f3f46" strokeWidth="2"/>
+      <circle cx="348" cy="298" r="13" fill="#1e3a8a" stroke="#3b82f6" strokeWidth="1.5"/>
+      <circle cx="115" cy="298" r="15" fill="#0f0f0f" stroke="#3f3f46" strokeWidth="2"/>
+      <circle cx="58"  cy="192" r="11" fill="#1e3a8a" stroke="#3b82f6" strokeWidth="1.5"/>
+      {/* Nodo central */}
+      <circle cx="240" cy="180" r="26" fill="#2563eb"/>
+      <circle cx="240" cy="180" r="16" fill="white" fillOpacity="0.2"/>
+    </svg>
+  )
+}
+
+// ── Íconos de características ───────────────────────────────────────────────
+
+function IconShield() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  )
+}
+
+function IconLayers() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+      <polyline points="2 17 12 22 22 17"/>
+      <polyline points="2 12 12 17 22 12"/>
+    </svg>
+  )
+}
+
+function IconClock() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="12 6 12 12 16 14"/>
+    </svg>
+  )
+}
+
+function IconZap() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    </svg>
+  )
+}
+
+// ── Íconos de pasos ─────────────────────────────────────────────────────────
+
+function IconUserPlus() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="8.5" cy="7" r="4"/>
+      <line x1="20" y1="8" x2="20" y2="14"/>
+      <line x1="23" y1="11" x2="17" y2="11"/>
+    </svg>
+  )
+}
+
+function IconCompass() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+    </svg>
+  )
+}
+
+function IconHandshake() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+  )
+}
+
+// ── Datos ───────────────────────────────────────────────────────────────────
+
+const CARACTERISTICAS = [
+  { Icon: IconShield,  title: 'Verificación',          desc: 'Perfiles verificados para mayor confianza' },
+  { Icon: IconLayers,  title: 'Todos los rubros',      desc: 'Plomeros, electricistas, profesores y muchos más' },
+  { Icon: IconClock,   title: 'Todas las modalidades', desc: 'Inmediato, temporal, por proyecto o permanente' },
+  { Icon: IconZap,     title: 'Contacto directo',      desc: 'Sin intermediarios ni burocracia' },
+]
+
+const CATEGORIAS = [
+  { emoji: '🔧', label: 'Plomería' },
+  { emoji: '⚡', label: 'Electricidad' },
   { emoji: '🧹', label: 'Limpieza' },
-  { emoji: '📊', label: 'Contador' },
-  { emoji: '📸', label: 'Fotógrafo' },
-  { emoji: '🍳', label: 'Chef' },
-  { emoji: '📱', label: 'Marketing' },
-  { emoji: '🏠', label: 'Pintor' },
-  { emoji: '🐾', label: 'Mascotas' },
-  { emoji: '🚗', label: 'Mecánico' },
-  { emoji: '⚖️', label: 'Abogado' },
-  { emoji: '🌿', label: 'Jardinero' },
-  { emoji: '💆', label: 'Masajista' },
-  { emoji: '🏥', label: 'Enfermero/a' },
-  { emoji: '👶', label: 'Niñero/a' },
+  { emoji: '🪚', label: 'Carpintería' },
+  { emoji: '🖌️', label: 'Pintura' },
+  { emoji: '🌿', label: 'Jardinería' },
+  { emoji: '📦', label: 'Mudanzas' },
+  { emoji: '🔨', label: 'Reparaciones del hogar' },
+  { emoji: '📚', label: 'Clases particulares' },
+  { emoji: '🏋️', label: 'Entrenamiento personal' },
+  { emoji: '📸', label: 'Fotografía' },
+  { emoji: '🍳', label: 'Cocina y catering' },
 ]
 
 const PASOS = [
-  {
-    n: '1',
-    title: 'Creá tu cuenta',
-    desc: 'Gratis y en menos de un minuto.',
-  },
-  {
-    n: '2',
-    title: 'Publicá o explorá',
-    desc: 'Ofrecé tu servicio o encontrá a quien necesitás.',
-  },
-  {
-    n: '3',
-    title: 'Conectate y trabajá',
-    desc: 'Contactá directamente, acordá los detalles y listo.',
-  },
+  { Icon: IconUserPlus,  n: '1', title: 'Creá tu cuenta',      desc: 'Gratis y en menos de un minuto.' },
+  { Icon: IconCompass,   n: '2', title: 'Publicá o explorá',   desc: 'Ofrecé tu servicio o encontrá a quien necesitás.' },
+  { Icon: IconHandshake, n: '3', title: 'Conectate y trabajá', desc: 'Contactá directamente y acordá los detalles.' },
 ]
+
+// ── Página ──────────────────────────────────────────────────────────────────
 
 export default async function Home() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  let firstName: string | null = null
-  if (user) {
-    const { data } = await supabase.from('users').select('first_name').eq('id', user.id).single()
-    firstName = data?.first_name ?? null
-  }
-
   return (
-    <main className="bg-black text-white">
+    <div className="min-h-dvh bg-[#0f0f0f] text-white">
 
-      {/* ── HERO ─────────────────────────────────────────────────── */}
-      <div className="relative flex min-h-dvh flex-col overflow-hidden">
-        {/* Dot grid */}
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'radial-gradient(circle, #ffffff18 1px, transparent 1px)',
-          backgroundSize: '28px 28px',
-        }} />
-        {/* Fade hacia los bordes */}
-        <div className="absolute inset-0" style={{
-          background: 'radial-gradient(ellipse at 50% 45%, transparent 25%, #000000 72%)',
-        }} />
-        {/* Glow central */}
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-[500px] w-[500px] rounded-full bg-white/5 blur-3xl" />
-        </div>
-
-        {/* Nav */}
-        <nav className="relative flex items-center justify-between px-6 py-5 md:px-10">
-          <span className="text-lg font-bold tracking-tight">Labu</span>
+      {/* ── Nav ── */}
+      <nav className="sticky top-0 z-50 border-b border-surface-2 bg-[#0f0f0f]/95 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <Link href="/" className="text-xl font-bold tracking-tight text-white">
+            Labu
+          </Link>
           {user ? (
             <Link
-              href={`/perfil/${user.id}`}
-              className="rounded-lg border border-white/20 px-4 py-2 text-sm text-white/80 transition-colors hover:bg-white/5"
+              href="/panel"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
             >
-              {firstName ? `Hola, ${firstName}` : 'Mi perfil'}
+              Ir al panel
             </Link>
           ) : (
-            <div className="flex items-center gap-3">
-              <Link
-                href="/login"
-                className="text-sm text-white/60 transition-colors hover:text-white"
-              >
+            <div className="flex items-center gap-5">
+              <Link href="/login" className="text-sm text-zinc-400 transition-colors hover:text-white">
                 Iniciar sesión
               </Link>
               <Link
                 href="/registro"
-                className="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm text-white transition-colors hover:bg-white/20"
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
               >
                 Crear cuenta
               </Link>
             </div>
           )}
-        </nav>
+        </div>
+      </nav>
 
-        {/* Hero content */}
-        <div className="relative flex flex-1 flex-col items-center justify-center px-6 pb-16 text-center">
-          <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-6xl md:text-7xl">
-            Encontrá trabajo<br />
-            o encontrá a quien<br />
-            <span className="bg-gradient-to-r from-white to-zinc-500 bg-clip-text text-transparent">
-              necesitás
-            </span>
-          </h1>
+      {/* ── Hero ── */}
+      <section className="mx-auto max-w-6xl px-6 py-16 md:py-24 lg:py-28">
+        <div className="flex flex-col items-center gap-10 md:flex-row md:items-center md:gap-16">
 
-          <p className="mt-6 max-w-md text-lg leading-relaxed text-zinc-400">
-            Plomeros, programadores, profesores, diseñadores.<br />
-            Todos los rubros. Sin intermediarios.
-          </p>
-
-          <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
-            {!user ? (
-              <>
-                <Link
-                  href="/registro"
-                  className="w-full rounded-xl bg-white px-8 py-3.5 text-base font-bold text-black transition-colors hover:bg-zinc-200 sm:w-auto"
-                >
-                  Crear cuenta gratis
-                </Link>
-                <Link
-                  href="/panel"
-                  className="w-full rounded-xl border border-white/20 bg-white/10 px-8 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/20 sm:w-auto"
-                >
-                  Explorar publicaciones
-                </Link>
-              </>
-            ) : (
+          {/* Texto */}
+          <div className="flex-1 text-center md:text-left">
+            <h1 className="text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-[3.25rem]">
+              Encontrá personas
+              <span className="text-blue-500"> confiables</span>{' '}
+              cerca tuyo
+            </h1>
+            <p className="mx-auto mt-5 max-w-md text-lg text-zinc-400 md:mx-0">
+              Plomeros, electricistas, pintores y muchos más. Sin intermediarios.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:justify-start">
               <Link
-                href="/panel"
-                className="rounded-xl bg-white px-8 py-3.5 text-base font-bold text-black transition-colors hover:bg-zinc-200"
+                href="/buscar"
+                className="rounded-xl bg-blue-600 px-7 py-3 text-base font-semibold text-white transition-colors hover:bg-blue-700"
               >
-                Ir al feed
+                Buscar servicios
               </Link>
-            )}
+              <Link
+                href={user ? '/publicar' : '/registro'}
+                className="rounded-xl border border-zinc-700 px-7 py-3 text-base font-semibold text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white"
+              >
+                Ofrecer mis servicios
+              </Link>
+            </div>
           </div>
-        </div>
 
-        {/* Scroll hint */}
-        <div className="relative pb-8 text-center">
-          <span className="text-xs text-white/30 uppercase tracking-widest">Seguí leyendo</span>
-          <div className="mt-2 flex justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/30 animate-bounce">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
+          {/* Ilustración */}
+          <div className="w-full max-w-xs shrink-0 md:max-w-sm lg:max-w-md">
+            <NetworkIllustration />
           </div>
-        </div>
-      </div>
 
-      {/* ── QUÉ ES LABU ─────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-zinc-950 px-6 py-20 text-center md:py-28">
-        <div className="mx-auto max-w-3xl">
-          <p className="text-3xl font-bold leading-snug text-white sm:text-4xl md:text-5xl">
-            "El lugar donde encontrás<br className="hidden sm:block" />
-            trabajo o encontrás a<br className="hidden sm:block" />
-            quien necesitás."
-          </p>
-          <p className="mt-6 text-xl text-zinc-400">
-            Sin intermediarios, sin burocracia. Directo.
-          </p>
-          <p className="mt-4 mx-auto max-w-2xl text-base leading-relaxed text-zinc-500">
-            En Labu cualquier persona puede publicar lo que ofrece o lo que necesita. Un plomero puede
-            ofrecer su servicio y también buscar un programador para su sitio web. Sin roles fijos,
-            sin límites.
-          </p>
         </div>
       </section>
 
-      {/* ── CÓMO FUNCIONA ────────────────────────────────────────── */}
-      <section className="border-t border-white/10 px-6 py-20 md:py-28">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="mb-4 text-center text-2xl font-bold sm:text-3xl">
-            Cómo funciona
-          </h2>
-          <p className="mb-14 text-center text-zinc-400">
-            Tres pasos y ya estás conectando con personas reales.
-          </p>
-
-          <div className="grid grid-cols-1 gap-10 sm:grid-cols-3 sm:gap-6">
-            {PASOS.map((paso, i) => (
-              <div key={paso.n} className="flex flex-col items-center text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-2xl font-bold text-black">
-                  {paso.n}
+      {/* ── Características ── */}
+      <section className="border-t border-surface-2 bg-surface-1 px-6 py-16 md:py-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+            {CARACTERISTICAS.map(({ Icon, title, desc }) => (
+              <div key={title} className="flex flex-col gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-900/40 text-blue-400">
+                  <Icon />
                 </div>
-                {i < PASOS.length - 1 && (
-                  <div className="my-4 h-8 w-px bg-white/10 sm:hidden" />
-                )}
-                <h3 className="mt-5 text-xl font-semibold text-white">{paso.title}</h3>
-                <p className="mt-2 text-base text-zinc-400">{paso.desc}</p>
+                <h3 className="font-semibold text-white">{title}</h3>
+                <p className="text-sm leading-relaxed text-zinc-400">{desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── PARA QUIÉN ───────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-zinc-950 px-6 py-20 md:py-28">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="mb-4 text-2xl font-bold sm:text-3xl">
-            Para quién es Labu
+      {/* ── Categorías ── */}
+      <section className="px-6 py-16 md:py-20">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="mb-10 text-center text-2xl font-bold text-white sm:text-3xl">
+            ¿Qué necesitás hoy?
           </h2>
-          <p className="mb-10 text-base text-zinc-400">
-            Si trabajás o necesitás trabajo, Labu es para vos.
-          </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            {RUBROS.map(r => (
-              <span
-                key={r.label}
-                className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-base text-zinc-300 transition-colors hover:border-white/30 hover:text-white"
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4">
+            {CATEGORIAS.map(cat => (
+              <Link
+                key={cat.label}
+                href={`/buscar?categoria=${encodeURIComponent(cat.label)}`}
+                className="flex items-center gap-2.5 rounded-xl border border-surface-2 bg-surface-1 px-4 py-3 text-sm font-medium text-zinc-300 transition-colors hover:border-blue-500/40 hover:bg-blue-900/20 hover:text-blue-400"
               >
-                <span className="text-lg">{r.emoji}</span>
-                {r.label}
-              </span>
+                <span className="text-lg leading-none">{cat.emoji}</span>
+                <span className="leading-tight">{cat.label}</span>
+              </Link>
             ))}
-            <span className="flex items-center gap-2 rounded-full border border-white/10 px-5 py-2.5 text-base text-zinc-600">
-              y muchos más…
-            </span>
           </div>
         </div>
       </section>
 
-      {/* ── CTA FINAL ────────────────────────────────────────────── */}
-      <section className="border-t border-white/10 px-6 py-24 text-center md:py-32">
-        <div className="mx-auto max-w-xl">
-          <h2 className="text-3xl font-bold leading-tight sm:text-4xl">
-            ¿Listo para empezar?
+      {/* ── Cómo funciona ── */}
+      <section className="border-t border-surface-2 bg-surface-1 px-6 py-16 md:py-20">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="mb-12 text-center text-2xl font-bold text-white sm:text-3xl">
+            ¿Cómo funciona?
           </h2>
-          <p className="mt-4 text-lg text-zinc-400">
-            Unite gratis. Publicá tu primer servicio o búsqueda en minutos.
-          </p>
-
-          {!user ? (
-            <Link
-              href="/registro"
-              className="mt-10 inline-block rounded-xl bg-white px-12 py-4 text-lg font-bold text-black transition-colors hover:bg-zinc-200"
-            >
-              Empezar ahora
-            </Link>
-          ) : (
-            <Link
-              href="/panel"
-              className="mt-10 inline-block rounded-xl bg-white px-12 py-4 text-lg font-bold text-black transition-colors hover:bg-zinc-200"
-            >
-              Ir al feed
-            </Link>
-          )}
-
-          <p className="mt-4 text-sm text-zinc-600">
-            Sin costo. Sin tarjeta de crédito.
-          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {PASOS.map(({ Icon, n, title, desc }) => (
+              <div key={n} className="flex flex-col items-center rounded-2xl border border-surface-2 bg-surface-0 p-7 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white">
+                  <Icon />
+                </div>
+                <span className="mt-5 text-[11px] font-bold uppercase tracking-widest text-blue-500">
+                  Paso {n}
+                </span>
+                <h3 className="mt-2 text-base font-bold text-white">{title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-400">{desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-    </main>
+      {/* ── CTA Final ── */}
+      <section className="bg-blue-600 px-6 py-16 text-center md:py-20">
+        <div className="mx-auto max-w-xl">
+          <h2 className="text-3xl font-bold text-white sm:text-4xl">
+            ¿Listo para empezar?
+          </h2>
+          <p className="mt-4 text-base text-blue-100">
+            Unite gratis y empezá a conectarte hoy.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/registro"
+              className="rounded-xl bg-white px-8 py-3 text-base font-bold text-blue-600 transition-colors hover:bg-blue-50"
+            >
+              Empezar ahora
+            </Link>
+            <Link
+              href="/panel"
+              className="rounded-xl border border-white/40 px-8 py-3 text-base font-semibold text-white transition-colors hover:bg-white/10"
+            >
+              Explorar publicaciones
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="border-t border-surface-2 px-6 py-10 text-zinc-500">
+        <div className="mx-auto max-w-6xl">
+          <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+            <div>
+              <span className="text-lg font-bold text-white">Labu</span>
+              <p className="mt-1 text-sm">El marketplace de trabajo sin intermediarios.</p>
+            </div>
+            <nav className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
+              <Link href="/panel"    className="transition-colors hover:text-white">Inicio</Link>
+              <Link href="/buscar"   className="transition-colors hover:text-white">Explorar</Link>
+              <Link href="/publicar" className="transition-colors hover:text-white">Publicar</Link>
+              <Link href="/login"    className="transition-colors hover:text-white">Iniciar sesión</Link>
+              <Link href="/registro" className="transition-colors hover:text-white">Crear cuenta</Link>
+            </nav>
+          </div>
+          <div className="mt-8 border-t border-surface-2 pt-6 text-xs">
+            © 2026 Labu. Todos los derechos reservados.
+          </div>
+        </div>
+      </footer>
+
+    </div>
   )
 }

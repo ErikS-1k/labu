@@ -13,7 +13,7 @@ export async function login(prevState: { error: string } | null, formData: FormD
 
   if (error) return { error: 'Email o contraseña incorrectos.' }
 
-  redirect('/')
+  redirect('/panel')
 }
 
 export async function registro(prevState: { error: string } | null, formData: FormData) {

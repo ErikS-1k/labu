@@ -3,6 +3,7 @@
 import { useActionState, useEffect } from 'react'
 import { postularse } from '@/app/actions/applications'
 import { showToast } from '@/lib/toast'
+import { useProgress } from '@/lib/useProgress'
 
 type Props = {
   postId: string
@@ -20,6 +21,7 @@ export default function PostularseForm({
   mensajeOk = 'Postulación enviada. Te avisamos cuando el demandante la revise.',
 }: Props) {
   const [state, action, pending] = useActionState(postularse, init)
+  useProgress(pending)
 
   useEffect(() => {
     if (!state.ok) return

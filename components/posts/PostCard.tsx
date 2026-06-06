@@ -52,19 +52,25 @@ function avatarBg(username: string | null | undefined): string {
 }
 
 const TYPE_CONFIG = {
-  oferta: {
-    label: 'Ofrece sus servicios',
-    dot:   'bg-green-400',
-    badge: 'bg-green-900/40 text-green-400',
-  },
-  requerimiento: {
-    label: 'Necesita contratar',
-    dot:   'bg-blue-400',
-    badge: 'bg-blue-900/40 text-blue-400',
-  },
+  oferta:        { label: 'Ofrece sus servicios', badge: 'bg-green-900/40 text-green-400' },
+  requerimiento: { label: 'Necesita contratar',   badge: 'bg-blue-900/40 text-blue-400'  },
 }
 
-export default function PostCard({ post }: { post: PostCardData }) {
+function TypeIcon({ type }: { type: 'oferta' | 'requerimiento' }) {
+  if (type === 'oferta') return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+    </svg>
+  )
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+    </svg>
+  )
+}
+
+export default function PostCard({ post, from }: { post: PostCardData; from?: string }) {
   const priceUnitLabel = PRICE_TYPES.find(p => p.value === post.price_type)?.label ?? ''
   const priceLabel = post.price
     ? `$${post.price.toLocaleString('es-AR')} ${priceUnitLabel}`
@@ -78,11 +84,11 @@ export default function PostCard({ post }: { post: PostCardData }) {
   return (
     <div className="relative rounded-xl border border-zinc-700 bg-surface-1 p-5 transition-colors hover:bg-surface-2">
       {/* Stretched link — cubre toda la card, lleva al post */}
-      <Link href={`/post/${post.id}`} className="absolute inset-0 rounded-xl" aria-label={post.title} />
+      <Link href={`/post/${post.id}${from ? `?from=${from}` : ''}`} className="absolute inset-0 rounded-xl" aria-label={post.title} />
 
       {/* Badge de tipo */}
       <div className={`mb-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${typeConfig.badge}`}>
-        <span className={`h-1.5 w-1.5 rounded-full ${typeConfig.dot}`} />
+        <TypeIcon type={post.type} />
         {typeConfig.label}
       </div>
 

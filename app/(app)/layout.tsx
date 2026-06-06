@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import PanelSidebar from '@/components/layout/PanelSidebar'
 import BottomNav from '@/components/layout/BottomNav'
 import FloatingPublishMenu from '@/components/layout/FloatingPublishMenu'
+import Breadcrumbs from '@/components/layout/Breadcrumbs'
 import Toaster from '@/components/ui/Toaster'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -27,22 +28,29 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-dvh overflow-hidden bg-surface-1">
-      <PanelSidebar
-        userId={user?.id ?? null}
-        userName={userName}
-        unreadCount={unreadCount}
-        unreadNotifCount={unreadNotifCount}
-        isLoggedIn={!!user}
-      />
+      <Suspense fallback={<div className="hidden md:flex h-dvh w-14 shrink-0 border-r border-surface-2 bg-surface-0" />}>
+        <PanelSidebar
+          userId={user?.id ?? null}
+          userName={userName}
+          unreadCount={unreadCount}
+          unreadNotifCount={unreadNotifCount}
+          isLoggedIn={!!user}
+        />
+      </Suspense>
       <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
+        <Suspense fallback={null}>
+          <Breadcrumbs userId={user?.id ?? null} />
+        </Suspense>
         {children}
       </main>
-      <BottomNav
-        userId={user?.id ?? null}
-        userName={userName}
-        unreadCount={unreadCount}
-        isLoggedIn={!!user}
-      />
+      <Suspense fallback={null}>
+        <BottomNav
+          userId={user?.id ?? null}
+          userName={userName}
+          unreadCount={unreadCount}
+          isLoggedIn={!!user}
+        />
+      </Suspense>
 
       <FloatingPublishMenu isLoggedIn={!!user} />
       <Suspense><Toaster /></Suspense>

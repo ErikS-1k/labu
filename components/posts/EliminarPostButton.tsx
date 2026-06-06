@@ -4,6 +4,7 @@ import { useTransition, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { eliminarPost } from '@/app/actions/posts'
 import { showToast } from '@/lib/toast'
+import { useProgress } from '@/lib/useProgress'
 
 export default function EliminarPostButton({
   postId,
@@ -20,6 +21,7 @@ export default function EliminarPostButton({
 }) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  useProgress(isPending)
   const router = useRouter()
 
   function confirmar() {
@@ -44,9 +46,9 @@ export default function EliminarPostButton({
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-sm rounded-2xl border border-surface-2 bg-surface-0 p-6">
-            <h2 className="mb-2 text-base font-bold text-white">¿Eliminar esta publicación?</h2>
+            <h2 className="mb-2 text-base font-bold text-white">¿Estás seguro?</h2>
             <p className="mb-6 text-sm leading-relaxed text-zinc-400">
-              Se borrará permanentemente de la plataforma, incluyendo el historial de todos los usuarios que interactuaron con ella. Esta acción no se puede deshacer.
+              Eliminar esta publicacion implica que se borrará permanentemente de la plataforma, incluyendo el historial de todos los usuarios que interactuaron con ella. Esta acción no se puede deshacer.
             </p>
             <div className="flex gap-3">
               <button
@@ -61,7 +63,7 @@ export default function EliminarPostButton({
                 onClick={confirmar}
                 className="flex-1 rounded-lg bg-red-600 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
               >
-                Eliminar
+                Sí, eliminar
               </button>
             </div>
           </div>

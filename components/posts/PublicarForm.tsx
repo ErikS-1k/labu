@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import { publicarPost } from '@/app/actions/posts'
 import { MODALIDADES, PRICE_TYPES } from '@/lib/constants'
+import { useProgress } from '@/lib/useProgress'
 
 const inputBase =
   'rounded-lg border px-4 py-2.5 text-sm outline-none transition-colors focus:ring-2'
@@ -30,6 +31,7 @@ const PRESENCIALIDAD_OPTS = [
 
 export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?: 'oferta' | 'requerimiento' }) {
   const [state, action, pending]              = useActionState(publicarPost, null)
+  useProgress(pending)
   const [tipo, setTipo]                       = useState<'oferta' | 'requerimiento'>(defaultTipo)
   const [titulo, setTitulo]                   = useState('')
   const [descripcion, setDescripcion]         = useState('')
@@ -37,11 +39,12 @@ export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?:
   const [catCustom, setCatCustom]             = useState('')
   const [precio, setPrecio]                   = useState('')
   const [precioTipo, setPrecioTipo]           = useState('hora')
+  const [aDefinir, setADefinir]               = useState(false)
   const [zona, setZona]                       = useState('')
   const [modalidades, setModalidades]           = useState<string[]>([])
   const [temporalDuration, setTemporalDuration] = useState('')
   const [presencialidad, setPresencialidad]     = useState('')
-  const [fieldErrors, setFieldErrors]           = useState<{ title?: string; modality?: string }>({})
+  const [fieldErrors, setFieldErrors]           = useState<{ title?: string; modality?: string; precio?: string }>({})
 
   function handleTipoChange(nuevoTipo: 'oferta' | 'requerimiento') {
     setTipo(nuevoTipo)
@@ -56,10 +59,22 @@ export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?:
     if (fieldErrors.modality) setFieldErrors(e => ({ ...e, modality: undefined }))
   }
 
+  function handleADefinir(checked: boolean) {
+    setADefinir(checked)
+    if (checked) {
+      setPrecio('')
+      setPrecioTipo('a_convenir')
+    } else {
+      setPrecioTipo('hora')
+    }
+    if (fieldErrors.precio) setFieldErrors(e => ({ ...e, precio: undefined }))
+  }
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    const errors: { title?: string; modality?: string } = {}
+    const errors: { title?: string; modality?: string; precio?: string } = {}
     if (!titulo.trim()) errors.title = 'Este campo es obligatorio'
     if (modalidades.length === 0) errors.modality = 'Seleccioná al menos una modalidad'
+    if (!precio && !aDefinir) errors.precio = 'Ingresá un precio o marcá "A definir"'
     if (Object.keys(errors).length > 0) {
       e.preventDefault()
       setFieldErrors(errors)
@@ -238,30 +253,44 @@ export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?:
       </div>
 
       {/* Precio + Unidad */}
-      <div className="flex gap-3">
-        <div className="flex flex-1 flex-col gap-1">
-          <label htmlFor="price" className="text-sm font-medium text-zinc-700">
-            Precio en ARS {labelOpcional}
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between">
+          <label htmlFor="price" className="text-sm font-medium text-zinc-700">Precio en ARS *</label>
+          <label className="flex cursor-pointer items-center gap-1.5 text-sm text-zinc-500 select-none">
+            <input
+              type="checkbox"
+              checked={aDefinir}
+              onChange={e => handleADefinir(e.target.checked)}
+              className="rounded accent-zinc-600"
+            />
+            A definir
           </label>
+        </div>
+        <div className="flex gap-3">
           <input
             id="price" name="price" type="number" min="0" step="100"
             value={precio}
-            onChange={e => setPrecio(e.target.value)}
-            placeholder="Ej: 5000"
-            className={inputNormal}
+            onChange={e => {
+              setPrecio(e.target.value)
+              if (e.target.value) setADefinir(false)
+              if (fieldErrors.precio) setFieldErrors(er => ({ ...er, precio: undefined }))
+            }}
+            disabled={aDefinir}
+            placeholder={aDefinir ? '' : 'Ej: 5000'}
+            className={`flex-1 ${fieldErrors.precio ? inputError : inputNormal} disabled:cursor-not-allowed disabled:opacity-40`}
           />
-        </div>
-        <div className="flex flex-1 flex-col gap-1">
-          <label htmlFor="price_type" className="text-sm font-medium text-zinc-700">Unidad</label>
+          {aDefinir && <input type="hidden" name="price_type" value="a_convenir" />}
           <select
             id="price_type" name="price_type"
             value={precioTipo}
             onChange={e => setPrecioTipo(e.target.value)}
-            className={inputNormal}
+            disabled={aDefinir}
+            className={`flex-1 ${inputNormal} disabled:cursor-not-allowed disabled:opacity-40`}
           >
             {PRICE_TYPES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
           </select>
         </div>
+        {fieldErrors.precio && <p className="text-xs text-red-500">{fieldErrors.precio}</p>}
       </div>
 
       {/* Zona */}

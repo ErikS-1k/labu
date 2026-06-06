@@ -29,7 +29,7 @@ export default async function NuevoMensajePage({
 
   // Cargar receptor y post en paralelo
   const [{ data: receptor }, { data: post }] = await Promise.all([
-    supabase.from('users').select('id, username, first_name').eq('id', receiver_id).single(),
+    supabase.from('users').select('id, username, first_name, headline').eq('id', receiver_id).single(),
     supabase.from('posts').select('id, title').eq('id', post_id).single(),
   ])
 
@@ -49,7 +49,7 @@ export default async function NuevoMensajePage({
           postId={post_id}
           initialMessages={[]}
           receiverName={receptor.first_name ?? receptor.username ?? 'Usuario'}
-          postTitle={post.title}
+          receiverHeadline={receptor.headline ?? null}
           isNew
         />
       </div>

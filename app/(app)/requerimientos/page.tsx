@@ -68,7 +68,7 @@ export default async function RequerimientosPage({
             <h2 className="text-sm font-semibold text-zinc-300">Urgentes ahora</h2>
           </div>
           <div className="flex flex-col gap-4">
-            {urgentes.map(post => <PostCard key={post.id} post={post} />)}
+            {urgentes.map(post => <PostCard key={post.id} post={post} from="panel" />)}
           </div>
           {feed.length > 0 && (
             <p className="mt-5 mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
@@ -80,7 +80,7 @@ export default async function RequerimientosPage({
 
       <div className={urgentes.length > 0 ? 'flex flex-col gap-4' : 'mt-6 flex flex-col gap-4'}>
         {feed.length > 0
-          ? feed.map(post => <PostCard key={post.id} post={post} />)
+          ? feed.map(post => <PostCard key={post.id} post={post} from="panel" />)
           : !urgentes.length && (
             <EmptyFeedState
               busqueda={busqueda}

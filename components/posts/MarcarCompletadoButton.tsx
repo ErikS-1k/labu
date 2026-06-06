@@ -3,9 +3,11 @@
 import { useTransition } from 'react'
 import { marcarCompletado } from '@/app/actions/posts'
 import { showToast } from '@/lib/toast'
+import { useProgress } from '@/lib/useProgress'
 
 export default function MarcarCompletadoButton({ postId }: { postId: string }) {
   const [isPending, startTransition] = useTransition()
+  useProgress(isPending)
 
   function handleClick() {
     startTransition(async () => {

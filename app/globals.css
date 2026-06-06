@@ -25,3 +25,7 @@ input, textarea, select {
 input::placeholder, textarea::placeholder {
   color: #71717a;
 }
+
+@keyframes spin-border {
+  to { transform: rotate(360deg); }
+}
