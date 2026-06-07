@@ -1,4 +1,4 @@
-import { redirect, notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import ConversacionChat from '@/components/mensajes/ConversacionChat'
@@ -11,7 +11,6 @@ export default async function ConversacionPage({
   const { conversation_id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
 
   // Cargar mensajes de la conversación
   const { data: messages } = await supabase
@@ -29,11 +28,11 @@ export default async function ConversacionPage({
     .from('messages')
     .update({ read: true })
     .eq('conversation_id', conversation_id)
-    .eq('receiver_id', user.id)
+    .eq('receiver_id', user!.id)
     .eq('read', false)
 
   const primero = messages[0]
-  const receiverId = primero.sender_id === user.id ? primero.receiver_id : primero.sender_id
+  const receiverId = primero.sender_id === user!.id ? primero.receiver_id : primero.sender_id
   const postId     = primero.post_id ?? null
 
   // Cargar receptor y post en paralelo
@@ -53,7 +52,7 @@ export default async function ConversacionPage({
       <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-surface-2 bg-surface-1">
         <ConversacionChat
           conversationId={conversation_id}
-          currentUserId={user.id}
+          currentUserId={user!.id}
           receiverId={receiverId}
           postId={postId}
           initialMessages={messages.map(m => ({

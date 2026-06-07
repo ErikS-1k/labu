@@ -1,10 +1,25 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-// El middleware se ejecuta antes de cada request.
-// Su trabajo es refrescar la sesión del usuario si el token expiró,
-// para que los Server Components siempre reciban una sesión válida.
+// Rutas que requieren sesión activa (sin condiciones adicionales)
+const RUTAS_PROTEGIDAS = [
+  '/perfil/editar',
+  '/mi-actividad',
+  '/publicar',
+  '/verificacion',
+  '/mensajes',
+  '/notificaciones',
+  '/editar',
+]
+
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // URL legacy → redirigir sin chequear auth
+  if (pathname === '/mis-publicaciones') {
+    return NextResponse.redirect(new URL('/mi-actividad', request.url))
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -28,15 +43,37 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  // Refresca la sesión. No usar getSession() acá — no es verificado.
-  await supabase.auth.getUser()
+  // getUser() también refresca el token si expiró — no reemplazar con getSession()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // /perfil sin ID → redirigir al perfil propio
+  if (pathname === '/perfil') {
+    if (!user) return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(new URL(`/perfil/${user.id}`, request.url))
+  }
+
+  // Rutas de admin: solo ADMIN_EMAIL; cualquier otro (logueado o no) va a /
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    if (!user || user.email !== process.env.ADMIN_EMAIL) {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+    return supabaseResponse
+  }
+
+  // Rutas protegidas generales: requieren estar logueado
+  const esProtegida = RUTAS_PROTEGIDAS.some(
+    (p) => pathname === p || pathname.startsWith(p + '/')
+  )
+  if (esProtegida && !user) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
 
   return supabaseResponse
 }
 
 export const config = {
   matcher: [
-    // Aplica el middleware a todas las rutas excepto archivos estáticos
+    // Aplica el proxy a todas las rutas excepto archivos estáticos
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

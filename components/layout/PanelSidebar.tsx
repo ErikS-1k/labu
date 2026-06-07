@@ -12,6 +12,7 @@ type Props = {
   userName: string | null
   unreadCount: number
   unreadNotifCount: number
+  unreadActividadCount: number
   isLoggedIn: boolean
 }
 
@@ -81,8 +82,9 @@ function IconUser() {
   )
 }
 
-export default function PanelSidebar({ userId, userName, unreadCount, unreadNotifCount, isLoggedIn }: Props) {
-  const [count, setCount] = useState(unreadCount)
+export default function PanelSidebar({ userId, userName, unreadCount, unreadNotifCount, unreadActividadCount, isLoggedIn }: Props) {
+  const [count, setCount]               = useState(unreadCount)
+  const [actividadCount, setActividad]  = useState(unreadActividadCount)
   const pathname     = usePathname()
   const searchParams = useSearchParams()
   const fromParam    = searchParams.get('from')
@@ -92,17 +94,67 @@ export default function PanelSidebar({ userId, userName, unreadCount, unreadNoti
     setCount(unreadCount)
   }, [unreadCount])
 
+  // Sincronizar el count de actividad con el servidor
+  useEffect(() => {
+    setActividad(unreadActividadCount)
+  }, [unreadActividadCount])
+
+  // Resetear badge de actividad al visitar la página
+  useEffect(() => {
+    if (pathname === '/mi-actividad') setActividad(0)
+  }, [pathname])
+
   useEffect(() => {
     if (!userId) return
     const supabase = createClient()
-    const channel = supabase
-      .channel('sidebar-unread')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-        const msg = payload.new as { receiver_id: string }
-        if (msg.receiver_id === userId) setCount(c => c + 1)
-      })
-      .subscribe()
-    return () => { supabase.removeChannel(channel) }
+    let channel: ReturnType<typeof supabase.channel> | undefined
+    let cancelled = false
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return
+      if (session?.access_token) supabase.realtime.setAuth(session.access_token)
+
+      channel = supabase
+        .channel('sidebar-unread')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+          const msg = payload.new as { receiver_id: string }
+          if (msg.receiver_id === userId) setCount(c => c + 1)
+        })
+        .subscribe()
+    })
+
+    return () => {
+      cancelled = true
+      if (channel) supabase.removeChannel(channel)
+    }
+  }, [userId])
+
+  useEffect(() => {
+    if (!userId) return
+    const supabase = createClient()
+    let channel: ReturnType<typeof supabase.channel> | undefined
+    let cancelled = false
+    const TIPOS_ACTIVIDAD = ['nueva_postulacion', 'postulacion_aceptada', 'postulacion_rechazada', 'trabajo_completado', 'recordatorio_calificacion']
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return
+      if (session?.access_token) supabase.realtime.setAuth(session.access_token)
+
+      channel = supabase
+        .channel(`sidebar-actividad-${userId}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => {
+          const notif = payload.new as { user_id: string; type: string }
+          if (notif.user_id === userId && TIPOS_ACTIVIDAD.includes(notif.type)) {
+            if (window.location.pathname !== '/mi-actividad') setActividad(c => c + 1)
+          }
+        })
+        .subscribe()
+    })
+
+    return () => {
+      cancelled = true
+      if (channel) supabase.removeChannel(channel)
+    }
   }, [userId])
 
   function isActive(href: string) {
@@ -177,7 +229,14 @@ export default function PanelSidebar({ userId, userName, unreadCount, unreadNoti
 
         {isLoggedIn && (
           <Link href="/mi-actividad" className={itemClass('/mi-actividad')}>
-            <span className="shrink-0"><IconList /></span>
+            <span className="relative shrink-0">
+              <IconList />
+              {actividadCount > 0 && (
+                <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
+                  {actividadCount > 9 ? '9+' : actividadCount}
+                </span>
+              )}
+            </span>
             <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
               Mi actividad
             </span>

@@ -9,20 +9,19 @@ export const metadata: Metadata = { title: 'Verificar identidad — Labu' }
 export default async function VerificacionPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
 
   const { data: verificacion } = await supabase
     .from('verifications')
     .select('status')
-    .eq('user_id', user.id)
+    .eq('user_id', user!.id)
     .maybeSingle()
 
-  if (verificacion) redirect(`/perfil/${user.id}`)
+  if (verificacion) redirect(`/perfil/${user!.id}`)
 
   return (
     <main className="mx-auto max-w-lg px-4 py-8">
       <Link
-        href={`/perfil/${user.id}`}
+        href={`/perfil/${user!.id}`}
         className="mb-6 inline-block text-sm text-zinc-400 hover:text-zinc-700"
       >
         ← Volver al perfil
@@ -75,7 +74,7 @@ export default async function VerificacionPage() {
       {/* Formulario */}
       <div className="rounded-xl border border-surface-2 bg-surface-1 p-5">
         <h2 className="mb-4 text-sm font-semibold text-zinc-700">Subir documento</h2>
-        <VerificacionForm userId={user.id} />
+        <VerificacionForm userId={user!.id} />
       </div>
     </main>
   )

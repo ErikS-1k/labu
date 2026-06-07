@@ -4,10 +4,11 @@ import { createClient } from '@/lib/supabase/server'
 import { PRICE_TYPES } from '@/lib/constants'
 import { iniciarConversacion } from '@/app/actions/mensajes'
 import { marcarCompletado } from '@/app/actions/posts'
-import { aceptarPostulacion, rechazarPostulacion } from '@/app/actions/applications'
 import RatingForm from '@/components/ratings/RatingForm'
 import PostularseForm from '@/components/applications/PostularseForm'
 import GuestPostAction from '@/components/posts/GuestPostAction'
+import PostulacionesAutorSection, { type Aplicacion } from '@/components/applications/PostulacionesAutorSection'
+import MiPostulacionSection from '@/components/applications/MiPostulacionSection'
 
 const MODALITY_LABEL: Record<string, string> = {
   inmediato:   'Inmediato',
@@ -319,35 +320,15 @@ export default async function PostPage({
 
       {/* ── OFERTAS: solicitudes de contacto ────────────────────── */}
 
-      {/* Solicitante: contacto desbloqueado si fue aceptado */}
-      {!esRequerimiento && postulacionAceptada && autor && (
-        <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-5">
-          <p className="mb-3 text-sm font-semibold text-green-800">
-            ✓ Tu solicitud fue aceptada
-          </p>
-          <form action={iniciarConversacion} className="mt-4">
-            <input type="hidden" name="post_id"     value={post.id} />
-            <input type="hidden" name="receiver_id" value={post.user_id} />
-            <button
-              type="submit"
-              className="w-full rounded-lg bg-green-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-800"
-            >
-              Abrir conversación
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* Solicitante: estado pendiente o rechazado */}
-      {!esRequerimiento && miPostulacion && !postulacionAceptada && (
-        <div className={`mt-4 rounded-xl border px-4 py-3 text-sm ${
-          miPostulacion.status === 'rechazado'
-            ? 'border-red-200 bg-red-50 text-red-700'
-            : 'border-surface-2 bg-surface-2 text-zinc-400'
-        }`}>
-          {miPostulacion.status === 'pendiente' && 'Solicitud enviada · pendiente de revisión.'}
-          {miPostulacion.status === 'rechazado' && 'Tu solicitud fue rechazada.'}
-        </div>
+      {/* Solicitante: estado de la solicitud en tiempo real */}
+      {!esRequerimiento && miPostulacion && (
+        <MiPostulacionSection
+          initialStatus={miPostulacion.status as 'pendiente' | 'aceptado' | 'rechazado'}
+          applicationId={miPostulacion.id}
+          postId={post.id}
+          postUserId={post.user_id}
+          postType="oferta"
+        />
       )}
 
       {/* Solicitante guest: prompt de login */}
@@ -368,119 +349,26 @@ export default async function PostPage({
         </div>
       )}
 
-      {/* Autor de la oferta: lista de solicitudes entrantes */}
+      {/* Autor de la oferta: solicitudes en tiempo real */}
       {!esRequerimiento && esAutor && (
-        <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-            Solicitudes de contacto ({(postulaciones ?? []).length})
-          </p>
-          {(!postulaciones || postulaciones.length === 0) ? (
-            <p className="text-sm text-zinc-400">Todavía no hay solicitudes.</p>
-          ) : (
-            <div className="flex flex-col gap-4">
-              {(postulaciones as any[]).map(p => {
-                const ap = p.users as {
-                  first_name: string | null; last_name: string | null
-                  username: string | null; email: string | null
-                  phone: string | null; rating_avg: number | null; rating_count: number | null
-                } | null
-                const nombre = [ap?.first_name, ap?.last_name].filter(Boolean).join(' ') || ap?.username || 'Usuario'
-                return (
-                  <div key={p.id} className={`rounded-lg border p-4 ${
-                    p.status === 'aceptado' ? 'border-green-200 bg-green-50' :
-                    p.status === 'rechazado' ? 'border-surface-2 bg-surface-1 opacity-60' :
-                    'border-surface-2'
-                  }`}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <Link
-                          href={`/perfil/${p.applicant_id}`}
-                          target="_blank"
-                          className="font-medium text-white hover:underline"
-                        >
-                          {nombre}
-                        </Link>
-                        {(ap?.rating_count ?? 0) > 0 && (
-                          <p className="text-xs text-zinc-400">★ {ap?.rating_avg} · {ap?.rating_count} calificaciones</p>
-                        )}
-                        {p.message && (
-                          <p className="mt-2 text-sm text-zinc-600">{p.message}</p>
-                        )}
-                      </div>
-                      {p.status === 'pendiente' && (
-                        <div className="flex shrink-0 gap-2">
-                          <form action={aceptarPostulacion}>
-                            <input type="hidden" name="application_id" value={p.id} />
-                            <input type="hidden" name="post_id"        value={post.id} />
-                            <button type="submit" className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700">
-                              Aceptar
-                            </button>
-                          </form>
-                          <form action={rechazarPostulacion}>
-                            <input type="hidden" name="application_id" value={p.id} />
-                            <input type="hidden" name="post_id"        value={post.id} />
-                            <button type="submit" className="rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">
-                              Rechazar
-                            </button>
-                          </form>
-                        </div>
-                      )}
-                      {p.status !== 'pendiente' && (
-                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                          p.status === 'aceptado' ? 'bg-green-900/40 text-green-400' : 'bg-surface-2 text-zinc-400'
-                        }`}>
-                          {p.status === 'aceptado' ? 'Aceptado' : 'Rechazado'}
-                        </span>
-                      )}
-                    </div>
-                    {p.status === 'aceptado' && (
-                      <form action={iniciarConversacion} className="mt-3">
-                        <input type="hidden" name="post_id"     value={post.id} />
-                        <input type="hidden" name="receiver_id" value={p.applicant_id} />
-                        <button type="submit" className="w-full rounded-lg bg-white px-4 py-2 text-xs font-medium text-zinc-900 hover:bg-zinc-200">
-                          Iniciar conversación
-                        </button>
-                      </form>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
+        <PostulacionesAutorSection
+          initialPostulaciones={(postulaciones ?? []) as unknown as Aplicacion[]}
+          postId={post.id}
+          postType="oferta"
+        />
       )}
 
       {/* ── REQUERIMIENTOS: postulaciones ───────────────────────── */}
 
-      {/* Postulante: contacto desbloqueado si fue aceptado */}
-      {esRequerimiento && postulacionAceptada && autor && (
-        <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-5">
-          <p className="mb-3 text-sm font-semibold text-green-800">
-            ✓ Tu postulación fue aceptada
-          </p>
-          <form action={iniciarConversacion} className="mt-4">
-            <input type="hidden" name="post_id"     value={post.id} />
-            <input type="hidden" name="receiver_id" value={post.user_id} />
-            <button
-              type="submit"
-              className="w-full rounded-lg bg-green-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-800"
-            >
-              Abrir conversación
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* Postulante: estado pendiente o rechazado */}
-      {esRequerimiento && miPostulacion && !postulacionAceptada && (
-        <div className={`mt-4 rounded-xl border px-4 py-3 text-sm ${
-          miPostulacion.status === 'rechazado'
-            ? 'border-red-200 bg-red-50 text-red-700'
-            : 'border-surface-2 bg-surface-2 text-zinc-400'
-        }`}>
-          {miPostulacion.status === 'pendiente' && 'Postulación enviada · pendiente de revisión.'}
-          {miPostulacion.status === 'rechazado' && 'Tu postulación fue rechazada.'}
-        </div>
+      {/* Postulante: estado de la postulación en tiempo real */}
+      {esRequerimiento && miPostulacion && (
+        <MiPostulacionSection
+          initialStatus={miPostulacion.status as 'pendiente' | 'aceptado' | 'rechazado'}
+          applicationId={miPostulacion.id}
+          postId={post.id}
+          postUserId={post.user_id}
+          postType="requerimiento"
+        />
       )}
 
       {/* Postulante guest: prompt de login */}
@@ -496,86 +384,13 @@ export default async function PostPage({
         </div>
       )}
 
-      {/* Autor del requerimiento: lista de postulaciones */}
+      {/* Autor del requerimiento: postulaciones en tiempo real */}
       {esRequerimiento && esAutor && (
-        <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-            Postulaciones ({(postulaciones ?? []).length})
-          </p>
-          {(!postulaciones || postulaciones.length === 0) ? (
-            <p className="text-sm text-zinc-400">Todavía no hay postulaciones.</p>
-          ) : (
-            <div className="flex flex-col gap-4">
-              {(postulaciones as any[]).map(p => {
-                const ap = p.users as {
-                  first_name: string | null; last_name: string | null
-                  username: string | null; email: string | null
-                  phone: string | null; rating_avg: number | null; rating_count: number | null
-                } | null
-                const nombre = [ap?.first_name, ap?.last_name].filter(Boolean).join(' ') || ap?.username || 'Usuario'
-                return (
-                  <div key={p.id} className={`rounded-lg border p-4 ${
-                    p.status === 'aceptado' ? 'border-green-200 bg-green-50' :
-                    p.status === 'rechazado' ? 'border-surface-2 bg-surface-1 opacity-60' :
-                    'border-surface-2'
-                  }`}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <Link
-                          href={`/perfil/${p.applicant_id}`}
-                          target="_blank"
-                          className="font-medium text-white hover:underline"
-                        >
-                          {nombre}
-                        </Link>
-                        {(ap?.rating_count ?? 0) > 0 && (
-                          <p className="text-xs text-zinc-400">★ {ap?.rating_avg} · {ap?.rating_count} calificaciones</p>
-                        )}
-                        {p.message && (
-                          <p className="mt-2 text-sm text-zinc-600">{p.message}</p>
-                        )}
-                      </div>
-                      {p.status === 'pendiente' && (
-                        <div className="flex shrink-0 gap-2">
-                          <form action={aceptarPostulacion}>
-                            <input type="hidden" name="application_id" value={p.id} />
-                            <input type="hidden" name="post_id"        value={post.id} />
-                            <button type="submit" className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700">
-                              Aceptar
-                            </button>
-                          </form>
-                          <form action={rechazarPostulacion}>
-                            <input type="hidden" name="application_id" value={p.id} />
-                            <input type="hidden" name="post_id"        value={post.id} />
-                            <button type="submit" className="rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">
-                              Rechazar
-                            </button>
-                          </form>
-                        </div>
-                      )}
-                      {p.status !== 'pendiente' && (
-                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                          p.status === 'aceptado' ? 'bg-green-900/40 text-green-400' : 'bg-surface-2 text-zinc-400'
-                        }`}>
-                          {p.status === 'aceptado' ? 'Aceptado' : 'Rechazado'}
-                        </span>
-                      )}
-                    </div>
-                    {p.status === 'aceptado' && (
-                      <form action={iniciarConversacion} className="mt-3">
-                        <input type="hidden" name="post_id"     value={post.id} />
-                        <input type="hidden" name="receiver_id" value={p.applicant_id} />
-                        <button type="submit" className="w-full rounded-lg bg-white px-4 py-2 text-xs font-medium text-zinc-900 hover:bg-zinc-200">
-                          Iniciar conversación
-                        </button>
-                      </form>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
+        <PostulacionesAutorSection
+          initialPostulaciones={(postulaciones ?? []) as unknown as Aplicacion[]}
+          postId={post.id}
+          postType="requerimiento"
+        />
       )}
 
       {/* ── MARCAR COMPLETADO / RATING ───────────────────────────── */}

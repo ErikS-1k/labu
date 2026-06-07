@@ -26,31 +26,33 @@ app/
     login/page.tsx                 → login con toggle de contraseña
     registro/page.tsx              → registro (nombre + apellido + email + contraseña con toggle)
   (app)/
-    layout.tsx                     → sidebar + bottom nav + botón flotante + Toaster
+    layout.tsx                     → sidebar + bottom nav + botón flotante + Toaster + cuenta unreadActividadCount
     panel/page.tsx                 → feed principal con filtros + OnboardingBanner
     ofertas/page.tsx               → feed de ofertas con filtros
     requerimientos/page.tsx        → feed de requerimientos con filtros
     buscar/page.tsx                → buscador global (perfiles + posts) con tabs
-    post/[id]/page.tsx             → detalle de post + postulaciones + rating (sin teléfono)
+    post/[id]/page.tsx             → detalle de post; postulaciones via PostulacionesAutorSection + MiPostulacionSection (Realtime)
     perfil/[id]/page.tsx           → perfil público/propio
     perfil/editar/page.tsx         → editar perfil + secciones LinkedIn + eliminar foto
     publicar/page.tsx              → crear nuevo post
     editar/[id]/page.tsx           → editar post propio
     mi-actividad/page.tsx          → tabs: Mis publicaciones + Mis trabajos
     mi-actividad/CalificarModal.tsx → modal de calificación (client component)
+    mi-actividad/ActividadRealtimeSync.tsx → Realtime para refresh de mi-actividad (client, render null)
+    mi-actividad/AutoMarcarActividadLeida.tsx → marca notificaciones de actividad como leídas al entrar (client, render null)
     mis-publicaciones/page.tsx     → redirect a /mi-actividad
     verificacion/page.tsx          → formulario DNI + explicación proceso
     mensajes/page.tsx              → lista de conversaciones (Realtime via ConversacionList)
     mensajes/[conversation_id]/page.tsx → chat individual (Supabase Realtime + smart scroll)
-    mensajes/nuevo/page.tsx        → iniciar conversación nueva
-    admin/verificaciones/page.tsx  → panel admin (solo ADMIN_EMAIL)
+    mensajes/nuevo/page.tsx        → iniciar conversación nueva (sin lógica de dedup — vive en iniciarConversacion())
+    admin/verificaciones/page.tsx  → panel admin (solo ADMIN_EMAIL, guard en proxy.ts)
 ```
 
 ### Componentes clave
 ```
 components/
   layout/
-    PanelSidebar.tsx          → sidebar desktop, badge mensajes + notifs (Realtime)
+    PanelSidebar.tsx          → sidebar desktop, badge mensajes + notifs + Mi Actividad (Realtime)
     BottomNav.tsx             → nav mobile inferior, py-3 para touch targets 44px
     FloatingPublishMenu.tsx   → botón "+", oculto en /publicar, modal para guests
     NotificationBell.tsx      → campana con badge (Realtime)
@@ -60,9 +62,6 @@ components/
     ProgressBar.tsx           → barra de progreso NProgress en navegación
   onboarding/
     OnboardingBanner.tsx      → banner persistente 3 pasos (reemplaza el modal)
-                                Paso 1: completar perfil (avatar+bio+location)
-                                Paso 2: publicar (posts count > 0)
-                                Paso 3: explorar (first_login = false)
   auth/
     LoginPromptModal.tsx      → modal reutilizable para acciones de guests
   posts/
@@ -80,6 +79,8 @@ components/
     GuestPublishButtons.tsx   → botones de publicar para guests (abre modal)
   applications/
     PostularseForm.tsx        → postularse / solicitar, toast en state.ok
+    PostulacionesAutorSection.tsx → lista de postulaciones Realtime para el autor del post (INSERT en tiempo real)
+    MiPostulacionSection.tsx  → estado de la postulación propia en tiempo real (UPDATE de status)
   ratings/
     RatingForm.tsx            → calificación 1-5 estrellas, toast en state.ok
   mensajes/
@@ -91,6 +92,8 @@ components/
     EditarPerfilForm.tsx      → avatar upload/eliminar, email, phone, all fields
     AgregarSeccionForm.tsx    → secciones estilo LinkedIn
     SeccionCard.tsx           → card de sección con edición inline
+  notificaciones/
+    NotificacionesList.tsx    → lista notificaciones con Realtime (client component)
 ```
 
 ### Server actions
@@ -103,9 +106,9 @@ app/actions/
                      cerrarPost, marcarCompletado
   applications.ts  → postularse, aceptarPostulacion, rechazarPostulacion
   ratings.ts       → calificar
-  notifications.ts → crearNotificacion
+  notifications.ts → crearNotificacion, marcarTodasLeidas, marcarActividadLeida
   verificacion.ts  → subirVerificacion
-  mensajes.ts      → enviarMensaje
+  mensajes.ts      → iniciarConversacion (incluye dedup de conversación), enviarMensaje
   admin.ts         → aprobar/rechazar verificaciones
 ```
 
@@ -114,6 +117,7 @@ app/actions/
 lib/
   toast.ts         → showToast(message, type) — dispara CustomEvent 'labu:toast'
   useProgress.ts   → hook para NProgress (barra de carga en navegación)
+  constants.ts     → MODALIDADES, PRICE_TYPES, TIPOS_ACTIVIDAD
   supabase/        → server.ts, client.ts, service.ts
 ```
 
@@ -135,6 +139,16 @@ presencialidad    text     — 'presencial' | 'virtual' | 'ambos'
 temporal_duration text     — duración estimada (cuando modality incluye 'temporal')
 is_active         boolean
 ```
+
+### Tabla `notifications`
+```
+type    text  — valores: 'nueva_postulacion' | 'postulacion_aceptada' | 'postulacion_rechazada' |
+                         'trabajo_completado' | 'recordatorio_calificacion' | 'nuevo_mensaje' |
+                         'nuevo_rating' | 'verificacion_aprobada' | 'verificacion_rechazada' | 'postulacion_enviada'
+read    boolean
+```
+
+Los tipos de actividad (`TIPOS_ACTIVIDAD` en `lib/constants.ts`) son los que alimentan el badge de "Mi Actividad": nueva_postulacion, postulacion_aceptada, postulacion_rechazada, trabajo_completado, recordatorio_calificacion.
 
 ### Storage buckets
 - `avatars` — público, fotos de perfil
@@ -166,34 +180,84 @@ create policy "El receptor puede marcar mensajes como leídos"
   with check (auth.uid() = receiver_id);
 ```
 
-### RLS — política SELECT en notifications (PENDIENTE — el usuario debe ejecutar esto)
-Sin esta política, Supabase no entrega eventos `postgres_changes` al cliente, y el Realtime de la campana no funciona. También hay que activar Realtime para la tabla `notifications` en Supabase Dashboard → Database → Replication.
-```sql
-create policy "Users can read own notifications"
-  on public.notifications for select
-  using (auth.uid() = user_id);
+---
+
+## Patrón Realtime — cómo está implementado en toda la app
+
+Todos los componentes cliente que usan `postgres_changes` siguen este patrón obligatorio:
+
+```typescript
+useEffect(() => {
+  const supabase = createClient()            // createClient() DENTRO del useEffect
+  let channel: ReturnType<typeof supabase.channel> | undefined
+  let cancelled = false
+
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (cancelled) return
+    if (session?.access_token) supabase.realtime.setAuth(session.access_token) // JWT obligatorio
+    channel = supabase
+      .channel(`nombre-unico-${userId}`)     // nombre único por instancia
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tabla' },
+        (payload) => {
+          const row = payload.new as { user_id: string }
+          if (row.user_id !== userId) return  // filtrar client-side, NO en el server filter
+          // actualizar estado local
+        })
+      .subscribe()
+  })
+
+  return () => { cancelled = true; if (channel) supabase.removeChannel(channel) }
+}, [userId])
 ```
+
+**Por qué:** `@supabase/ssr`'s `createBrowserClient` NO pasa el JWT a la conexión WebSocket de Realtime automáticamente. Sin `setAuth()`, RLS ve `auth.uid() = null` y bloquea todos los eventos silenciosamente (el status muestra SUBSCRIBED pero no llegan eventos). El `cancelled` flag evita race conditions en React Strict Mode (doble mount).
+
+**Configuración Supabase requerida:** La tabla debe estar habilitada en `supabase_realtime_messages_publication` (Dashboard → Database → Replication). Las tablas `notifications`, `messages` y `applications` ya están habilitadas.
 
 ---
 
-## Últimos cambios (commits 0e8c314 + 206fd79 + aa4653c)
+## Arquitectura de auth guards
+
+Todos los redirects de auth están centralizados en `proxy.ts` (raíz del proyecto). Las páginas ya **no tienen** `if (!user) redirect('/login')`.
+
+`proxy.ts` maneja:
+- `/mis-publicaciones` → redirect a `/mi-actividad` (sin auth check)
+- `/perfil` (exacto, sin ID) → si no logueado → `/login`; si logueado → `/perfil/:id`
+- `/admin` y `/admin/*` → solo `ADMIN_EMAIL`, cualquier otro (logueado o no) → `/`
+- Resto de rutas protegidas (perfil/editar, mi-actividad, publicar, verificacion, mensajes/*, notificaciones, editar/*) → si no logueado → `/login`
+
+Las páginas usan `user!.id` (non-null assertion) porque el proxy garantiza que el usuario existe antes de que la página se renderice.
+
+---
+
+## Últimos cambios (sesión 2026-06-07)
 
 | Área | Cambio |
 |---|---|
-| Onboarding | OnboardingModal → OnboardingBanner: banner persistente en /panel, detecta progreso desde datos reales (perfil + posts count + first_login) |
-| Foto de perfil | Botón "Eliminar foto" en /perfil/editar con confirmación inline (no modal); elimina del bucket y limpia avatar_url |
-| Mensajería — headers | Reemplaza "Re: [título del post]" por nombre + profesión/oficio del otro usuario |
-| Mensajería — Realtime lista | ConversacionList.tsx: client component con suscripción Realtime; actualiza último mensaje y sube al tope sin recargar |
-| Mensajería — scroll inteligente | Solo scrollea al fondo si el usuario ya estaba ahí; no interrumpe si está leyendo mensajes anteriores |
-| Íconos | Wrench/briefcase en PostCard badges; íconos en FeedFilters tabs; dollar/clock/globe/map-pin en detalle de post; map-pin en perfil; calendar/users en mi-actividad |
-| Landing page | Rediseño completo: hero con SVG de red + 4 secciones (características, categorías, cómo funciona, CTA) — tema 100% oscuro |
-| Contraseña | Toggle mostrar/ocultar contraseña (ícono ojo) en login y registro |
-| Contacto post-aceptación | Eliminado el teléfono del otro usuario al aceptar. Solo queda el botón "Iniciar conversación" como canal |
-| Email en perfil | Campo "Email de contacto" en /perfil/editar — solo visible para el propio usuario |
-| Safari | min-h-dvh→min-h-screen, backdrop-blur eliminado del nav, color-mix() reemplazado por rgba() explícito |
-| Notificaciones — Realtime lista | NotificacionesList.tsx: client component con Realtime; nuevas notifs aparecen arriba sin recargar |
-| Notificaciones — marcar leídas | Estado local se actualiza inmediatamente (optimistic) al entrar a la página y al clickear el botón |
-| Notificaciones — campana | NotificationBell ya tenía el código correcto; requiere RLS SELECT + Realtime habilitado en Supabase (ver SQL pendiente arriba) |
+| Realtime — fix root cause | Root cause de todos los fallos Realtime: JWT no pasado al WebSocket. Fix: `supabase.realtime.setAuth(session.access_token)` en todos los useEffect de Realtime. Ver patrón arriba. |
+| Postulaciones Realtime | `PostulacionesAutorSection.tsx`: autor ve nuevas postulaciones sin recargar. `MiPostulacionSection.tsx`: postulante ve cambio de estado (pendiente → aceptado/rechazado) sin recargar. |
+| Badge "Mi Actividad" | Círculo rojo en sidebar idéntico al de mensajes. Realtime: se incrementa al llegar notificaciones de actividad. Reset al visitar /mi-actividad. Auto-marcar como leídas al entrar (AutoMarcarActividadLeida). |
+| Auth guards centralizados | `proxy.ts` centraliza todos los redirects de auth. 11 páginas limpiadas del guard duplicado. Admin check también en proxy. |
+| Dedup conversación | Eliminada verificación duplicada de conversación existente en `mensajes/nuevo/page.tsx`. Solo vive en `iniciarConversacion()` en `app/actions/mensajes.ts`. |
+| Bug fix — use server | `TIPOS_ACTIVIDAD` movida a `lib/constants.ts`. Un archivo `'use server'` solo puede exportar funciones async. |
+
+### Cambios anteriores (commits 0e8c314 → aa4653c)
+
+| Área | Cambio |
+|---|---|
+| Onboarding | OnboardingModal → OnboardingBanner: banner persistente en /panel |
+| Foto de perfil | Botón "Eliminar foto" con confirmación inline |
+| Mensajería — headers | Nombre + profesión del otro usuario (no título del post) |
+| Mensajería — Realtime lista | ConversacionList.tsx con suscripción Realtime |
+| Mensajería — scroll inteligente | Solo scrollea al fondo si el usuario ya estaba ahí |
+| Íconos | Wrench/briefcase en PostCard; íconos en FeedFilters, detalle de post, perfil, mi-actividad |
+| Landing page | Rediseño completo: hero SVG + 4 secciones, tema 100% oscuro |
+| Contraseña | Toggle mostrar/ocultar en login y registro |
+| Contacto post-aceptación | Solo mensajería interna (sin teléfono) |
+| Email en perfil | Campo "Email de contacto" visible solo para el propio usuario |
+| Safari | min-h-dvh→min-h-screen, backdrop-blur eliminado del nav, color-mix() → rgba() explícito |
+| Notificaciones — Realtime lista | NotificacionesList.tsx con Realtime |
+| Notificaciones — marcar leídas | Update optimistic inmediato al entrar y al clickear |
 
 ---
 
@@ -244,6 +308,8 @@ Leyenda: ✅ funciona en producción · ⚠️ funciona con limitaciones · 🔜
 
 ### Interacción
 - ✅ Sistema de postulaciones (solicitar en ofertas / postularse en requerimientos)
+- ✅ Postulaciones en tiempo real: el autor ve nuevas postulaciones sin recargar
+- ✅ Estado de postulación en tiempo real: el postulante ve aceptado/rechazado sin recargar
 - ✅ Aceptar / rechazar postulaciones
 - ✅ Al aceptar: solo se desbloquea el botón "Iniciar conversación" (sin teléfono)
 - ✅ Marcar trabajo completado (doble confirmación cliente + trabajador)
@@ -254,6 +320,7 @@ Leyenda: ✅ funciona en producción · ⚠️ funciona con limitaciones · 🔜
 - ✅ Tab "Mis trabajos": aplicaciones con estados y filtros por rol
 - ✅ Calificación desde modal inline
 - ✅ Marcar completado con toast
+- ✅ Badge en sidebar: círculo rojo con contador Realtime; se resetea al visitar la página
 
 ### Mensajería
 - ✅ Chat con Supabase Realtime — mensajes aparecen sin recargar
@@ -262,6 +329,7 @@ Leyenda: ✅ funciona en producción · ⚠️ funciona con limitaciones · 🔜
 - ✅ Header del chat muestra nombre + profesión del otro usuario (no título del post)
 - ✅ Mensajes marcados como leídos al abrir la conversación
 - ✅ Badge sidebar actualizado via router.refresh()
+- ✅ Sin duplicados de conversación: dedup centralizado en iniciarConversacion()
 
 ### Toasts
 - ✅ Sistema global: `showToast(message, type)` desde cualquier componente cliente
@@ -286,11 +354,11 @@ Leyenda: ✅ funciona en producción · ⚠️ funciona con limitaciones · 🔜
 
 ### Notificaciones in-app
 - ✅ Badge campana en sidebar con contador Realtime (incrementa sin recargar)
+- ✅ Badge "Mi Actividad" en sidebar con contador Realtime (idem campana)
 - ✅ Página /notificaciones con lista Realtime — nuevas notifs aparecen arriba al instante
+- ✅ Auto-marcar notificaciones de actividad como leídas al entrar a /mi-actividad
 - ✅ Marcar como leídas: optimistic update (puntos azules desaparecen inmediatamente)
 - ✅ Tipos: postulación, aceptado/rechazado, trabajo completado, recordatorio calificación, ratings
-- ⚠️ Requiere configuración en Supabase para el Realtime del badge (ver "SQL pendiente" arriba)
-- 🔜 Notificaciones push (V2)
 
 ### Verificación y admin
 - ✅ Subir DNI → revisión manual → badge en perfil
@@ -331,7 +399,10 @@ input, textarea, select {
 | Eliminar desde Mi actividad redirigía | prop `returnTo` en EliminarPostButton → `revalidatePath` en lugar de redirect |
 | Tab se reseteaba al buscar | `buildParams` en FeedFilters arrancaba desde URLSearchParams vacío; fix: partir de `searchParams.toString()` |
 | Deploy — middleware deprecated | Renombrar a `proxy.ts` y función a `proxy` |
-| Safari landing page rota | Tailwind v4 usa `color-mix()` para modificadores de opacidad (`/40`, `/20` etc.) — no soportado en Safari < 16.2. Fix: reemplazar con `rgba()` explícito en landing page. También: `min-h-dvh` → `min-h-screen`, `backdrop-blur` eliminado del nav |
+| Safari landing page rota | Tailwind v4 usa `color-mix()` para modificadores de opacidad — no soportado en Safari < 16.2. Fix: reemplazar con `rgba()` explícito en landing page. También: `min-h-dvh` → `min-h-screen`, `backdrop-blur` eliminado del nav |
+| Realtime no entregaba eventos (SUBSCRIBED pero silencioso) | Root cause: `@supabase/ssr` no pasa el JWT al WebSocket de Realtime. Fix: llamar `supabase.realtime.setAuth(session.access_token)` antes de subscribir. Sin esto, RLS ve `auth.uid() = null` y bloquea todo. |
+| React Strict Mode: canal CLOSED en dev | `createClient()` fuera del useEffect + doble mount = canal stale. Fix: mover `createClient()` dentro del useEffect + flag `cancelled`. |
+| `use server` no puede exportar objetos | `TIPOS_ACTIVIDAD` era exportada desde `notifications.ts` (archivo `use server`). Fix: moverla a `lib/constants.ts`. |
 
 ---
 

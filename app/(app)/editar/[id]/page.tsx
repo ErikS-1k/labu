@@ -1,4 +1,4 @@
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import EditarPostForm from '@/components/posts/EditarPostForm'
@@ -13,13 +13,12 @@ export default async function EditarPostPage({
   const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
 
   const { data: post } = await supabase
     .from('posts')
     .select('id, type, title, description, category, modality, presencialidad, temporal_duration, price, price_type, location, user_id')
     .eq('id', id)
-    .eq('user_id', user.id)
+    .eq('user_id', user!.id)
     .single()
 
   if (!post) notFound()

@@ -1,5 +1,4 @@
 import { Metadata } from 'next'
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import ConversacionList from '@/components/mensajes/ConversacionList'
 
@@ -19,7 +18,6 @@ type MensajeRow = {
 export default async function MensajesPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
 
   const { data: rows } = await supabase
     .from('messages')
@@ -28,7 +26,7 @@ export default async function MensajesPage() {
       sender:sender_id(username, first_name, headline),
       receiver:receiver_id(username, first_name, headline)
     `)
-    .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+    .or(`sender_id.eq.${user!.id},receiver_id.eq.${user!.id}`)
     .order('created_at', { ascending: false })
 
   // Quedar con el último mensaje por conversación
@@ -42,7 +40,7 @@ export default async function MensajesPage() {
   return (
     <main className="mx-auto max-w-xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold text-white">Mensajes</h1>
-      <ConversacionList initialConversaciones={conversaciones} currentUserId={user.id} />
+      <ConversacionList initialConversaciones={conversaciones} currentUserId={user!.id} />
     </main>
   )
 }

@@ -22,21 +22,30 @@ export default function NotificationBell({ userId, initialCount = 0 }: { userId:
 
   useEffect(() => {
     const supabase = createClient()
+    let channel: ReturnType<typeof supabase.channel> | undefined
+    let cancelled = false
 
-    // El count inicial viene del layout (server-side) — solo Realtime para actualizaciones en vivo
-    const channel = supabase
-      .channel('notif-bell')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'notifications',
-        filter: `user_id=eq.${userId}`,
-      }, () => {
-        setUnread(c => c + 1)
-      })
-      .subscribe()
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return
+      if (session?.access_token) supabase.realtime.setAuth(session.access_token)
 
-    return () => { supabase.removeChannel(channel) }
+      channel = supabase
+        .channel(`notif-bell-${userId}`)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+        }, (payload) => {
+          const notif = payload.new as { user_id: string }
+          if (notif.user_id === userId) setUnread(c => c + 1)
+        })
+        .subscribe()
+    })
+
+    return () => {
+      cancelled = true
+      if (channel) supabase.removeChannel(channel)
+    }
   }, [userId])
 
   // Al visitar la página de notificaciones, resetear el badge localmente

@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
@@ -9,12 +8,11 @@ export const metadata: Metadata = { title: 'Notificaciones — Labu' }
 export default async function NotificacionesPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
 
   const { data: notifs } = await createServiceClient()
     .from('notifications')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', user!.id)
     .order('created_at', { ascending: false })
     .limit(50)
 
@@ -25,7 +23,7 @@ export default async function NotificacionesPage() {
     <main className="mx-auto max-w-2xl px-4 py-8">
       <NotificacionesList
         initialNotifs={lista}
-        userId={user.id}
+        userId={user!.id}
         initialUnread={unread}
       />
     </main>

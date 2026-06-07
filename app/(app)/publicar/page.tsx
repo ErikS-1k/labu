@@ -1,7 +1,5 @@
 import { Metadata } from 'next'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
 import PublicarForm from '@/components/posts/PublicarForm'
 
 export const metadata: Metadata = { title: 'Publicar — Labu' }
@@ -11,11 +9,6 @@ export default async function PublicarPage({
 }: {
   searchParams: Promise<Record<string, string | undefined>>
 }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) redirect('/login')
-
   const params      = await searchParams
   const defaultTipo = params.tipo === 'requerimiento' ? 'requerimiento' : 'oferta'
   const exito       = params.exito === '1'

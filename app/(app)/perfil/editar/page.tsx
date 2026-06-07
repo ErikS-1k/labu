@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
@@ -11,7 +10,6 @@ export const metadata: Metadata = { title: 'Editar perfil — Labu' }
 export default async function EditarPerfilPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
 
   const [
     { data: perfil },
@@ -20,13 +18,13 @@ export default async function EditarPerfilPage() {
     supabase
       .from('users')
       .select('username, first_name, last_name, headline, bio, location, phone, email, avatar_url')
-      .eq('id', user.id)
+      .eq('id', user!.id)
       .single(),
 
     supabase
       .from('profile_sections')
       .select('id, type, title, subtitle, date_from, date_to, url, description')
-      .eq('user_id', user.id)
+      .eq('user_id', user!.id)
       .order('type')
       .order('order'),
   ])
@@ -34,7 +32,7 @@ export default async function EditarPerfilPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
       <Link
-        href={`/perfil/${user.id}`}
+        href={`/perfil/${user!.id}`}
         className="mb-6 inline-block text-sm text-zinc-400 hover:text-zinc-600"
       >
         ← Volver al perfil

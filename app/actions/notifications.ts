@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
+import { TIPOS_ACTIVIDAD } from '@/lib/constants'
 
 export type NotificationType =
   | 'nueva_postulacion'
@@ -46,4 +47,17 @@ export async function marcarTodasLeidas() {
     .eq('user_id', user.id)
     .eq('read', false)
   revalidatePath('/notificaciones')
+}
+
+export async function marcarActividadLeida() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+  await createServiceClient()
+    .from('notifications')
+    .update({ read: true })
+    .eq('user_id', user.id)
+    .eq('read', false)
+    .in('type', TIPOS_ACTIVIDAD)
+  revalidatePath('/mi-actividad')
 }

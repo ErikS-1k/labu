@@ -1,16 +1,8 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { aprobarVerificacion, rechazarVerificacion } from '@/app/actions/admin'
 
 export default async function AdminVerificacionesPage() {
-  // Verificar que sea el admin con el cliente normal (tiene la sesión del usuario)
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user || user.email !== process.env.ADMIN_EMAIL) redirect('/')
-
-  // Usar el service client para leer sin restricciones de RLS
+  // El proxy garantiza que solo llega acá el ADMIN_EMAIL
   const service = createServiceClient()
 
   const { data: solicitudes, error: queryError } = await service

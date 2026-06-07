@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/server'
 import PostActionsMenu from '@/components/posts/PostActionsMenu'
 import CalificarModal from './CalificarModal'
 import MarcarCompletadoButton from '@/components/posts/MarcarCompletadoButton'
+import ActividadRealtimeSync from './ActividadRealtimeSync'
+import AutoMarcarActividadLeida from './AutoMarcarActividadLeida'
 
 export const metadata: Metadata = { title: 'Mi actividad — Labu' }
 
@@ -32,7 +34,6 @@ export default async function MiActividadPage({
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
 
   // ── TAB 1: Mis publicaciones ──────────────────────────────────────────────
   let posts: any[] = []
@@ -42,7 +43,7 @@ export default async function MiActividadPage({
     const { data } = await supabase
       .from('posts')
       .select('id, type, title, description, category, modality, is_active, created_at')
-      .eq('user_id', user.id)
+      .eq('user_id', user!.id)
       .order('created_at', { ascending: false })
 
     posts = data ?? []
@@ -74,12 +75,12 @@ export default async function MiActividadPage({
             users!inner(id, first_name, username, avatar_url)
           )
         `)
-        .eq('applicant_id', user.id)
+        .eq('applicant_id', user!.id)
         .order('created_at', { ascending: false }),
       supabase
         .from('ratings')
         .select('post_id, score')
-        .eq('from_user_id', user.id),
+        .eq('from_user_id', user!.id),
     ])
 
     ratingsByPost = Object.fromEntries((misRatings ?? []).map(r => [r.post_id, r.score]))
@@ -108,6 +109,8 @@ export default async function MiActividadPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
+      <ActividadRealtimeSync userId={user!.id} />
+      <AutoMarcarActividadLeida />
 
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">

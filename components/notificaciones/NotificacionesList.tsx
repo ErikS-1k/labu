@@ -49,8 +49,6 @@ type Props = {
 export default function NotificacionesList({ initialNotifs, userId, initialUnread }: Props) {
   const [notifs, setNotifs]   = useState(initialNotifs)
   const [unread, setUnread]   = useState(initialUnread)
-  const supabase = createClient()
-
   // Marcar como leídas al cargar y reflejar el cambio en el estado local inmediatamente
   useEffect(() => {
     if (initialUnread > 0) {
@@ -62,21 +60,33 @@ export default function NotificacionesList({ initialNotifs, userId, initialUnrea
 
   // Suscripción Realtime — nuevas notificaciones mientras la página está abierta
   useEffect(() => {
-    const channel = supabase
-      .channel('notif-page')
-      .on('postgres_changes', {
-        event:  'INSERT',
-        schema: 'public',
-        table:  'notifications',
-        filter: `user_id=eq.${userId}`,
-      }, (payload) => {
-        const nueva = payload.new as Notificacion
-        setNotifs(prev => [{ ...nueva, read: false }, ...prev])
-        setUnread(c => c + 1)
-      })
-      .subscribe()
+    const supabase = createClient()
+    let channel: ReturnType<typeof supabase.channel> | undefined
+    let cancelled = false
 
-    return () => { supabase.removeChannel(channel) }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return
+      if (session?.access_token) supabase.realtime.setAuth(session.access_token)
+
+      channel = supabase
+        .channel(`notif-page-${userId}`)
+        .on('postgres_changes', {
+          event:  'INSERT',
+          schema: 'public',
+          table:  'notifications',
+        }, (payload) => {
+          const nueva = payload.new as Notificacion
+          if (nueva.user_id !== userId) return
+          setNotifs(prev => [{ ...nueva, read: false }, ...prev])
+          setUnread(c => c + 1)
+        })
+        .subscribe()
+    })
+
+    return () => {
+      cancelled = true
+      if (channel) supabase.removeChannel(channel)
+    }
   }, [userId])
 
   function handleMarcarTodas() {

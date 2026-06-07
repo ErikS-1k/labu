@@ -14,16 +14,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   let userName: string | null = null
   let unreadCount = 0
   let unreadNotifCount = 0
+  let unreadActividadCount = 0
 
   if (user) {
-    const [{ data: perfil }, { count: msgCount }, { count: notifCount }] = await Promise.all([
+    const [{ data: perfil }, { count: msgCount }, { count: notifCount }, { count: actividadCount }] = await Promise.all([
       supabase.from('users').select('first_name').eq('id', user.id).single(),
       supabase.from('messages').select('*', { count: 'exact', head: true }).eq('receiver_id', user.id).eq('read', false),
       createServiceClient().from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('read', false),
+      createServiceClient().from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('read', false).in('type', ['nueva_postulacion', 'postulacion_aceptada', 'postulacion_rechazada', 'trabajo_completado', 'recordatorio_calificacion']),
     ])
     userName = perfil?.first_name ?? null
     unreadCount = msgCount ?? 0
     unreadNotifCount = notifCount ?? 0
+    unreadActividadCount = actividadCount ?? 0
   }
 
   return (
@@ -34,6 +37,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           userName={userName}
           unreadCount={unreadCount}
           unreadNotifCount={unreadNotifCount}
+          unreadActividadCount={unreadActividadCount}
           isLoggedIn={!!user}
         />
       </Suspense>

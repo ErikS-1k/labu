@@ -1,4 +1,4 @@
-import { redirect, notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import ConversacionChat from '@/components/mensajes/ConversacionChat'
@@ -14,18 +14,6 @@ export default async function NuevoMensajePage({
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  // Si ya existe una conversación para este par, redirigir
-  const { data: existing } = await supabase
-    .from('messages')
-    .select('conversation_id')
-    .eq('post_id', post_id)
-    .or(`and(sender_id.eq.${user.id},receiver_id.eq.${receiver_id}),and(sender_id.eq.${receiver_id},receiver_id.eq.${user.id})`)
-    .limit(1)
-    .maybeSingle()
-
-  if (existing) redirect(`/mensajes/${existing.conversation_id}`)
 
   // Cargar receptor y post en paralelo
   const [{ data: receptor }, { data: post }] = await Promise.all([
@@ -44,7 +32,7 @@ export default async function NuevoMensajePage({
       <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-surface-2 bg-surface-1">
         <ConversacionChat
           conversationId={conversation_id}
-          currentUserId={user.id}
+          currentUserId={user!.id}
           receiverId={receiver_id}
           postId={post_id}
           initialMessages={[]}

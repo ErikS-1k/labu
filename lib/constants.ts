@@ -1,4 +1,12 @@
 
+export const TIPOS_ACTIVIDAD = [
+  'nueva_postulacion',
+  'postulacion_aceptada',
+  'postulacion_rechazada',
+  'trabajo_completado',
+  'recordatorio_calificacion',
+] as const
+
 export const MODALIDADES = [
   { value: 'inmediato', label: 'Inmediato' },
   { value: 'temporal',     label: 'Temporal' },
