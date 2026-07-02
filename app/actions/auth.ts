@@ -23,7 +23,7 @@ export async function registro(prevState: { error: string } | null, formData: Fo
     email: formData.get('email') as string,
     password: formData.get('password') as string,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      emailRedirectTo: `${process.env.SITE_URL}/auth/callback`,
       data: {
         first_name: formData.get('first_name') as string,
         last_name:  formData.get('last_name')  as string,
