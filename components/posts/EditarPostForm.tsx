@@ -58,9 +58,9 @@ export default function EditarPostForm({ post }: { post: PostData }) {
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    if (!precio && !aDefinir) {
+    if (!aDefinir && !precio) {
       e.preventDefault()
-      setPrecioError('Ingresá un precio o marcá "A definir"')
+      setPrecioError('Ingresá el precio')
     } else {
       setPrecioError(undefined)
     }
@@ -201,44 +201,58 @@ export default function EditarPostForm({ post }: { post: PostData }) {
       </div>
 
       {/* Precio + Unidad */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center justify-between">
-          <label htmlFor="price" className="text-sm font-medium text-zinc-700">Precio en ARS *</label>
-          <label className="flex cursor-pointer items-center gap-1.5 text-sm text-zinc-500 select-none">
+      <div className="flex flex-col gap-3">
+        <div>
+          <p className="mb-2 text-sm font-medium text-zinc-700">¿Cómo querés cobrar? *</p>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => handleADefinir(false)}
+              className={`flex items-center justify-center gap-2 rounded-xl border-2 py-3 text-sm font-semibold transition-colors ${
+                !aDefinir
+                  ? 'border-blue-500 bg-blue-500 text-white'
+                  : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:text-zinc-700'
+              }`}
+            >
+              <span>$</span> Precio fijo
+            </button>
+            <button
+              type="button"
+              onClick={() => handleADefinir(true)}
+              className={`flex items-center justify-center gap-2 rounded-xl border-2 py-3 text-sm font-semibold transition-colors ${
+                aDefinir
+                  ? 'border-blue-500 bg-blue-500 text-white'
+                  : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:text-zinc-700'
+              }`}
+            >
+              <span>≈</span> A definir
+            </button>
+          </div>
+          {precioError && <p className="mt-1.5 text-xs text-red-500">{precioError}</p>}
+        </div>
+        {!aDefinir && (
+          <div className="flex gap-3">
             <input
-              type="checkbox"
-              checked={aDefinir}
-              onChange={e => handleADefinir(e.target.checked)}
-              className="rounded accent-zinc-600"
+              id="price" name="price" type="number" min="0" step="100"
+              value={precio}
+              onChange={e => {
+                setPrecio(e.target.value)
+                if (precioError) setPrecioError(undefined)
+              }}
+              placeholder="Ej: 5000"
+              className={`flex-1 ${precioError && !precio ? 'rounded-lg border border-red-400 px-4 py-2.5 text-sm outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100' : inputClass}`}
             />
-            A definir
-          </label>
-        </div>
-        <div className="flex gap-3">
-          <input
-            id="price" name="price" type="number" min="0" step="100"
-            value={precio}
-            onChange={e => {
-              setPrecio(e.target.value)
-              if (e.target.value) setADefinir(false)
-              if (precioError) setPrecioError(undefined)
-            }}
-            disabled={aDefinir}
-            placeholder={aDefinir ? '' : 'Ej: 5000'}
-            className={`flex-1 ${precioError ? 'rounded-lg border border-red-400 px-4 py-2.5 text-sm outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100' : inputClass} disabled:cursor-not-allowed disabled:opacity-40`}
-          />
-          {aDefinir && <input type="hidden" name="price_type" value="a_convenir" />}
-          <select
-            id="price_type" name="price_type"
-            value={precioTipo}
-            onChange={e => setPrecioTipo(e.target.value)}
-            disabled={aDefinir}
-            className={`flex-1 ${inputClass} disabled:cursor-not-allowed disabled:opacity-40`}
-          >
-            {PRICE_TYPES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-          </select>
-        </div>
-        {precioError && <p className="text-xs text-red-500">{precioError}</p>}
+            <select
+              id="price_type" name="price_type"
+              value={precioTipo}
+              onChange={e => setPrecioTipo(e.target.value)}
+              className={`flex-1 ${inputClass}`}
+            >
+              {PRICE_TYPES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+            </select>
+          </div>
+        )}
+        {aDefinir && <input type="hidden" name="price_type" value="a_convenir" />}
       </div>
 
       {/* Zona */}

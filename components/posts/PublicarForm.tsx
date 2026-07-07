@@ -39,7 +39,7 @@ export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?:
   const [catCustom, setCatCustom]             = useState('')
   const [precio, setPrecio]                   = useState('')
   const [precioTipo, setPrecioTipo]           = useState('hora')
-  const [aDefinir, setADefinir]               = useState(false)
+  const [aDefinir, setADefinir]               = useState<boolean | null>(null)
   const [zona, setZona]                       = useState('')
   const [modalidades, setModalidades]           = useState<string[]>([])
   const [temporalDuration, setTemporalDuration] = useState('')
@@ -74,7 +74,8 @@ export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?:
     const errors: { title?: string; modality?: string; precio?: string } = {}
     if (!titulo.trim()) errors.title = 'Este campo es obligatorio'
     if (modalidades.length === 0) errors.modality = 'Seleccioná al menos una modalidad'
-    if (!precio && !aDefinir) errors.precio = 'Ingresá un precio o marcá "A definir"'
+    if (aDefinir === null)          errors.precio = 'Elegí cómo querés cobrar'
+    else if (!aDefinir && !precio) errors.precio = 'Ingresá el precio'
     if (Object.keys(errors).length > 0) {
       e.preventDefault()
       setFieldErrors(errors)
@@ -253,44 +254,58 @@ export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?:
       </div>
 
       {/* Precio + Unidad */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center justify-between">
-          <label htmlFor="price" className="text-sm font-medium text-zinc-700">Precio en ARS *</label>
-          <label className="flex cursor-pointer items-center gap-1.5 text-sm text-zinc-500 select-none">
+      <div className="flex flex-col gap-3">
+        <div>
+          <p className="mb-2 text-sm font-medium text-zinc-700">¿Cómo querés cobrar? *</p>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => handleADefinir(false)}
+              className={`flex items-center justify-center gap-2 rounded-xl border-2 py-3 text-sm font-semibold transition-colors ${
+                aDefinir === false
+                  ? 'border-blue-500 bg-blue-500 text-white'
+                  : 'border-zinc-700 bg-surface-1 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+              }`}
+            >
+              <span>$</span> Precio fijo
+            </button>
+            <button
+              type="button"
+              onClick={() => handleADefinir(true)}
+              className={`flex items-center justify-center gap-2 rounded-xl border-2 py-3 text-sm font-semibold transition-colors ${
+                aDefinir === true
+                  ? 'border-blue-500 bg-blue-500 text-white'
+                  : 'border-zinc-700 bg-surface-1 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+              }`}
+            >
+              <span>≈</span> A definir
+            </button>
+          </div>
+          {fieldErrors.precio && <p className="mt-1.5 text-xs text-red-500">{fieldErrors.precio}</p>}
+        </div>
+        {aDefinir === false && (
+          <div className="flex gap-3">
             <input
-              type="checkbox"
-              checked={aDefinir}
-              onChange={e => handleADefinir(e.target.checked)}
-              className="rounded accent-zinc-600"
+              id="price" name="price" type="number" min="0" step="100"
+              value={precio}
+              onChange={e => {
+                setPrecio(e.target.value)
+                if (fieldErrors.precio) setFieldErrors(er => ({ ...er, precio: undefined }))
+              }}
+              placeholder="Ej: 5000"
+              className={`flex-1 ${fieldErrors.precio && !precio ? inputError : inputNormal}`}
             />
-            A definir
-          </label>
-        </div>
-        <div className="flex gap-3">
-          <input
-            id="price" name="price" type="number" min="0" step="100"
-            value={precio}
-            onChange={e => {
-              setPrecio(e.target.value)
-              if (e.target.value) setADefinir(false)
-              if (fieldErrors.precio) setFieldErrors(er => ({ ...er, precio: undefined }))
-            }}
-            disabled={aDefinir}
-            placeholder={aDefinir ? '' : 'Ej: 5000'}
-            className={`flex-1 ${fieldErrors.precio ? inputError : inputNormal} disabled:cursor-not-allowed disabled:opacity-40`}
-          />
-          {aDefinir && <input type="hidden" name="price_type" value="a_convenir" />}
-          <select
-            id="price_type" name="price_type"
-            value={precioTipo}
-            onChange={e => setPrecioTipo(e.target.value)}
-            disabled={aDefinir}
-            className={`flex-1 ${inputNormal} disabled:cursor-not-allowed disabled:opacity-40`}
-          >
-            {PRICE_TYPES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-          </select>
-        </div>
-        {fieldErrors.precio && <p className="text-xs text-red-500">{fieldErrors.precio}</p>}
+            <select
+              id="price_type" name="price_type"
+              value={precioTipo}
+              onChange={e => setPrecioTipo(e.target.value)}
+              className={`flex-1 ${inputNormal}`}
+            >
+              {PRICE_TYPES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+            </select>
+          </div>
+        )}
+        {aDefinir === true && <input type="hidden" name="price_type" value="a_convenir" />}
       </div>
 
       {/* Zona */}
