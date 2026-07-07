@@ -15,9 +15,9 @@ export const MODALIDADES = [
 ] as const
 
 export const PRICE_TYPES = [
-  { value: 'hora',       label: 'por hora' },
-  { value: 'dia',        label: 'por día' },
-  { value: 'trabajo',    label: 'por trabajo' },
-  { value: 'mes',        label: 'por mes' },
-  { value: 'a_convenir', label: 'a convenir' },
+  { value: 'hora',    label: 'por hora' },
+  { value: 'dia',     label: 'por día' },
+  { value: 'semana',  label: 'por semana' },
+  { value: 'mes',     label: 'por mes' },
+  { value: 'trabajo', label: 'por proyecto' },
 ] as const
