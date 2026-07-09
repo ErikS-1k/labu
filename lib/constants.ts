@@ -8,10 +8,10 @@ export const TIPOS_ACTIVIDAD = [
 ] as const
 
 export const MODALIDADES = [
-  { value: 'inmediato', label: 'Inmediato' },
-  { value: 'temporal',     label: 'Temporal' },
-  { value: 'por_proyecto', label: 'Por proyecto' },
-  { value: 'permanente',   label: 'Permanente' },
+  { value: 'inmediato',    label: 'Inmediato',    desc: 'Puede comenzar de inmediato.' },
+  { value: 'temporal',     label: 'Temporal',     desc: 'Tiene una duración acotada en el tiempo (días o semanas).' },
+  { value: 'por_proyecto', label: 'Por proyecto', desc: 'Dura hasta completar un proyecto específico.' },
+  { value: 'permanente',   label: 'Permanente',   desc: 'Es continuo, sin fecha de fin.' },
 ] as const
 
 export const PRICE_TYPES = [

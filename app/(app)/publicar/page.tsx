@@ -53,7 +53,7 @@ export default async function PublicarPage({
     <main className="mx-auto max-w-xl px-4 py-8">
       <h1 className="mb-2 text-2xl font-bold text-white">Nueva publicación</h1>
       <p className="mb-8 text-sm text-zinc-500">
-        Completá los campos. Solo el título y la modalidad son obligatorios.
+        Completá los campos. Solo el título y la duración son obligatorios.
       </p>
       <PublicarForm defaultTipo={defaultTipo} />
     </main>

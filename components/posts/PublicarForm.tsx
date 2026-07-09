@@ -73,7 +73,7 @@ export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?:
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     const errors: { title?: string; modality?: string; precio?: string } = {}
     if (!titulo.trim()) errors.title = 'Este campo es obligatorio'
-    if (modalidades.length === 0) errors.modality = 'Seleccioná al menos una modalidad'
+    if (modalidades.length === 0) errors.modality = 'Seleccioná al menos una duración'
     if (aDefinir === null)          errors.precio = 'Elegí cómo querés cobrar'
     else if (!aDefinir && !precio) errors.precio = 'Ingresá el precio'
     if (Object.keys(errors).length > 0) {
@@ -186,10 +186,10 @@ export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?:
         )}
       </div>
 
-      {/* Modalidad */}
+      {/* Duración */}
       <div>
         <p className="mb-2 text-sm font-medium text-zinc-700">
-          Modalidad *{' '}
+          Duración *{' '}
           <span className="font-normal text-zinc-400">(podés elegir varias)</span>
         </p>
         {modalidades.map(v => <input key={v} type="hidden" name="modality" value={v} />)}
@@ -209,6 +209,13 @@ export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?:
             </button>
           ))}
         </div>
+        {modalidades.length > 0 && (
+          <div className="mt-2 flex flex-col gap-0.5">
+            {MODALIDADES.filter(m => modalidades.includes(m.value)).map(m => (
+              <p key={m.value} className="text-xs text-zinc-500">{m.desc}</p>
+            ))}
+          </div>
+        )}
         {fieldErrors.modality && <p className="mt-1 text-xs text-red-500">{fieldErrors.modality}</p>}
       </div>
 

@@ -19,7 +19,7 @@ export async function publicarPost(
   // getAll recoge todos los valores del mismo nombre — necesario para checkboxes múltiples
   const modality = formData.getAll('modality') as string[]
 
-  if (modality.length === 0) return { error: 'Seleccioná al menos una modalidad.' }
+  if (modality.length === 0) return { error: 'Seleccioná al menos una duración.' }
 
   const { data, error } = await supabase
     .from('posts')
@@ -75,7 +75,7 @@ export async function editarPost(
   const priceRaw = formData.get('price') as string
   const modality = formData.getAll('modality') as string[]
 
-  if (modality.length === 0) return { error: 'Seleccioná al menos una modalidad.' }
+  if (modality.length === 0) return { error: 'Seleccioná al menos una duración.' }
 
   // .eq('user_id', user.id) garantiza que solo el dueño puede editar
   const { error } = await supabase

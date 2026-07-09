@@ -134,10 +134,10 @@ export default function EditarPostForm({ post }: { post: PostData }) {
         />
       </div>
 
-      {/* Modalidad */}
+      {/* Duración */}
       <div>
         <p className="mb-2 text-sm font-medium text-zinc-700">
-          Modalidad *{' '}
+          Duración *{' '}
           <span className="font-normal text-zinc-400">(podés elegir varias)</span>
         </p>
         {modalities.map(v => <input key={v} type="hidden" name="modality" value={v} />)}
@@ -157,6 +157,13 @@ export default function EditarPostForm({ post }: { post: PostData }) {
             </button>
           ))}
         </div>
+        {modalities.length > 0 && (
+          <div className="mt-2 flex flex-col gap-0.5">
+            {MODALIDADES.filter(m => modalities.includes(m.value)).map(m => (
+              <p key={m.value} className="text-xs text-zinc-500">{m.desc}</p>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Duración temporal (solo cuando "Temporal" está seleccionado) */}
