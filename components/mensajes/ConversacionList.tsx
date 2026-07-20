@@ -77,6 +77,7 @@ export default function ConversacionList({ initialConversaciones, currentUserId 
     <div className="flex flex-col gap-2">
       {conversaciones.map(conv => {
         const otro = conv.sender_id === currentUserId ? conv.receiver : conv.sender
+        const otroId = conv.sender_id === currentUserId ? conv.receiver_id : conv.sender_id
         const nombre = otro?.first_name ?? otro?.username ?? 'Usuario'
         const headline = otro?.headline ?? null
         const noLeido = !conv.read && conv.receiver_id === currentUserId
@@ -87,7 +88,7 @@ export default function ConversacionList({ initialConversaciones, currentUserId 
             href={`/mensajes/${conv.conversation_id}`}
             className="flex items-start gap-3 rounded-xl border border-surface-2 bg-surface-1 p-4 transition-shadow hover:shadow-sm"
           >
-            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white ${avatarBg(otro?.username, otro?.first_name)}`}>
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white ${avatarBg(otro?.username, otro?.first_name, otroId)}`}>
               {nombre[0].toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">

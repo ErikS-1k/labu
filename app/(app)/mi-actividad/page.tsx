@@ -257,7 +257,7 @@ export default async function MiActividadPage({
                         {autor.avatar_url ? (
                           <img src={autor.avatar_url} className="h-10 w-10 rounded-full object-cover" alt="" />
                         ) : (
-                          <span className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white ${avatarBg(autor.username, autor.first_name)}`}>
+                          <span className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white ${avatarBg(autor.username, autor.first_name, autor.id)}`}>
                             {inicial}
                           </span>
                         )}

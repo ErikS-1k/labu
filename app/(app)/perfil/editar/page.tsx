@@ -44,6 +44,7 @@ export default async function EditarPerfilPage() {
           <h1 className="mb-6 text-xl font-bold text-foreground">Editar perfil</h1>
           <div className="rounded-xl border border-surface-2 bg-surface-1 p-6">
             <EditarPerfilForm
+              userId={user!.id}
               first_name={perfil?.first_name ?? null}
               last_name={perfil?.last_name ?? null}
               username={perfil?.username ?? null}

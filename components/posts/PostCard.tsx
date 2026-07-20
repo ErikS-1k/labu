@@ -93,7 +93,7 @@ export default function PostCard({ post, from }: { post: PostCardData; from?: st
           {post.users?.avatar_url ? (
             <img src={post.users.avatar_url} className="h-6 w-6 shrink-0 rounded-full object-cover" alt="" />
           ) : (
-            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white ${avatarBg(post.users?.username, post.users?.first_name)}`}>
+            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white ${avatarBg(post.users?.username, post.users?.first_name, post.user_id, post.id)}`}>
               {inicial}
             </span>
           )}

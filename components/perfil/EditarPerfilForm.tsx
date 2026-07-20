@@ -7,6 +7,7 @@ import { showToast } from '@/lib/toast'
 import { avatarBg } from '@/lib/avatar'
 
 type Props = {
+  userId:      string
   first_name:  string | null
   last_name:   string | null
   username:    string | null
@@ -20,7 +21,7 @@ type Props = {
 
 const init = { error: null as string | null, toast: null as string | null }
 
-export default function EditarPerfilForm({ first_name, last_name, username, headline, bio, location, phone, email, avatar_url }: Props) {
+export default function EditarPerfilForm({ userId, first_name, last_name, username, headline, bio, location, phone, email, avatar_url }: Props) {
   const [state, action, pending] = useActionState(actualizarPerfil, init)
   useProgress(pending)
   const [saved, setSaved] = useState(false)
@@ -73,7 +74,7 @@ export default function EditarPerfilForm({ first_name, last_name, username, head
         <button
           type="button"
           onClick={() => avatarRef.current?.click()}
-          className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-full hover:opacity-80 transition-opacity ${!preview ? avatarBg(username, first_name) : ''}`}
+          className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-full hover:opacity-80 transition-opacity ${!preview ? avatarBg(username, first_name, userId) : ''}`}
         >
           {preview
             ? <img src={preview} alt="Avatar" className="h-full w-full object-cover" />
