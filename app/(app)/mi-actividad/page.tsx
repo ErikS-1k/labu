@@ -7,17 +7,9 @@ import CalificarModal from './CalificarModal'
 import MarcarCompletadoButton from '@/components/posts/MarcarCompletadoButton'
 import ActividadRealtimeSync from './ActividadRealtimeSync'
 import AutoMarcarActividadLeida from './AutoMarcarActividadLeida'
+import { avatarBg } from '@/lib/avatar'
 
 export const metadata: Metadata = { title: 'Mi actividad — Labu' }
-
-const AVATAR_COLORS = [
-  'bg-violet-700', 'bg-blue-700', 'bg-emerald-700',
-  'bg-amber-700',  'bg-rose-700', 'bg-cyan-700',
-]
-function avatarBg(username: string | null | undefined) {
-  if (!username) return 'bg-zinc-600'
-  return AVATAR_COLORS[username.charCodeAt(0) % AVATAR_COLORS.length]
-}
 
 function formatDate(ts: string) {
   return new Date(ts).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })

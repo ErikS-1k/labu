@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState, useTransition } from 'reac
 import { actualizarPerfil, eliminarFoto } from '@/app/actions/perfil'
 import { useProgress } from '@/lib/useProgress'
 import { showToast } from '@/lib/toast'
+import { avatarBg } from '@/lib/avatar'
 
 type Props = {
   first_name:  string | null
@@ -72,11 +73,11 @@ export default function EditarPerfilForm({ first_name, last_name, username, head
         <button
           type="button"
           onClick={() => avatarRef.current?.click()}
-          className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-zinc-200 hover:opacity-80 transition-opacity"
+          className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-full hover:opacity-80 transition-opacity ${!preview ? avatarBg(username) : ''}`}
         >
           {preview
             ? <img src={preview} alt="Avatar" className="h-full w-full object-cover" />
-            : <span className="flex h-full w-full items-center justify-center text-2xl font-bold text-zinc-600">{inicial}</span>
+            : <span className="flex h-full w-full items-center justify-center text-2xl font-bold text-white">{inicial}</span>
           }
         </button>
 

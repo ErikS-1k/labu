@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { PRICE_TYPES } from '@/lib/constants'
+import { avatarBg } from '@/lib/avatar'
 import { iniciarConversacion } from '@/app/actions/mensajes'
 import { marcarCompletado } from '@/app/actions/posts'
 import RatingForm from '@/components/ratings/RatingForm'
@@ -132,12 +133,6 @@ export default async function PostPage({
     return edad
   }
   const autorEdad = calcularEdad(autor?.fecha_nacimiento)
-
-  const AVATAR_COLORS = ['bg-violet-700', 'bg-blue-700', 'bg-emerald-700', 'bg-amber-700', 'bg-rose-700', 'bg-cyan-700']
-  const avatarBg = (username: string | null | undefined) => {
-    if (!username) return 'bg-zinc-600'
-    return AVATAR_COLORS[username.charCodeAt(0) % AVATAR_COLORS.length]
-  }
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">

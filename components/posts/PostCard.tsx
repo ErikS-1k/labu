@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { PRICE_TYPES } from '@/lib/constants'
+import { avatarBg } from '@/lib/avatar'
 
 export type PostCardData = {
   id: string
@@ -41,15 +42,6 @@ const MODALITY_LABEL: Record<string, string> = {
   permanente:   'Permanente',
 }
 
-const AVATAR_COLORS = [
-  'bg-violet-700', 'bg-blue-700', 'bg-emerald-700',
-  'bg-amber-700',  'bg-rose-700', 'bg-cyan-700',
-]
-
-function avatarBg(username: string | null | undefined): string {
-  if (!username) return 'bg-zinc-600'
-  return AVATAR_COLORS[username.charCodeAt(0) % AVATAR_COLORS.length]
-}
 
 const TYPE_CONFIG = {
   oferta:        { label: 'Ofrece sus servicios', badge: 'bg-green-900/40 text-green-400' },

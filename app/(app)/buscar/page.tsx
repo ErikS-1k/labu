@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { avatarBg } from '@/lib/avatar'
 import PostCard, { PostCardData } from '@/components/posts/PostCard'
 import SearchForm from '@/components/search/SearchForm'
 import EmptyFeedState from '@/components/posts/EmptyFeedState'
@@ -155,10 +156,10 @@ export default async function BuscarPage({
                       href={`/perfil/${u.id}`}
                       className="flex items-start gap-4 rounded-xl border border-zinc-700 bg-surface-1 p-5 transition-colors hover:bg-surface-2"
                     >
-                      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-surface-2">
+                      <div className={`h-12 w-12 shrink-0 overflow-hidden rounded-full ${!u.avatar_url ? avatarBg(u.username) : ''}`}>
                         {u.avatar_url
                           ? <img src={u.avatar_url} alt={nombre} className="h-full w-full object-cover" />
-                          : <span className="flex h-full w-full items-center justify-center text-lg font-semibold text-zinc-300">{inicial}</span>
+                          : <span className="flex h-full w-full items-center justify-center text-lg font-semibold text-white">{inicial}</span>
                         }
                       </div>
                       <div className="min-w-0 flex-1">

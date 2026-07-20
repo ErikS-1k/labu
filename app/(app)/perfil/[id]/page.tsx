@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { avatarBg } from '@/lib/avatar'
 
 export const metadata: Metadata = { title: 'Perfil — Labu' }
 
@@ -142,10 +143,10 @@ export default async function PerfilPage({
         <div className="flex items-start gap-5">
 
           {/* Avatar */}
-          <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-surface-2">
+          <div className={`h-24 w-24 shrink-0 overflow-hidden rounded-2xl ${!perfil.avatar_url ? avatarBg(perfil.username) : ''}`}>
             {perfil.avatar_url
               ? <img src={perfil.avatar_url} alt={nombre} className="h-full w-full object-cover" />
-              : <span className="flex h-full w-full items-center justify-center text-3xl font-bold text-zinc-400">{inicial}</span>
+              : <span className="flex h-full w-full items-center justify-center text-3xl font-bold text-white">{inicial}</span>
             }
           </div>
 
