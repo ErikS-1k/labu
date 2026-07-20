@@ -73,7 +73,7 @@ export default function EditarPerfilForm({ first_name, last_name, username, head
         <button
           type="button"
           onClick={() => avatarRef.current?.click()}
-          className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-full hover:opacity-80 transition-opacity ${!preview ? avatarBg(username) : ''}`}
+          className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-full hover:opacity-80 transition-opacity ${!preview ? avatarBg(username, first_name) : ''}`}
         >
           {preview
             ? <img src={preview} alt="Avatar" className="h-full w-full object-cover" />

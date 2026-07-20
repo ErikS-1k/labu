@@ -87,7 +87,7 @@ export default function ConversacionList({ initialConversaciones, currentUserId 
             href={`/mensajes/${conv.conversation_id}`}
             className="flex items-start gap-3 rounded-xl border border-surface-2 bg-surface-1 p-4 transition-shadow hover:shadow-sm"
           >
-            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white ${avatarBg(otro?.username ?? nombre)}`}>
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white ${avatarBg(otro?.username, otro?.first_name)}`}>
               {nombre[0].toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">

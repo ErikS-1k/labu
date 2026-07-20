@@ -257,7 +257,7 @@ export default async function PostPage({
             {autor?.avatar_url ? (
               <img src={autor.avatar_url} className="h-12 w-12 shrink-0 rounded-full object-cover" alt="" />
             ) : (
-              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-white ${avatarBg(autor?.username)}`}>
+              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-white ${avatarBg(autor?.username, autor?.first_name)}`}>
                 {autorInicial}
               </div>
             )}
