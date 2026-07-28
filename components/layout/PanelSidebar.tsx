@@ -193,7 +193,7 @@ export default function PanelSidebar({ userId, userName, unreadCount, unreadNoti
       {/* Logo */}
       <Link href="/" className="flex items-center gap-3 px-3 py-4 border-b border-surface-2 hover:bg-surface-2 transition-colors">
         <img
-          src="/logo.png"
+          src="/_1A1A1A.png"
           alt="Labu"
           className="h-8 w-8 shrink-0 object-contain"
         />

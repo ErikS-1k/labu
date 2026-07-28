@@ -12,6 +12,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Labu — Marketplace de trabajo",
   description: "Conectá con oferentes y demandantes de trabajo en Argentina.",
+  icons: {
+    icon: "/_1A1A1A.png",
+  },
 };
 
 export default function RootLayout({
