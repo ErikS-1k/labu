@@ -118,6 +118,7 @@ lib/
   toast.ts         → showToast(message, type) — dispara CustomEvent 'labu:toast'
   useProgress.ts   → hook para NProgress (barra de carga en navegación)
   constants.ts     → MODALIDADES, PRICE_TYPES, TIPOS_ACTIVIDAD
+  avatar.ts        → avatarBg(...seeds) — color determinístico por usuario (hash de charCodes % 10)
   supabase/        → server.ts, client.ts, service.ts
 ```
 
@@ -229,6 +230,17 @@ Todos los redirects de auth están centralizados en `proxy.ts` (raíz del proyec
 Las páginas usan `user!.id` (non-null assertion) porque el proxy garantiza que el usuario existe antes de que la página se renderice.
 
 ---
+
+## Últimos cambios (sesión 2026-07-28)
+
+| Área | Cambio |
+|---|---|
+| Confirmación de email | `emailRedirectTo` con `SITE_URL` (no `NEXT_PUBLIC_`). Callback en `app/auth/callback/route.ts`. Env var `SITE_URL=https://labu-six.vercel.app` en Vercel. |
+| Selector de precio | `PublicarForm.tsx` y `EditarPostForm.tsx`: dos botones toggle (Precio fijo / A convenir) en lugar de checkbox. Estado `null` = sin elegir, `false` = a convenir, `true` = precio fijo. |
+| PRICE_TYPES | Eliminado `a_convenir`. Agregado `semana`. `trabajo` renombrado a `por proyecto`. |
+| Duración (antes Modalidad) | Renombrado "Modalidad" → "Duración" en toda la UI. MODALIDADES en constants.ts tiene campo `desc` por opción. |
+| Avatares con color | `lib/avatar.ts`: `avatarBg(...seeds)` — hash de charCodes del primer seed no nulo, modulo 10 colores. Paleta: red, orange, amber, lime, emerald, teal, blue-600, violet, fuchsia, pink. Usado en PostCard, post/[id], perfil/[id], mi-actividad, buscar, EditarPerfilForm, ConversacionList. Fallback chain: username → first_name → user_id → post.id. |
+| EditarPerfilForm | Recibe prop `userId` para usar como seed de avatar cuando username y first_name son null. |
 
 ## Últimos cambios (sesión 2026-06-07)
 
