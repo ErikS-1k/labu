@@ -1,5 +1,4 @@
 import { Suspense } from 'react'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getAuthUser } from '@/lib/auth'
@@ -44,13 +43,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         />
       </Suspense>
       <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
-        {/* Logo mobile — solo visible en mobile, sticky al top del scroll */}
-        <header className="sticky top-0 z-10 flex items-center gap-2.5 border-b border-surface-2 bg-surface-0 px-4 py-3 md:hidden">
-          <Link href="/panel" className="flex items-center gap-2.5">
-            <img src="/_1A1A1A.png" alt="Labu" className="h-7 w-7 object-contain" />
-            <span className="text-base font-bold tracking-tight text-white">Labu</span>
-          </Link>
-        </header>
         <Suspense fallback={null}>
           <Breadcrumbs userId={user?.id ?? null} />
         </Suspense>
