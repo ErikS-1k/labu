@@ -31,7 +31,7 @@ export default async function PostPage({
 
   const { data: post } = await supabase
     .from('posts')
-    .select('*, users(username, first_name, fecha_nacimiento, avatar_url, bio, location, rating_avg, rating_count, email, phone)')
+    .select('id, user_id, type, title, description, category, modality, presencialidad, temporal_duration, price, price_type, location, users(username, first_name, fecha_nacimiento, avatar_url, bio, location, rating_avg, rating_count, email, phone)')
     .eq('id', id)
     .eq('is_active', true)
     .single()
@@ -107,7 +107,7 @@ export default async function PostPage({
   }
   const origin = from ? ORIGINS[from] : null
 
-  const autor = post.users as {
+  const autor = post.users as unknown as {
     username:         string | null
     first_name:       string | null
     fecha_nacimiento: string | null

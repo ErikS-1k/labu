@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import { Suspense } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import PostCard, { type PostCardData } from '@/components/posts/PostCard'
 import FeedFilters from '@/components/posts/FeedFilters'
@@ -7,22 +8,37 @@ import EmptyFeedState from '@/components/posts/EmptyFeedState'
 
 export const metadata: Metadata = { title: 'Requerimientos — Labu' }
 
+const PAGE_SIZE = 20
+
+function buildReqsUrl(params: { busqueda?: string; categoria?: string; modalidad?: string }, pagina: number) {
+  const sp = new URLSearchParams()
+  if (params.busqueda)  sp.set('busqueda',  params.busqueda)
+  if (params.categoria) sp.set('categoria', params.categoria)
+  if (params.modalidad) sp.set('modalidad', params.modalidad)
+  if (pagina > 0)       sp.set('pagina',    String(pagina))
+  const qs = sp.toString()
+  return `/requerimientos${qs ? `?${qs}` : ''}`
+}
+
 export default async function RequerimientosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ busqueda?: string; categoria?: string; modalidad?: string }>
+  searchParams: Promise<{ busqueda?: string; categoria?: string; modalidad?: string; pagina?: string }>
 }) {
-  const { busqueda, categoria, modalidad } = await searchParams
+  const { busqueda, categoria, modalidad, pagina: paginaParam } = await searchParams
+  const pagina = Math.max(0, parseInt(paginaParam ?? '0') || 0)
+  const offset = pagina * PAGE_SIZE
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const baseSelect = 'id, user_id, type, title, description, category, modality, presencialidad, temporal_duration, price, price_type, location, created_at, users(username, first_name, fecha_nacimiento, rating_avg, avatar_url)'
 
-  // Posts urgentes al tope (solo si no hay filtros activos)
+  // Posts urgentes al tope (solo si no hay filtros y es página 0)
   const hayFiltros = busqueda || categoria || modalidad
   let urgentes: PostCardData[] = []
 
-  if (!hayFiltros) {
+  if (!hayFiltros && pagina === 0) {
     const { data } = await supabase
       .from('posts')
       .select(baseSelect)
@@ -45,9 +61,10 @@ export default async function RequerimientosPage({
   if (categoria) query = query.ilike('category', `%${categoria}%`)
   if (modalidad) query = query.contains('modality', [modalidad])
 
+  query = query.range(offset, offset + PAGE_SIZE - 1)
   const { data: posts } = await query
 
-  const urgentesIds = new Set(urgentes.map(p => p.id))
+  const urgentesIds = pagina === 0 ? new Set(urgentes.map(p => p.id)) : new Set<string>()
   const resto = (posts ?? []) as unknown as PostCardData[]
   const feed = hayFiltros ? resto : resto.filter(p => !urgentesIds.has(p.id))
 
@@ -91,6 +108,22 @@ export default async function RequerimientosPage({
           )
         }
       </div>
+
+      {/* Paginación */}
+      {(pagina > 0 || feed.length === PAGE_SIZE) && (
+        <div className="mt-8 flex items-center justify-between border-t border-surface-2 pt-6">
+          {pagina > 0 ? (
+            <Link href={buildReqsUrl({ busqueda, categoria, modalidad }, pagina - 1)} className="text-sm text-zinc-400 transition-colors hover:text-white">
+              ← Anterior
+            </Link>
+          ) : <span />}
+          {feed.length === PAGE_SIZE && (
+            <Link href={buildReqsUrl({ busqueda, categoria, modalidad }, pagina + 1)} className="text-sm text-zinc-400 transition-colors hover:text-white">
+              Siguiente →
+            </Link>
+          )}
+        </div>
+      )}
     </main>
   )
 }

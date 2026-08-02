@@ -19,6 +19,9 @@ export default async function PanelPage({
   const busqueda  = params.busqueda
   const categoria = params.categoria
   const modalidad = params.modalidad
+  const PAGE_SIZE = 20
+  const pagina    = Math.max(0, parseInt(params.pagina ?? '0') || 0)
+  const offset    = pagina * PAGE_SIZE
 
   const supabase   = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -46,9 +49,9 @@ export default async function PanelPage({
   }
   const allDone = step1Done && step2Done && step3Done
 
-  // Sección "Disponibles ahora" — solo cuando no hay filtros activos
+  // Sección "Disponibles ahora" — solo en página 0 sin filtros
   let inmediatos: PostCardData[] = []
-  if (!hayFiltros) {
+  if (!hayFiltros && pagina === 0) {
     const { data } = await supabase
       .from('posts')
       .select(baseSelect)
@@ -72,13 +75,10 @@ export default async function PanelPage({
   if (categoria) query = query.ilike('category', `%${categoria}%`)
   if (modalidad) query = query.contains('modality', [modalidad])
 
+  query = query.range(offset, offset + PAGE_SIZE - 1)
   const { data: posts } = await query
-  const inmediatosIds   = new Set(inmediatos.map(p => p.id))
+  const inmediatosIds   = pagina === 0 ? new Set(inmediatos.map(p => p.id)) : new Set<string>()
   const feed = ((posts ?? []) as unknown as PostCardData[]).filter(p => !inmediatosIds.has(p.id))
-
-  // Conteos por tipo para empty states parciales en tab "Todos"
-  const nOfertas = feed.filter(p => p.type === 'oferta').length + inmediatos.filter(p => p.type === 'oferta').length
-  const nReqs    = feed.filter(p => p.type === 'requerimiento').length + inmediatos.filter(p => p.type === 'requerimiento').length
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
@@ -169,18 +169,29 @@ export default async function PanelPage({
           />
         )}
 
-        {/* Tab "Todos" con resultados parciales: mostrar empty state del lado vacío */}
-        {!tipo && busqueda && (nOfertas + nReqs) > 0 && (
-          <>
-            {nOfertas === 0 && (
-              <EmptyFeedState busqueda={busqueda} tipo="oferta" isLoggedIn={!!user} hayFiltros={true} />
-            )}
-            {nReqs === 0 && (
-              <EmptyFeedState busqueda={busqueda} tipo="requerimiento" isLoggedIn={!!user} hayFiltros={true} />
-            )}
-          </>
-        )}
       </div>
+
+      {/* Paginación */}
+      {(pagina > 0 || feed.length === PAGE_SIZE) && (
+        <div className="mt-8 flex items-center justify-between border-t border-surface-2 pt-6">
+          {pagina > 0 ? (
+            <Link
+              href={pagina === 1 ? '/panel' : `/panel?pagina=${pagina - 1}`}
+              className="text-sm text-zinc-400 transition-colors hover:text-white"
+            >
+              ← Anterior
+            </Link>
+          ) : <span />}
+          {feed.length === PAGE_SIZE && (
+            <Link
+              href={`/panel?pagina=${pagina + 1}`}
+              className="text-sm text-zinc-400 transition-colors hover:text-white"
+            >
+              Siguiente →
+            </Link>
+          )}
+        </div>
+      )}
 
     </div>
   )

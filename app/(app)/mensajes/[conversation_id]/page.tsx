@@ -18,6 +18,7 @@ export default async function ConversacionPage({
     .select('id, content, sender_id, receiver_id, post_id, created_at')
     .eq('conversation_id', conversation_id)
     .order('created_at', { ascending: true })
+    .limit(200)
 
   if (!messages || messages.length === 0) notFound()
 

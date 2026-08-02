@@ -28,6 +28,7 @@ export default async function MensajesPage() {
     `)
     .or(`sender_id.eq.${user!.id},receiver_id.eq.${user!.id}`)
     .order('created_at', { ascending: false })
+    .limit(300)
 
   // Quedar con el último mensaje por conversación
   const conversaciones = Object.values(
