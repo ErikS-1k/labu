@@ -1,8 +1,6 @@
-import { Suspense } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import PostCard, { type PostCardData } from '@/components/posts/PostCard'
-import FeedFilters from '@/components/posts/FeedFilters'
 import GuestPublishButtons from '@/components/panel/GuestPublishButtons'
 import EmptyFeedState from '@/components/posts/EmptyFeedState'
 import OnboardingBanner from '@/components/onboarding/OnboardingBanner'
@@ -138,18 +136,6 @@ export default async function PanelPage({
       ) : (
         <GuestPublishButtons />
       )}
-
-      {/* Separador "Explorar" */}
-      <div className="mb-4 flex items-center gap-3">
-        <div className="flex-1 border-t border-surface-2" />
-        <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Explorar publicaciones</span>
-        <div className="flex-1 border-t border-surface-2" />
-      </div>
-
-      {/* Filtros */}
-      <Suspense>
-        <FeedFilters showTypeTabs />
-      </Suspense>
 
       {/* Sección inmediatos */}
       {inmediatos.length > 0 && (
