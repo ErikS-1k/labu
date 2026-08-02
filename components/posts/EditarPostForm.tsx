@@ -150,7 +150,7 @@ export default function EditarPostForm({ post }: { post: PostData }) {
               className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition-all ${
                 modalities.includes(m.value)
                   ? 'border-zinc-400 bg-zinc-700 text-white'
-                  : 'border-zinc-300 bg-white text-zinc-500 hover:border-zinc-400 hover:text-zinc-700'
+                  : 'border-zinc-700 bg-surface-1 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
               }`}
             >
               {m.label}
@@ -198,7 +198,7 @@ export default function EditarPostForm({ post }: { post: PostData }) {
               className={`flex-1 rounded-lg border py-2.5 text-sm font-medium transition-all ${
                 presencialidad === op.value
                   ? 'border-zinc-400 bg-zinc-700 text-white'
-                  : 'border-zinc-300 bg-white text-zinc-500 hover:border-zinc-400 hover:text-zinc-700'
+                  : 'border-zinc-700 bg-surface-1 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
               }`}
             >
               {op.label}
@@ -218,7 +218,7 @@ export default function EditarPostForm({ post }: { post: PostData }) {
               className={`flex items-center justify-center gap-2 rounded-xl border-2 py-3 text-sm font-semibold transition-colors ${
                 !aDefinir
                   ? 'border-blue-500 bg-blue-500 text-white'
-                  : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:text-zinc-700'
+                  : 'border-zinc-700 bg-surface-1 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
               }`}
             >
               <span>$</span> Precio fijo
@@ -229,7 +229,7 @@ export default function EditarPostForm({ post }: { post: PostData }) {
               className={`flex items-center justify-center gap-2 rounded-xl border-2 py-3 text-sm font-semibold transition-colors ${
                 aDefinir
                   ? 'border-blue-500 bg-blue-500 text-white'
-                  : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:text-zinc-700'
+                  : 'border-zinc-700 bg-surface-1 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
               }`}
             >
               <span>≈</span> A definir
@@ -276,7 +276,7 @@ export default function EditarPostForm({ post }: { post: PostData }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:opacity-50"
+        className="rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-600 disabled:opacity-50"
       >
         {pending ? 'Guardando...' : 'Guardar cambios'}
       </button>
