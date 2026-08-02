@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import EditarPostForm from '@/components/posts/EditarPostForm'
 
 export const metadata: Metadata = { title: 'Editar publicación — Labu' }
@@ -12,7 +13,7 @@ export default async function EditarPostPage({
 }) {
   const { id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
 
   const { data: post } = await supabase
     .from('posts')

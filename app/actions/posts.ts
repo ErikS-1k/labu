@@ -56,6 +56,10 @@ export async function eliminarPost(formData: FormData) {
 
   await supabase.from('posts').delete().eq('id', postId).eq('user_id', user.id)
 
+  revalidatePath('/panel')
+  revalidatePath('/ofertas')
+  revalidatePath('/requerimientos')
+
   if (returnTo) {
     revalidatePath(returnTo)
     return
@@ -97,6 +101,11 @@ export async function editarPost(
 
   if (error) return { error: 'No se pudo guardar. Intentá de nuevo.' }
 
+  revalidatePath(`/post/${postId}`)
+  revalidatePath('/panel')
+  revalidatePath('/ofertas')
+  revalidatePath('/requerimientos')
+  revalidatePath('/mi-actividad')
   redirect('/mi-actividad?toast=publicacion_editada')
 }
 
@@ -109,6 +118,10 @@ export async function cerrarPost(formData: FormData) {
   await supabase.from('posts').update({ is_active: false }).eq('id', postId).eq('user_id', user.id)
 
   revalidatePath('/mi-actividad')
+  revalidatePath(`/post/${postId}`)
+  revalidatePath('/panel')
+  revalidatePath('/ofertas')
+  revalidatePath('/requerimientos')
 }
 
 export async function marcarCompletado(formData: FormData) {

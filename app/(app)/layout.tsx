@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
+import { getAuthUser } from '@/lib/auth'
 import PanelSidebar from '@/components/layout/PanelSidebar'
 import BottomNav from '@/components/layout/BottomNav'
 import FloatingPublishMenu from '@/components/layout/FloatingPublishMenu'
@@ -9,7 +10,7 @@ import Toaster from '@/components/ui/Toaster'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
 
   let userName: string | null = null
   let unreadCount = 0

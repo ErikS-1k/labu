@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { avatarBg } from '@/lib/avatar'
 
 export const metadata: Metadata = { title: 'Perfil — Labu' }
@@ -46,7 +47,7 @@ export default async function PerfilPage({
 }) {
   const { id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   const esPropio = user?.id === id
 
   const [

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import ConversacionChat from '@/components/mensajes/ConversacionChat'
 
 export default async function ConversacionPage({
@@ -10,7 +11,7 @@ export default async function ConversacionPage({
 }) {
   const { conversation_id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
 
   // Cargar mensajes de la conversación
   const { data: messages } = await supabase

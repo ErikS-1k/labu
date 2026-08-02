@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import PostCard, { type PostCardData } from '@/components/posts/PostCard'
 import GuestPublishButtons from '@/components/panel/GuestPublishButtons'
 import EmptyFeedState from '@/components/posts/EmptyFeedState'
@@ -24,7 +25,7 @@ export default async function PanelPage({
   const offset    = pagina * PAGE_SIZE
 
   const supabase   = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   const hayFiltros = tipo || busqueda || categoria || modalidad
 
   // Datos del usuario para el banner de onboarding

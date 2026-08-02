@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import EditarPerfilForm from '@/components/perfil/EditarPerfilForm'
 import AgregarSeccionForm from '@/components/perfil/AgregarSeccionForm'
 import SeccionCard from '@/components/perfil/SeccionCard'
@@ -9,7 +10,7 @@ export const metadata: Metadata = { title: 'Editar perfil — Labu' }
 
 export default async function EditarPerfilPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
 
   const [
     { data: perfil },

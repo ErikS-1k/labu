@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { avatarBg } from '@/lib/avatar'
 import PostCard, { PostCardData } from '@/components/posts/PostCard'
 import SearchForm from '@/components/search/SearchForm'
@@ -16,7 +17,7 @@ export default async function BuscarPage({
   const safe = q.replace(/['"\\,]/g, '')
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
 
   type PerfilRow = {
     id: string

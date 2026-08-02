@@ -1,13 +1,12 @@
 import { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
+import { getAuthUser } from '@/lib/auth'
 import NotificacionesList from '@/components/notificaciones/NotificacionesList'
 
 export const metadata: Metadata = { title: 'Notificaciones — Labu' }
 
 export default async function NotificacionesPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
 
   const { data: notifs } = await createServiceClient()
     .from('notifications')

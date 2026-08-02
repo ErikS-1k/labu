@@ -171,4 +171,5 @@ export async function completarOnboarding() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
   await supabase.from('users').update({ first_login: false }).eq('id', user.id)
+  revalidatePath('/panel')
 }

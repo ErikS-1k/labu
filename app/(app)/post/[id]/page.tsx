@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { PRICE_TYPES } from '@/lib/constants'
 import { avatarBg } from '@/lib/avatar'
 import { iniciarConversacion } from '@/app/actions/mensajes'
@@ -39,7 +40,7 @@ export default async function PostPage({
 
   if (!post) notFound()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   const esAutor         = user?.id === post.user_id
   const esRequerimiento = post.type === 'requerimiento'
 

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import PostActionsMenu from '@/components/posts/PostActionsMenu'
 import CalificarModal from './CalificarModal'
 import MarcarCompletadoButton from '@/components/posts/MarcarCompletadoButton'
@@ -25,7 +26,7 @@ export default async function MiActividadPage({
   const rol = sp.rol ?? 'todos'
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
 
   // ── TAB 1: Mis publicaciones ──────────────────────────────────────────────
   let posts: any[] = []

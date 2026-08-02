@@ -2,13 +2,14 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import VerificacionForm from '@/components/verificacion/VerificacionForm'
 
 export const metadata: Metadata = { title: 'Verificar identidad — Labu' }
 
 export default async function VerificacionPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
 
   const { data: verificacion } = await supabase
     .from('verifications')

@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import ConversacionList from '@/components/mensajes/ConversacionList'
 
 export const metadata: Metadata = { title: 'Mensajes — Labu' }
@@ -17,7 +18,7 @@ type MensajeRow = {
 
 export default async function MensajesPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
 
   const { data: rows } = await supabase
     .from('messages')

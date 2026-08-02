@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import ConversacionChat from '@/components/mensajes/ConversacionChat'
 
 export default async function NuevoMensajePage({
@@ -13,7 +14,7 @@ export default async function NuevoMensajePage({
   if (!post_id || !receiver_id || !conversation_id) notFound()
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
 
   // Cargar receptor y post en paralelo
   const [{ data: receptor }, { data: post }] = await Promise.all([
