@@ -7,7 +7,6 @@ import { createClient } from '@/lib/supabase/client'
 
 type Props = {
   userId: string | null
-  userName: string | null
   unreadCount: number
   isLoggedIn: boolean
 }
@@ -21,20 +20,20 @@ function IconHome() {
   )
 }
 
-function IconPlus() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="5" x2="12" y2="19"/>
-      <line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-  )
-}
-
 function IconSearch() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="8"/>
       <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+  )
+}
+
+function IconPlus() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
     </svg>
   )
 }
@@ -56,16 +55,14 @@ function IconUser() {
   )
 }
 
-export default function BottomNav({ userId, userName, unreadCount, isLoggedIn }: Props) {
-  const [count, setCount] = useState(unreadCount)
+export default function BottomNav({ userId, unreadCount, isLoggedIn }: Props) {
+  const [msgCount, setMsgCount] = useState(unreadCount)
   const pathname     = usePathname()
   const searchParams = useSearchParams()
   const fromParam    = searchParams.get('from')
 
   useEffect(() => {
-    if (pathname === '/mensajes' || pathname.startsWith('/mensajes/')) {
-      setCount(0)
-    }
+    if (pathname === '/mensajes' || pathname.startsWith('/mensajes/')) setMsgCount(0)
   }, [pathname])
 
   useEffect(() => {
@@ -75,7 +72,7 @@ export default function BottomNav({ userId, userName, unreadCount, isLoggedIn }:
       .channel('bottomnav-unread')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
         const msg = payload.new as { receiver_id: string }
-        if (msg.receiver_id === userId) setCount(c => c + 1)
+        if (msg.receiver_id === userId) setMsgCount(c => c + 1)
       })
       .subscribe()
     return () => { supabase.removeChannel(channel) }
@@ -98,52 +95,44 @@ export default function BottomNav({ userId, userName, unreadCount, isLoggedIn }:
     return pathname === href || pathname.startsWith(href + '/')
   }
 
-  function iconClass(href: string) {
-    return `flex flex-col items-center gap-0.5 px-3 py-2.5 transition-colors ${
-      isActive(href) ? 'text-white' : 'text-zinc-500'
-    }`
+  const perfilHref = isLoggedIn && userId ? `/perfil/${userId}` : '/login'
+
+  const msgBadge = msgCount > 0 ? (
+    <span className="absolute -right-1.5 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
+      {msgCount > 9 ? '9+' : msgCount}
+    </span>
+  ) : null
+
+  function navItem(href: string, icon: React.ReactNode, label: string, badge?: React.ReactNode) {
+    const active = isActive(href)
+    return (
+      <Link href={href} className="flex flex-1 items-center justify-center">
+        {active ? (
+          <span className="flex flex-col items-center gap-1 rounded-xl bg-indigo-500/20 px-3 py-2 text-indigo-300">
+            <span className="relative">{icon}{badge}</span>
+            <span className="text-[10px] font-semibold leading-none">{label}</span>
+          </span>
+        ) : (
+          <span className="relative flex min-h-[44px] items-center justify-center p-2.5 text-zinc-500">
+            {icon}{badge}
+          </span>
+        )}
+      </Link>
+    )
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-10 flex items-center justify-around border-t border-surface-2 bg-surface-0 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      <Link href="/panel" className={iconClass('/panel')}>
-        <IconHome />
-        <span className="text-[10px] font-medium">Inicio</span>
-      </Link>
-      <Link href="/buscar" className={iconClass('/buscar')}>
-        <IconSearch />
-        <span className="text-[10px] font-medium">Buscar</span>
-      </Link>
-      {isLoggedIn && (
-        <Link href="/publicar" className={iconClass('/publicar')}>
-          <IconPlus />
-          <span className="text-[10px] font-medium">Publicar</span>
-        </Link>
-      )}
-      {isLoggedIn && (
-        <Link href="/mensajes" className={iconClass('/mensajes')}>
-          <div className="relative">
-            <IconMessage />
-            {count > 0 && (
-              <span className="absolute -right-1.5 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
-                {count > 9 ? '9+' : count}
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] font-medium">Mensajes</span>
-        </Link>
-      )}
-      {isLoggedIn && userId ? (
-        <Link href={`/perfil/${userId}`} className={iconClass(`/perfil/${userId}`)}>
-          <IconUser />
-          <span className="text-[10px] font-medium">Perfil</span>
-        </Link>
-      ) : (
-        <Link href="/login" className={iconClass('/login')}>
-          <IconUser />
-          <span className="text-[10px] font-medium">Entrar</span>
-        </Link>
-      )}
-    </nav>
+    <div
+      className="fixed left-4 right-4 z-50 md:hidden"
+      style={{ bottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+    >
+      <nav className="flex items-center rounded-2xl border border-white/10 bg-zinc-900/85 px-1 py-1.5 shadow-lg shadow-black/40 backdrop-blur-md">
+        {navItem('/panel',    <IconHome />,    'Inicio')}
+        {navItem('/buscar',   <IconSearch />,  'Buscar')}
+        {navItem('/publicar', <IconPlus />,    'Publicar')}
+        {navItem('/mensajes', <IconMessage />, 'Mensajes', msgBadge)}
+        {navItem(perfilHref,  <IconUser />,    isLoggedIn ? 'Perfil' : 'Entrar')}
+      </nav>
+    </div>
   )
 }

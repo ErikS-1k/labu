@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { getAuthUser } from '@/lib/auth'
 import { avatarBg } from '@/lib/avatar'
 
@@ -105,6 +106,18 @@ export default async function PerfilPage({
   ])
 
   if (!perfil) notFound()
+
+  // Contador de actividad no leída — solo para perfil propio en mobile
+  let actividadCount = 0
+  if (esPropio && user) {
+    const { count } = await createServiceClient()
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('read', false)
+      .in('type', ['nueva_postulacion', 'postulacion_aceptada', 'postulacion_rechazada', 'trabajo_completado', 'recordatorio_calificacion'])
+    actividadCount = count ?? 0
+  }
 
   const nombre = esPropio
     ? [perfil.first_name, perfil.last_name].filter(Boolean).join(' ') || perfil.username || 'Usuario'
@@ -227,6 +240,33 @@ export default async function PerfilPage({
           <p className="mt-3 text-xs text-zinc-500">Verificación en revisión.</p>
         )}
       </div>
+
+      {/* ── MI ACTIVIDAD (solo mobile, solo perfil propio) ── */}
+      {esPropio && (
+        <Link
+          href="/mi-actividad"
+          className="mt-4 flex items-center justify-between rounded-xl border border-surface-2 bg-surface-1 px-4 py-3 transition-colors hover:bg-surface-2 md:hidden"
+        >
+          <div className="flex items-center gap-3 text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            <span className="font-medium">Mi actividad</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {actividadCount > 0 && (
+              <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold leading-none text-white">
+                {actividadCount > 9 ? '9+' : actividadCount}
+              </span>
+            )}
+            <span className="text-zinc-500">›</span>
+          </div>
+        </Link>
+      )}
 
       {/* ── PUBLICACIONES ACTIVAS ───────────────────────── */}
       {activos && activos.length > 0 && (

@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { getAuthUser } from '@/lib/auth'
 import PanelSidebar from '@/components/layout/PanelSidebar'
 import BottomNav from '@/components/layout/BottomNav'
+import MobileHeader from '@/components/layout/MobileHeader'
 import FloatingPublishMenu from '@/components/layout/FloatingPublishMenu'
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
 import Toaster from '@/components/ui/Toaster'
@@ -42,7 +43,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           isLoggedIn={!!user}
         />
       </Suspense>
-      <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
+      <main className="flex-1 overflow-y-auto pb-28 md:pb-0">
+        <Suspense fallback={null}>
+          <MobileHeader userId={user?.id ?? null} initialCount={unreadNotifCount} />
+        </Suspense>
         <Suspense fallback={null}>
           <Breadcrumbs userId={user?.id ?? null} />
         </Suspense>
@@ -51,7 +55,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <Suspense fallback={null}>
         <BottomNav
           userId={user?.id ?? null}
-          userName={userName}
           unreadCount={unreadCount}
           isLoggedIn={!!user}
         />
