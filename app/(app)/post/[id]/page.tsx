@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
 import { PRICE_TYPES } from '@/lib/constants'
@@ -256,7 +257,7 @@ export default async function PostPage({
           </p>
           <Link href={`/perfil/${post.user_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             {autor?.avatar_url ? (
-              <img src={autor.avatar_url} className="h-12 w-12 shrink-0 rounded-full object-cover" alt="" />
+              <Image src={autor.avatar_url} width={48} height={48} sizes="48px" className="shrink-0 rounded-full object-cover" alt="" />
             ) : (
               <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-white ${avatarBg(autor?.username, autor?.first_name, post.user_id)}`}>
                 {autorInicial}

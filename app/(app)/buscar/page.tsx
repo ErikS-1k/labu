@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
 import { avatarBg } from '@/lib/avatar'
@@ -159,7 +160,7 @@ export default async function BuscarPage({
                     >
                       <div className={`h-12 w-12 shrink-0 overflow-hidden rounded-full ${!u.avatar_url ? avatarBg(u.username, u.first_name, u.id) : ''}`}>
                         {u.avatar_url
-                          ? <img src={u.avatar_url} alt={nombre} className="h-full w-full object-cover" />
+                          ? <Image src={u.avatar_url} width={48} height={48} sizes="48px" className="object-cover" alt={nombre} />
                           : <span className="flex h-full w-full items-center justify-center text-lg font-semibold text-white">{inicial}</span>
                         }
                       </div>

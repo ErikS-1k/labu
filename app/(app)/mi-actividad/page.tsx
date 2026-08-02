@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
@@ -256,7 +257,7 @@ export default async function MiActividadPage({
                       {/* Avatar del autor */}
                       <Link href={`/perfil/${post.user_id}`} className="shrink-0">
                         {autor.avatar_url ? (
-                          <img src={autor.avatar_url} className="h-10 w-10 rounded-full object-cover" alt="" />
+                          <Image src={autor.avatar_url} width={40} height={40} sizes="40px" className="rounded-full object-cover" alt="" />
                         ) : (
                           <span className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white ${avatarBg(autor.username, autor.first_name, autor.id)}`}>
                             {inicial}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useEffect, useRef, useState, useTransition } from 'react'
+import Image from 'next/image'
 import { actualizarPerfil, eliminarFoto } from '@/app/actions/perfil'
 import { useProgress } from '@/lib/useProgress'
 import { showToast } from '@/lib/toast'
@@ -77,7 +78,9 @@ export default function EditarPerfilForm({ userId, first_name, last_name, userna
           className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-full hover:opacity-80 transition-opacity ${!preview ? avatarBg(username, first_name, userId) : ''}`}
         >
           {preview
-            ? <img src={preview} alt="Avatar" className="h-full w-full object-cover" />
+            ? preview.startsWith('blob:')
+              ? <img src={preview} alt="Avatar" className="h-full w-full object-cover" />
+              : <Image src={preview} width={64} height={64} sizes="64px" className="object-cover" alt="Avatar" />
             : <span className="flex h-full w-full items-center justify-center text-2xl font-bold text-white">{inicial}</span>
           }
         </button>

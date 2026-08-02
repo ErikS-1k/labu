@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
@@ -146,7 +147,7 @@ export default async function PerfilPage({
           {/* Avatar */}
           <div className={`h-24 w-24 shrink-0 overflow-hidden rounded-2xl ${!perfil.avatar_url ? avatarBg(perfil.username, perfil.first_name, perfil.id) : ''}`}>
             {perfil.avatar_url
-              ? <img src={perfil.avatar_url} alt={nombre} className="h-full w-full object-cover" />
+              ? <Image src={perfil.avatar_url} width={96} height={96} sizes="96px" priority className="object-cover" alt={nombre} />
               : <span className="flex h-full w-full items-center justify-center text-3xl font-bold text-white">{inicial}</span>
             }
           </div>

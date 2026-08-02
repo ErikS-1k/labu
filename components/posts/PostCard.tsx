@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { PRICE_TYPES } from '@/lib/constants'
 import { avatarBg } from '@/lib/avatar'
 
@@ -91,7 +92,7 @@ export default function PostCard({ post, from }: { post: PostCardData; from?: st
           className="relative z-10 flex items-center gap-2 min-w-0 hover:underline"
         >
           {post.users?.avatar_url ? (
-            <img src={post.users.avatar_url} className="h-6 w-6 shrink-0 rounded-full object-cover" alt="" />
+            <Image src={post.users.avatar_url} width={24} height={24} sizes="24px" className="shrink-0 rounded-full object-cover" alt="" />
           ) : (
             <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white ${avatarBg(post.users?.username, post.users?.first_name, post.user_id, post.id)}`}>
               {inicial}
