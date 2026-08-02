@@ -156,7 +156,7 @@ export default async function PostPage({
             {post.type === 'oferta' ? 'Servicio' : 'Búsqueda'}
           </span>
           {(post.modality as string[]).includes('inmediato') && (
-            <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+            <span className="rounded-full bg-green-900/40 px-2.5 py-0.5 text-xs font-medium text-green-400">
               Inmediato
             </span>
           )}
@@ -170,10 +170,10 @@ export default async function PostPage({
         <h1 className="text-xl font-bold text-white">{post.title}</h1>
 
         {post.description && (
-          <p className="mt-4 text-sm leading-relaxed text-zinc-600">{post.description}</p>
+          <p className="mt-4 text-sm leading-relaxed text-zinc-300">{post.description}</p>
         )}
 
-        <div className="mt-6 flex flex-col gap-2 border-t border-zinc-100 pt-4 text-sm">
+        <div className="mt-6 flex flex-col gap-2 border-t border-surface-2 pt-4 text-sm">
           {priceLabel && (
             <div className="flex justify-between">
               <span className="flex items-center gap-1.5 text-zinc-400">
@@ -192,7 +192,7 @@ export default async function PostPage({
               </svg>
               Duración
             </span>
-            <span className="text-zinc-700">
+            <span className="text-zinc-300">
               {(post.modality as string[]).map(m => MODALITY_LABEL[m]).join(', ')}
             </span>
           </div>
@@ -204,7 +204,7 @@ export default async function PostPage({
                 </svg>
                 Duración
               </span>
-              <span className="text-zinc-700">{(post as any).temporal_duration}</span>
+              <span className="text-zinc-300">{(post as any).temporal_duration}</span>
             </div>
           )}
           {(post as any).presencialidad && (
@@ -216,7 +216,7 @@ export default async function PostPage({
                 </svg>
                 Presencialidad
               </span>
-              <span className="text-zinc-700">
+              <span className="text-zinc-300">
                 {(post as any).presencialidad === 'presencial' ? 'Presencial'
                  : (post as any).presencialidad === 'virtual' ? 'Virtual'
                  : 'Presencial / Virtual'}
@@ -231,7 +231,7 @@ export default async function PostPage({
                 </svg>
                 Zona
               </span>
-              <span className="text-zinc-700">{post.location}</span>
+              <span className="text-zinc-300">{post.location}</span>
             </div>
           )}
         </div>
@@ -286,7 +286,7 @@ export default async function PostPage({
           )}
 
           {recientes && recientes.length > 0 && (
-            <div className="mt-4 border-t border-zinc-100 pt-4">
+            <div className="mt-4 border-t border-surface-2 pt-4">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
                 Trabajos recientes
               </p>
@@ -295,7 +295,7 @@ export default async function PostPage({
                   const rPost = r.posts as { id: string; title: string } | null
                   return (
                     <li key={r.id} className="flex items-center justify-between text-sm">
-                      <Link href={`/post/${rPost?.id ?? '#'}?from=panel`} className="truncate text-zinc-700 hover:underline">
+                      <Link href={`/post/${rPost?.id ?? '#'}?from=panel`} className="truncate text-zinc-400 hover:text-white hover:underline">
                         {rPost?.title ?? 'Trabajo completado'}
                       </Link>
                       <span className="ml-3 shrink-0 text-xs text-zinc-400">
@@ -334,7 +334,7 @@ export default async function PostPage({
       {/* Solicitante: formulario si aún no envió solicitud */}
       {!esRequerimiento && user && !esAutor && !miPostulacion && !estaCompletado && (
         <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
-          <p className="mb-3 text-sm font-semibold text-zinc-800">Solicitar contacto</p>
+          <p className="mb-3 text-sm font-semibold text-white">Solicitar contacto</p>
           <PostularseForm
             postId={post.id}
             textoBoton="Enviar solicitud"
@@ -374,7 +374,7 @@ export default async function PostPage({
       {/* Postulante: formulario si aún no se postuló */}
       {esRequerimiento && user && !esAutor && !miPostulacion && !estaCompletado && (
         <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
-          <p className="mb-3 text-sm font-semibold text-zinc-800">Postularse</p>
+          <p className="mb-3 text-sm font-semibold text-white">Postularse</p>
           <PostularseForm postId={post.id} />
         </div>
       )}
@@ -405,7 +405,7 @@ export default async function PostPage({
                 </p>
                 <form action={marcarCompletado}>
                   <input type="hidden" name="post_id" value={post.id} />
-                  <button type="submit" className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-700 transition-colors hover:bg-surface-2">
+                  <button type="submit" className="rounded-lg border border-surface-2 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-surface-2">
                     Confirmar finalización
                   </button>
                 </form>
@@ -428,7 +428,7 @@ export default async function PostPage({
                 </p>
                 <form action={marcarCompletado}>
                   <input type="hidden" name="post_id" value={post.id} />
-                  <button type="submit" className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-700 transition-colors hover:bg-surface-2">
+                  <button type="submit" className="rounded-lg border border-surface-2 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-surface-2">
                     Confirmar finalización
                   </button>
                 </form>
@@ -445,7 +445,7 @@ export default async function PostPage({
       })()}
 
       {estaCompletado && (
-        <div className="mt-4 rounded-full border border-green-200 bg-green-50 px-4 py-2 text-center text-sm font-medium text-green-700">
+        <div className="mt-4 rounded-full border border-green-800/40 bg-green-900/40 px-4 py-2 text-center text-sm font-medium text-green-400">
           Trabajo completado
         </div>
       )}

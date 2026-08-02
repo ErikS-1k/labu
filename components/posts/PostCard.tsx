@@ -74,7 +74,7 @@ export default function PostCard({ post, from }: { post: PostCardData; from?: st
   const typeConfig = TYPE_CONFIG[post.type]
 
   return (
-    <div className="relative rounded-xl border border-zinc-700 bg-surface-1 p-5 transition-colors hover:bg-surface-2">
+    <div className="relative rounded-xl border border-surface-2 bg-surface-1 p-5 transition-colors hover:border-surface-3 hover:bg-surface-2">
       {/* Stretched link — cubre toda la card, lleva al post */}
       <Link href={`/post/${post.id}${from ? `?from=${from}` : ''}`} className="absolute inset-0 rounded-xl" aria-label={post.title} />
 

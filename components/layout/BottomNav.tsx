@@ -99,8 +99,8 @@ export default function BottomNav({ userId, userName, unreadCount, isLoggedIn }:
   }
 
   function iconClass(href: string) {
-    return `flex flex-col items-center gap-0.5 px-3 py-3 transition-colors ${
-      isActive(href) ? 'text-white' : 'text-zinc-400'
+    return `flex flex-col items-center gap-0.5 px-3 py-2.5 transition-colors ${
+      isActive(href) ? 'text-white' : 'text-zinc-500'
     }`
   }
 
@@ -108,32 +108,40 @@ export default function BottomNav({ userId, userName, unreadCount, isLoggedIn }:
     <nav className="fixed bottom-0 left-0 right-0 z-10 flex items-center justify-around border-t border-surface-2 bg-surface-0 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <Link href="/panel" className={iconClass('/panel')}>
         <IconHome />
+        <span className="text-[10px] font-medium">Inicio</span>
       </Link>
       <Link href="/buscar" className={iconClass('/buscar')}>
         <IconSearch />
+        <span className="text-[10px] font-medium">Buscar</span>
       </Link>
       {isLoggedIn && (
         <Link href="/publicar" className={iconClass('/publicar')}>
           <IconPlus />
+          <span className="text-[10px] font-medium">Publicar</span>
         </Link>
       )}
       {isLoggedIn && (
-        <Link href="/mensajes" className={`${iconClass('/mensajes')} relative`}>
-          <IconMessage />
-          {count > 0 && (
-            <span className="absolute right-1.5 top-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
-              {count > 9 ? '9+' : count}
-            </span>
-          )}
+        <Link href="/mensajes" className={iconClass('/mensajes')}>
+          <div className="relative">
+            <IconMessage />
+            {count > 0 && (
+              <span className="absolute -right-1.5 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
+                {count > 9 ? '9+' : count}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] font-medium">Mensajes</span>
         </Link>
       )}
       {isLoggedIn && userId ? (
         <Link href={`/perfil/${userId}`} className={iconClass(`/perfil/${userId}`)}>
           <IconUser />
+          <span className="text-[10px] font-medium">Perfil</span>
         </Link>
       ) : (
         <Link href="/login" className={iconClass('/login')}>
           <IconUser />
+          <span className="text-[10px] font-medium">Entrar</span>
         </Link>
       )}
     </nav>

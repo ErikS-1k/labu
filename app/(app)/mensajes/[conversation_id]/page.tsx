@@ -44,7 +44,7 @@ export default async function ConversacionPage({
   ])
 
   return (
-    <main className="mx-auto flex max-w-xl flex-col px-4 py-8" style={{ height: 'calc(100dvh - 57px)' }}>
+    <main className="mx-auto flex h-full max-w-xl flex-col px-4 py-4">
       <Link href="/mensajes" className="mb-4 inline-block text-sm text-zinc-400 hover:text-zinc-700">
         ← Mensajes
       </Link>

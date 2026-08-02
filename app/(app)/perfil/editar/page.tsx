@@ -41,7 +41,7 @@ export default async function EditarPerfilPage() {
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
         {/* Editar perfil */}
         <div className="flex-1">
-          <h1 className="mb-6 text-xl font-bold text-foreground">Editar perfil</h1>
+          <h1 className="mb-6 text-xl font-bold text-white">Editar perfil</h1>
           <div className="rounded-xl border border-surface-2 bg-surface-1 p-6">
             <EditarPerfilForm
               userId={user!.id}
@@ -60,7 +60,7 @@ export default async function EditarPerfilPage() {
 
         {/* Experiencias */}
         <div className="flex-1">
-          <h2 className="mb-4 text-xl font-bold text-foreground">Experiencias</h2>
+          <h2 className="mb-4 text-xl font-bold text-white">Experiencias</h2>
 
           {secciones && secciones.length > 0 && (
             <div className="mb-4 flex flex-col gap-2">
