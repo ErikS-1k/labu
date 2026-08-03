@@ -6,31 +6,23 @@ import GuestPublishButtons from '@/components/panel/GuestPublishButtons'
 import EmptyFeedState from '@/components/posts/EmptyFeedState'
 import OnboardingBanner from '@/components/onboarding/OnboardingBanner'
 import PageHeader from '@/components/ui/PageHeader'
+import InfinitePostFeed from '@/components/panel/InfinitePostFeed'
 
 export const metadata = { title: 'Inicio — Labu' }
 
 const baseSelect = 'id, user_id, type, title, description, category, modality, presencialidad, temporal_duration, price, price_type, location, created_at, users(username, first_name, fecha_nacimiento, rating_avg, avatar_url)'
 
-export default async function PanelPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | undefined>>
-}) {
-  const params = await searchParams
-  const tipo      = params.tipo
-  const busqueda  = params.busqueda
-  const categoria = params.categoria
-  const modalidad = params.modalidad
-  const FEED_LIMIT = 10
+const INMEDIATOS_LIMIT = 10
+const FEED_PAGE_SIZE   = 20
 
-  const supabase   = await createClient()
-  const user = await getAuthUser()
-  const hayFiltros = tipo || busqueda || categoria || modalidad
+export default async function PanelPage() {
+  const supabase = await createClient()
+  const user     = await getAuthUser()
 
   // Datos del usuario para el banner de onboarding
   let step1Done = false
   let step2Done = false
-  let step3Done = true // por defecto true para usuarios no logueados
+  let step3Done = true
   if (user) {
     const [{ data: perfil }, { count: postsCount }] = await Promise.all([
       supabase
@@ -49,41 +41,33 @@ export default async function PanelPage({
   }
   const allDone = step1Done && step2Done && step3Done
 
-  // Sección "Disponibles ahora" — solo cuando no hay filtros activos
-  let inmediatos: PostCardData[] = []
-  if (!hayFiltros) {
-    const { data } = await supabase
-      .from('posts')
-      .select(baseSelect)
-      .eq('is_active', true)
-      .contains('modality', ['inmediato'])
-      .order('created_at', { ascending: false })
-      .limit(6)
-    inmediatos = (data ?? []) as unknown as PostCardData[]
-  }
+  // Sección "Disponibles ahora"
+  const { data: inmediatosRaw } = await supabase
+    .from('posts')
+    .select(baseSelect)
+    .eq('is_active', true)
+    .contains('modality', ['inmediato'])
+    .order('created_at', { ascending: false })
+    .limit(INMEDIATOS_LIMIT)
+  const inmediatos    = (inmediatosRaw ?? []) as unknown as PostCardData[]
+  const inmediatosIds = inmediatos.map(p => p.id)
+  const inmediatosSet = new Set(inmediatosIds)
 
-  // Feed principal
-  let query = supabase
+  // Feed principal — primer batch (más de lo necesario para compensar solapamiento con inmediatos)
+  const { data: feedRaw } = await supabase
     .from('posts')
     .select(baseSelect)
     .eq('is_active', true)
     .order('created_at', { ascending: false })
-
-  if (tipo === 'oferta')             query = query.eq('type', 'oferta')
-  else if (tipo === 'requerimiento') query = query.eq('type', 'requerimiento')
-  if (busqueda)  query = query.or(`title.ilike.%${busqueda}%,description.ilike.%${busqueda}%`)
-  if (categoria) query = query.ilike('category', `%${categoria}%`)
-  if (modalidad) query = query.contains('modality', [modalidad])
-
-  const { data: posts } = await query.limit(FEED_LIMIT + inmediatos.length)
-  const inmediatosIds   = new Set(inmediatos.map(p => p.id))
-  const feed = ((posts ?? []) as unknown as PostCardData[])
-    .filter(p => !inmediatosIds.has(p.id))
-    .slice(0, FEED_LIMIT)
+    .limit(FEED_PAGE_SIZE + inmediatos.length)
+  const feed = ((feedRaw ?? []) as unknown as PostCardData[])
+    .filter(p => !inmediatosSet.has(p.id))
+    .slice(0, FEED_PAGE_SIZE)
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
       <PageHeader title="Inicio" subtitle="Descubrí quién puede ayudarte" />
+
       {user && !allDone && (
         <OnboardingBanner step1Done={step1Done} step2Done={step2Done} step3Done={step3Done} />
       )}
@@ -112,7 +96,7 @@ export default async function PanelPage({
         </div>
       )}
 
-      {/* Acciones de publicación — visibles para todos */}
+      {/* Acciones de publicación */}
       {user ? (
         <div className="mb-8 grid grid-cols-2 gap-3">
           <Link
@@ -149,40 +133,27 @@ export default async function PanelPage({
           <div className="flex flex-col gap-4">
             {inmediatos.map(p => <PostCard key={p.id} post={p} from="panel" />)}
           </div>
-          {feed.length > 0 && (
-            <p className="mt-5 mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-              Todos los posts
-            </p>
-          )}
         </section>
       )}
 
-      {/* Feed principal */}
-      <div className="flex flex-col gap-4 mt-6">
-        {feed.map(p => <PostCard key={p.id} post={p} from="panel" />)}
-
-        {/* Feed completamente vacío */}
-        {feed.length === 0 && !inmediatos.length && (
-          <EmptyFeedState
-            busqueda={busqueda}
-            tipo={tipo}
-            isLoggedIn={!!user}
-            hayFiltros={!!hayFiltros}
-          />
-        )}
-
-      </div>
-
-      {/* Botón Ver más — solo cuando hay contenido */}
-      {(feed.length > 0 || inmediatos.length > 0) && (
-        <Link
-          href="/buscar"
-          className="mt-6 block rounded-xl border border-surface-2 py-3 text-center text-sm text-zinc-300 transition-colors hover:bg-surface-2 hover:text-white"
-        >
-          Ver todas las publicaciones
-        </Link>
+      {/* Divider y label solo si hay feed */}
+      {feed.length > 0 && (
+        <p className="mt-6 mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+          Todos los posts
+        </p>
       )}
 
+      {/* Feed con infinite scroll */}
+      {feed.length > 0 ? (
+        <InfinitePostFeed initialPosts={feed} inmediatosIds={inmediatosIds} />
+      ) : (
+        !inmediatos.length && (
+          <EmptyFeedState
+            isLoggedIn={!!user}
+            hayFiltros={false}
+          />
+        )
+      )}
     </div>
   )
 }
