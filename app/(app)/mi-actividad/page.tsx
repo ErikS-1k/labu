@@ -106,23 +106,33 @@ export default async function MiActividadPage({
       <ActividadRealtimeSync userId={user!.id} />
       <AutoMarcarActividadLeida />
 
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Mi actividad</h1>
-            <p className="mt-1 text-sm text-zinc-400">Tus publicaciones y postulaciones</p>
-          </div>
-          {tab === 'publicaciones' && (
-            <Link
-              href="/publicar"
-              className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-sm text-zinc-900 transition-colors hover:bg-zinc-200"
-            >
-              + Publicar
-            </Link>
-          )}
+      {/* Desktop: header completo con título, subtítulo y botón */}
+      <div className="mb-6 hidden items-start justify-between gap-3 md:flex">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Mi actividad</h1>
+          <p className="mt-1 text-sm text-zinc-400">Tus publicaciones y postulaciones</p>
         </div>
+        {tab === 'publicaciones' && (
+          <Link
+            href="/publicar"
+            className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-sm text-zinc-900 transition-colors hover:bg-zinc-200"
+          >
+            + Publicar
+          </Link>
+        )}
       </div>
+
+      {/* Mobile: solo el botón publicar (el título está en el header sticky) */}
+      {tab === 'publicaciones' && (
+        <div className="mb-4 flex justify-end md:hidden">
+          <Link
+            href="/publicar"
+            className="rounded-lg bg-white px-3 py-1.5 text-sm text-zinc-900 transition-colors hover:bg-zinc-200"
+          >
+            + Publicar
+          </Link>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="mb-6 flex gap-1 rounded-xl bg-surface-0 p-1">

@@ -119,10 +119,10 @@ export default function BottomNav({ userId, unreadCount, isLoggedIn }: Props) {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-zinc-900/90 backdrop-blur-md md:hidden"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="fixed left-3 right-3 z-50 md:hidden"
+      style={{ bottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
     >
-      <nav className="flex items-center px-1 pb-1.5 pt-2">
+      <nav className="flex items-center rounded-2xl border border-white/10 bg-zinc-900/90 px-1 py-2 shadow-lg shadow-black/40 backdrop-blur-md">
         {navItem('/panel',    <IconHome />,    'Inicio')}
         {navItem('/buscar',   <IconSearch />,  'Buscar')}
         {navItem('/publicar', <IconPlus />,    'Publicar')}

@@ -43,7 +43,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           isLoggedIn={!!user}
         />
       </Suspense>
-      <main className="flex-1 overflow-y-auto pb-28 md:pb-0">
+      <main className="flex-1 overflow-y-auto pb-36 md:pb-0">
         <Suspense fallback={null}>
           <MobileHeader userId={user?.id ?? null} initialCount={unreadNotifCount} />
         </Suspense>

@@ -107,10 +107,10 @@ export default function FloatingPublishMenu({ isLoggedIn }: { isLoggedIn: boolea
     <>
       {/* Wrapper con display:contents para que el ref funcione en ambas versiones */}
       <div ref={ref} style={{ display: 'contents' }}>
-        {/* Mobile: posicionado sobre la barra de nav con safe area */}
+        {/* Mobile: posicionado sobre la barra flotante — safe area + margen barra + gap */}
         <div
           className="fixed right-4 z-20 flex flex-col items-end gap-2 md:hidden"
-          style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom))' }}
+          style={{ bottom: 'calc(env(safe-area-inset-bottom) + 6rem)' }}
         >
           {open && <div className="mb-1 flex flex-col gap-2">{menuOptions}</div>}
           {mainButton}
