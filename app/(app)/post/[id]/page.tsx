@@ -11,7 +11,6 @@ import PostularseForm from '@/components/applications/PostularseForm'
 import GuestPostAction from '@/components/posts/GuestPostAction'
 import PostulacionesAutorSection, { type Aplicacion } from '@/components/applications/PostulacionesAutorSection'
 import MiPostulacionSection from '@/components/applications/MiPostulacionSection'
-import StickyContactCta from '@/components/posts/StickyContactCta'
 
 const MODALITY_LABEL: Record<string, string> = {
   inmediato:    'Inmediato',
@@ -124,14 +123,8 @@ export default async function PostPage({
   }
   const autorEdad = calcularEdad(autor?.fecha_nacimiento)
 
-  const mostrarStickyCta = !esAutor && !estaCompletado && !miPostulacion
-  const ctaLabel = esRequerimiento ? 'Postularme' : 'Solicitar contacto'
-
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
-
-      {/* Sticky CTA — solo mobile, scrollea hasta el formulario */}
-      {mostrarStickyCta && <StickyContactCta label={ctaLabel} />}
 
       {/* Breadcrumb dinámico según origen */}
       {origin && (
