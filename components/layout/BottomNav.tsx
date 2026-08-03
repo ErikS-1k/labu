@@ -107,26 +107,22 @@ export default function BottomNav({ userId, unreadCount, isLoggedIn }: Props) {
     const active = isActive(href)
     return (
       <Link href={href} className="flex flex-1 items-center justify-center">
-        {active ? (
-          <span className="flex flex-col items-center gap-1 rounded-xl bg-indigo-500/20 px-3 py-2 text-indigo-300">
-            <span className="relative">{icon}{badge}</span>
-            <span className="text-[10px] font-semibold leading-none">{label}</span>
-          </span>
-        ) : (
-          <span className="relative flex min-h-[44px] items-center justify-center p-2.5 text-zinc-500">
-            {icon}{badge}
-          </span>
-        )}
+        <span className={`flex flex-col items-center gap-0.5 rounded-xl px-2 py-1.5 ${
+          active ? 'bg-indigo-500/20 text-indigo-300' : 'text-zinc-500'
+        }`}>
+          <span className="relative">{icon}{badge}</span>
+          <span className="text-[10px] font-semibold leading-none">{label}</span>
+        </span>
       </Link>
     )
   }
 
   return (
     <div
-      className="fixed left-4 right-4 z-50 md:hidden"
-      style={{ bottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-zinc-900/90 backdrop-blur-md md:hidden"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <nav className="flex items-center rounded-2xl border border-white/10 bg-zinc-900/85 px-1 py-1.5 shadow-lg shadow-black/40 backdrop-blur-md">
+      <nav className="flex items-center px-1 pb-1.5 pt-2">
         {navItem('/panel',    <IconHome />,    'Inicio')}
         {navItem('/buscar',   <IconSearch />,  'Buscar')}
         {navItem('/publicar', <IconPlus />,    'Publicar')}

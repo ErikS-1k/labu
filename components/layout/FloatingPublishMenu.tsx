@@ -36,80 +36,90 @@ export default function FloatingPublishMenu({ isLoggedIn }: { isLoggedIn: boolea
     </svg>
   )
 
+  const menuOptions = isLoggedIn ? (
+    <>
+      <Link
+        href="/publicar?tipo=oferta"
+        onClick={() => setOpen(false)}
+        className="flex items-center gap-2.5 rounded-full border border-green-800/60 bg-green-900/80 px-4 py-2.5 text-sm font-semibold text-green-300 shadow-lg backdrop-blur-sm transition-colors hover:bg-green-900"
+      >
+        {svgTool}
+        Publicar mi servicio
+      </Link>
+      <Link
+        href="/publicar?tipo=requerimiento"
+        onClick={() => setOpen(false)}
+        className="flex items-center gap-2.5 rounded-full border border-blue-800/60 bg-blue-900/80 px-4 py-2.5 text-sm font-semibold text-blue-300 shadow-lg backdrop-blur-sm transition-colors hover:bg-blue-900"
+      >
+        {svgSearch}
+        Publicar una búsqueda
+      </Link>
+    </>
+  ) : (
+    <>
+      <button
+        type="button"
+        onClick={() => { setOpen(false); setModalOpen(true) }}
+        className="flex items-center gap-2.5 rounded-full border border-green-800/60 bg-green-900/80 px-4 py-2.5 text-sm font-semibold text-green-300 shadow-lg backdrop-blur-sm transition-colors hover:bg-green-900"
+      >
+        {svgTool}
+        Publicar mi servicio
+      </button>
+      <button
+        type="button"
+        onClick={() => { setOpen(false); setModalOpen(true) }}
+        className="flex items-center gap-2.5 rounded-full border border-blue-800/60 bg-blue-900/80 px-4 py-2.5 text-sm font-semibold text-blue-300 shadow-lg backdrop-blur-sm transition-colors hover:bg-blue-900"
+      >
+        {svgSearch}
+        Publicar una búsqueda
+      </button>
+    </>
+  )
+
+  const mainButton = (
+    <div className="relative h-14 w-14">
+      <div
+        className="absolute rounded-full"
+        style={{
+          inset: '-3px',
+          background: 'conic-gradient(from 0deg, #1e40af 0deg, #3b82f6 80deg, #bfdbfe 150deg, #ffffff 180deg, #bfdbfe 210deg, #3b82f6 280deg, #1e40af 360deg)',
+          animation: 'spin-border 3s linear infinite',
+        }}
+      />
+      <button
+        onClick={() => setOpen(v => !v)}
+        aria-label="Publicar"
+        className="absolute inset-0 z-10 flex items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-colors hover:bg-blue-500"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          className={`transition-transform duration-200 ${open ? 'rotate-45' : ''}`}
+        >
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      </button>
+    </div>
+  )
+
   return (
     <>
-      <div ref={ref} className="fixed bottom-20 right-4 z-20 flex flex-col items-end gap-2 md:bottom-6">
+      {/* Wrapper con display:contents para que el ref funcione en ambas versiones */}
+      <div ref={ref} style={{ display: 'contents' }}>
+        {/* Mobile: posicionado sobre la barra de nav con safe area */}
+        <div
+          className="fixed right-4 z-20 flex flex-col items-end gap-2 md:hidden"
+          style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom))' }}
+        >
+          {open && <div className="mb-1 flex flex-col gap-2">{menuOptions}</div>}
+          {mainButton}
+        </div>
 
-        {/* Opciones — aparecen encima del botón */}
-        {open && (
-          <div className="mb-1 flex flex-col gap-2">
-            {isLoggedIn ? (
-              <>
-                <Link
-                  href="/publicar?tipo=oferta"
-                  onClick={() => setOpen(false)}
-                  className="flex items-center gap-2.5 rounded-full border border-green-800/60 bg-green-900/80 px-4 py-2.5 text-sm font-semibold text-green-300 shadow-lg backdrop-blur-sm transition-colors hover:bg-green-900"
-                >
-                  {svgTool}
-                  Publicar mi servicio
-                </Link>
-                <Link
-                  href="/publicar?tipo=requerimiento"
-                  onClick={() => setOpen(false)}
-                  className="flex items-center gap-2.5 rounded-full border border-blue-800/60 bg-blue-900/80 px-4 py-2.5 text-sm font-semibold text-blue-300 shadow-lg backdrop-blur-sm transition-colors hover:bg-blue-900"
-                >
-                  {svgSearch}
-                  Publicar una búsqueda
-                </Link>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => { setOpen(false); setModalOpen(true) }}
-                  className="flex items-center gap-2.5 rounded-full border border-green-800/60 bg-green-900/80 px-4 py-2.5 text-sm font-semibold text-green-300 shadow-lg backdrop-blur-sm transition-colors hover:bg-green-900"
-                >
-                  {svgTool}
-                  Publicar mi servicio
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setOpen(false); setModalOpen(true) }}
-                  className="flex items-center gap-2.5 rounded-full border border-blue-800/60 bg-blue-900/80 px-4 py-2.5 text-sm font-semibold text-blue-300 shadow-lg backdrop-blur-sm transition-colors hover:bg-blue-900"
-                >
-                  {svgSearch}
-                  Publicar una búsqueda
-                </button>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Botón principal con borde giratorio */}
-        <div className="relative h-14 w-14">
-          {/* Capa del gradiente giratorio — queda fuera del área del botón */}
-          <div
-            className="absolute rounded-full"
-            style={{
-              inset: '-3px',
-              background: 'conic-gradient(from 0deg, #1e40af 0deg, #3b82f6 80deg, #bfdbfe 150deg, #ffffff 180deg, #bfdbfe 210deg, #3b82f6 280deg, #1e40af 360deg)',
-              animation: 'spin-border 3s linear infinite',
-            }}
-          />
-          <button
-            onClick={() => setOpen(v => !v)}
-            aria-label="Publicar"
-            className="absolute inset-0 z-10 flex items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-colors hover:bg-blue-500"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-              className={`transition-transform duration-200 ${open ? 'rotate-45' : ''}`}
-            >
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-          </button>
+        {/* Desktop: posición original cerca del borde inferior */}
+        <div className="fixed bottom-6 right-4 z-20 hidden flex-col items-end gap-2 md:flex">
+          {open && <div className="mb-1 flex flex-col gap-2">{menuOptions}</div>}
+          {mainButton}
         </div>
       </div>
 
