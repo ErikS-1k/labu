@@ -9,15 +9,15 @@ function getCrumbs(pathname: string, userId: string | null): Crumb[] {
   // Páginas raíz: no se muestran breadcrumbs
   if (pathname === '/panel') return []
 
-  // Top-level sin padre
-  if (pathname === '/buscar')         return [{ label: 'Buscar' }]
-  if (pathname === '/publicar')       return [{ label: 'Publicar' }]
+  // Top-level sin padre — las páginas raíz con PageHeader no muestran breadcrumb
+  if (pathname === '/buscar')         return []
+  if (pathname === '/publicar')       return []
+  if (pathname === '/notificaciones') return []
   if (pathname === '/ofertas')        return [{ label: 'Ofertas' }]
   if (pathname === '/requerimientos') return [{ label: 'Requerimientos' }]
-  if (pathname === '/notificaciones') return [{ label: 'Notificaciones' }]
 
   // Mensajes
-  if (pathname === '/mensajes') return [{ label: 'Mensajes' }]
+  if (pathname === '/mensajes') return []
   if (pathname === '/mensajes/nuevo') return [
     { label: 'Mensajes', href: '/mensajes' },
     { label: 'Nueva conversación' },
@@ -28,7 +28,7 @@ function getCrumbs(pathname: string, userId: string | null): Crumb[] {
   ]
 
   // Mi actividad
-  if (pathname === '/mi-actividad') return [{ label: 'Mi actividad' }]
+  if (pathname === '/mi-actividad') return []
   if (pathname.startsWith('/editar/')) return [
     { label: 'Mi actividad', href: '/mi-actividad' },
     { label: 'Editar publicación' },
@@ -46,7 +46,9 @@ function getCrumbs(pathname: string, userId: string | null): Crumb[] {
   if (pathname.startsWith('/perfil/')) {
     const segment = pathname.split('/')[2]
     const isOwn = !!userId && segment === userId
-    return [{ label: isOwn ? 'Mi perfil' : 'Perfil' }]
+    // Perfil propio → PageHeader en la página, sin breadcrumb
+    if (isOwn) return []
+    return [{ label: 'Perfil' }]
   }
 
   // /post/[id] — la página maneja su propio breadcrumb con título real y origen dinámico

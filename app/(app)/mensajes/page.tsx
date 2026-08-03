@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
 import ConversacionList from '@/components/mensajes/ConversacionList'
+import PageHeader from '@/components/ui/PageHeader'
 
 export const metadata: Metadata = { title: 'Mensajes — Labu' }
 
@@ -41,7 +42,7 @@ export default async function MensajesPage() {
 
   return (
     <main className="mx-auto max-w-xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-white">Mensajes</h1>
+      <PageHeader title="Mensajes" subtitle="Tus conversaciones activas" />
       <ConversacionList initialConversaciones={conversaciones} currentUserId={user!.id} />
     </main>
   )

@@ -107,16 +107,21 @@ export default async function MiActividadPage({
       <AutoMarcarActividadLeida />
 
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-white">Mi actividad</h1>
-        {tab === 'publicaciones' && (
-          <Link
-            href="/publicar"
-            className="rounded-lg bg-white px-3 py-1.5 text-sm text-zinc-900 transition-colors hover:bg-zinc-200"
-          >
-            + Publicar
-          </Link>
-        )}
+      <div className="mb-6">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Mi actividad</h1>
+            <p className="mt-1 text-sm text-zinc-400">Tus publicaciones y postulaciones</p>
+          </div>
+          {tab === 'publicaciones' && (
+            <Link
+              href="/publicar"
+              className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-sm text-zinc-900 transition-colors hover:bg-zinc-200"
+            >
+              + Publicar
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}

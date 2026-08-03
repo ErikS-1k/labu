@@ -5,6 +5,7 @@ import PostCard, { type PostCardData } from '@/components/posts/PostCard'
 import GuestPublishButtons from '@/components/panel/GuestPublishButtons'
 import EmptyFeedState from '@/components/posts/EmptyFeedState'
 import OnboardingBanner from '@/components/onboarding/OnboardingBanner'
+import PageHeader from '@/components/ui/PageHeader'
 
 export const metadata = { title: 'Inicio — Labu' }
 
@@ -83,6 +84,7 @@ export default async function PanelPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
+      <PageHeader title="Inicio" subtitle="Descubrí quién puede ayudarte" />
       {user && !allDone && (
         <OnboardingBanner step1Done={step1Done} step2Done={step2Done} step3Done={step3Done} />
       )}

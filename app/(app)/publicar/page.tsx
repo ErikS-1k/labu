@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import PublicarForm from '@/components/posts/PublicarForm'
+import PageHeader from '@/components/ui/PageHeader'
 
 export const metadata: Metadata = { title: 'Publicar — Labu' }
 
@@ -51,10 +52,7 @@ export default async function PublicarPage({
 
   return (
     <main className="mx-auto max-w-xl px-4 py-8">
-      <h1 className="mb-2 text-2xl font-bold text-white">Nueva publicación</h1>
-      <p className="mb-8 text-sm text-zinc-500">
-        Completá los campos. Solo el título y la duración son obligatorios.
-      </p>
+      <PageHeader title="Nueva publicación" subtitle="Ofrecé un servicio o buscá contratar" />
       <PublicarForm defaultTipo={defaultTipo} />
     </main>
   )

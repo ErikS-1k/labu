@@ -6,6 +6,7 @@ import { avatarBg } from '@/lib/avatar'
 import PostCard, { PostCardData } from '@/components/posts/PostCard'
 import SearchForm from '@/components/search/SearchForm'
 import EmptyFeedState from '@/components/posts/EmptyFeedState'
+import PageHeader from '@/components/ui/PageHeader'
 
 export default async function BuscarPage({
   searchParams,
@@ -82,6 +83,7 @@ export default async function BuscarPage({
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
+      <PageHeader title="Buscar" subtitle="Encontrá personas, servicios o trabajo" />
       <SearchForm initialQ={q} />
 
       {/* Tabs — solo cuando hay búsqueda activa */}

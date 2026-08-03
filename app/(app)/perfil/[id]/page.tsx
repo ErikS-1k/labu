@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getAuthUser } from '@/lib/auth'
 import { avatarBg } from '@/lib/avatar'
+import PageHeader from '@/components/ui/PageHeader'
 
 export const metadata: Metadata = { title: 'Perfil — Labu' }
 
@@ -153,6 +154,10 @@ export default async function PerfilPage({
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
 
+      {esPropio && (
+        <PageHeader title="Mi perfil" subtitle="Gestioná tu información y trabajos" />
+      )}
+
       {/* ── HEADER ───────────────────────────────────────── */}
       <div className="rounded-2xl border border-surface-2 bg-surface-1 p-6">
         <div className="flex items-start gap-5">
@@ -171,7 +176,10 @@ export default async function PerfilPage({
             {/* Nombre + badge + botones */}
             <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-bold text-white">{nombre}</h1>
+                {esPropio
+                  ? <p className="text-2xl font-bold text-white">{nombre}</p>
+                  : <h1 className="text-2xl font-bold text-white">{nombre}</h1>
+                }
                 {estaVerif && (
                   <span className="flex items-center gap-1 rounded-full bg-blue-900/40 px-2.5 py-0.5 text-xs font-medium text-blue-400">
                     ✓ Verificado

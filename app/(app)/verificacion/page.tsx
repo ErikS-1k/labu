@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
@@ -21,19 +20,6 @@ export default async function VerificacionPage() {
 
   return (
     <main className="mx-auto max-w-lg px-4 py-8">
-      <Link
-        href={`/perfil/${user!.id}`}
-        className="mb-6 inline-block text-sm text-zinc-400 hover:text-zinc-700"
-      >
-        ← Volver al perfil
-      </Link>
-
-      <h1 className="mb-2 text-xl font-bold text-white">Verificá tu identidad</h1>
-      <p className="mb-8 text-sm text-zinc-500">
-        El badge de verificación le muestra a otros usuarios que sos una persona real.
-        Aumenta la confianza y tus chances de ser contratado o de conseguir candidatos serios.
-      </p>
-
       {/* Qué subir */}
       <div className="mb-6 rounded-xl border border-surface-2 bg-surface-1 p-5">
         <h2 className="mb-3 text-sm font-semibold text-zinc-700">Qué necesitás subir</h2>

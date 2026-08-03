@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
@@ -32,17 +31,9 @@ export default async function EditarPerfilPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <Link
-        href={`/perfil/${user!.id}`}
-        className="mb-6 inline-block text-sm text-zinc-400 hover:text-zinc-600"
-      >
-        ← Volver al perfil
-      </Link>
-
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
         {/* Editar perfil */}
         <div className="flex-1">
-          <h1 className="mb-6 text-xl font-bold text-white">Editar perfil</h1>
           <div className="rounded-xl border border-surface-2 bg-surface-1 p-6">
             <EditarPerfilForm
               userId={user!.id}
