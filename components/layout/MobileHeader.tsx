@@ -14,26 +14,26 @@ function IconBell() {
   )
 }
 
-function getPageTitle(pathname: string, userId: string | null): string {
-  if (pathname === '/panel')            return 'Inicio'
-  if (pathname === '/buscar')           return 'Buscar'
-  if (pathname === '/publicar')         return 'Nueva publicación'
-  if (pathname === '/mensajes')         return 'Mensajes'
-  if (pathname === '/mensajes/nuevo')   return 'Nueva conversación'
-  if (pathname.startsWith('/mensajes/')) return 'Conversación'
-  if (pathname === '/mi-actividad')     return 'Mi actividad'
-  if (pathname === '/notificaciones')   return 'Notificaciones'
-  if (pathname === '/verificacion')     return 'Verificación'
-  if (pathname === '/perfil/editar')    return 'Editar perfil'
-  if (pathname.startsWith('/perfil/')) {
+type PageConfig = { title: string; subtitle: string }
+
+const PAGES: Record<string, PageConfig> = {
+  '/panel':          { title: 'Inicio',            subtitle: 'Descubrí quién puede ayudarte' },
+  '/buscar':         { title: 'Buscar',             subtitle: 'Encontrá personas, servicios o trabajo' },
+  '/publicar':       { title: 'Nueva publicación',  subtitle: 'Ofrecé un servicio o buscá contratar' },
+  '/mensajes':       { title: 'Mensajes',           subtitle: 'Tus conversaciones activas' },
+  '/mi-actividad':   { title: 'Mi actividad',       subtitle: 'Tus publicaciones y postulaciones' },
+  '/notificaciones': { title: 'Notificaciones',     subtitle: 'Tus novedades recientes' },
+}
+
+function getConfig(pathname: string, userId: string | null): PageConfig | null {
+  // Perfil propio
+  if (pathname.startsWith('/perfil/') && !pathname.startsWith('/perfil/editar')) {
     const segment = pathname.split('/')[2]
-    return userId && segment === userId ? 'Mi perfil' : 'Perfil'
+    if (userId && segment === userId) {
+      return { title: 'Mi perfil', subtitle: 'Gestioná tu información y trabajos' }
+    }
   }
-  if (pathname.startsWith('/editar/'))  return 'Editar publicación'
-  if (pathname.startsWith('/post/'))    return 'Publicación'
-  if (pathname === '/ofertas')          return 'Servicios'
-  if (pathname === '/requerimientos')   return 'Búsquedas'
-  return ''
+  return PAGES[pathname] ?? null
 }
 
 export default function MobileHeader({
@@ -45,12 +45,14 @@ export default function MobileHeader({
 }) {
   const [unread, setUnread] = useState(initialCount)
   const pathname = usePathname()
-  const title = getPageTitle(pathname, userId)
+  const config = getConfig(pathname, userId)
 
+  // Marcar como leídas al entrar a notificaciones
   useEffect(() => {
     if (pathname === '/notificaciones') setUnread(0)
   }, [pathname])
 
+  // Suscripción realtime para nuevas notificaciones
   useEffect(() => {
     if (!userId) return
     const supabase = createClient()
@@ -75,25 +77,30 @@ export default function MobileHeader({
     }
   }, [userId])
 
-  if (!userId) return null
+  // Solo se muestra en páginas raíz con configuración definida
+  if (!userId || !config) return null
 
   return (
-    <header className="sticky top-0 z-10 flex items-center border-b border-surface-2/50 bg-surface-1/90 px-4 py-2.5 backdrop-blur-sm md:hidden">
-      {title && (
-        <span className="text-[15px] font-semibold text-white">{title}</span>
-      )}
-      <Link
-        href="/notificaciones"
-        className="relative ml-auto flex h-9 w-9 items-center justify-center rounded-xl border border-surface-2 bg-surface-0 text-zinc-400 transition-colors hover:text-white"
-        aria-label="Notificaciones"
-      >
-        <IconBell />
-        {unread > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
-            {unread > 9 ? '9+' : unread}
-          </span>
-        )}
-      </Link>
-    </header>
+    <div className="mx-auto w-full max-w-2xl px-4 pt-8 pb-1 md:hidden">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-white">{config.title}</h1>
+          <p className="mt-1 text-sm text-zinc-400">{config.subtitle}</p>
+        </div>
+
+        <Link
+          href="/notificaciones"
+          className="relative mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 text-blue-400 transition-colors hover:bg-zinc-800"
+          aria-label="Notificaciones"
+        >
+          <IconBell />
+          {unread > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
+              {unread > 9 ? '9+' : unread}
+            </span>
+          )}
+        </Link>
+      </div>
+    </div>
   )
 }
