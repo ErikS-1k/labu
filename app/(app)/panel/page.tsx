@@ -21,9 +21,7 @@ export default async function PanelPage({
   const busqueda  = params.busqueda
   const categoria = params.categoria
   const modalidad = params.modalidad
-  const PAGE_SIZE = 20
-  const pagina    = Math.max(0, parseInt(params.pagina ?? '0') || 0)
-  const offset    = pagina * PAGE_SIZE
+  const FEED_LIMIT = 10
 
   const supabase   = await createClient()
   const user = await getAuthUser()
@@ -51,16 +49,16 @@ export default async function PanelPage({
   }
   const allDone = step1Done && step2Done && step3Done
 
-  // Sección "Disponibles ahora" — solo en página 0 sin filtros
+  // Sección "Disponibles ahora" — solo cuando no hay filtros activos
   let inmediatos: PostCardData[] = []
-  if (!hayFiltros && pagina === 0) {
+  if (!hayFiltros) {
     const { data } = await supabase
       .from('posts')
       .select(baseSelect)
       .eq('is_active', true)
       .contains('modality', ['inmediato'])
       .order('created_at', { ascending: false })
-      .limit(4)
+      .limit(6)
     inmediatos = (data ?? []) as unknown as PostCardData[]
   }
 
@@ -77,10 +75,11 @@ export default async function PanelPage({
   if (categoria) query = query.ilike('category', `%${categoria}%`)
   if (modalidad) query = query.contains('modality', [modalidad])
 
-  query = query.range(offset, offset + PAGE_SIZE - 1)
-  const { data: posts } = await query
-  const inmediatosIds   = pagina === 0 ? new Set(inmediatos.map(p => p.id)) : new Set<string>()
-  const feed = ((posts ?? []) as unknown as PostCardData[]).filter(p => !inmediatosIds.has(p.id))
+  const { data: posts } = await query.limit(FEED_LIMIT + inmediatos.length)
+  const inmediatosIds   = new Set(inmediatos.map(p => p.id))
+  const feed = ((posts ?? []) as unknown as PostCardData[])
+    .filter(p => !inmediatosIds.has(p.id))
+    .slice(0, FEED_LIMIT)
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
@@ -174,26 +173,14 @@ export default async function PanelPage({
 
       </div>
 
-      {/* Paginación */}
-      {(pagina > 0 || feed.length === PAGE_SIZE) && (
-        <div className="mt-8 flex items-center justify-between border-t border-surface-2 pt-6">
-          {pagina > 0 ? (
-            <Link
-              href={pagina === 1 ? '/panel' : `/panel?pagina=${pagina - 1}`}
-              className="text-sm text-zinc-400 transition-colors hover:text-white"
-            >
-              ← Anterior
-            </Link>
-          ) : <span />}
-          {feed.length === PAGE_SIZE && (
-            <Link
-              href={`/panel?pagina=${pagina + 1}`}
-              className="text-sm text-zinc-400 transition-colors hover:text-white"
-            >
-              Siguiente →
-            </Link>
-          )}
-        </div>
+      {/* Botón Ver más — solo cuando hay contenido */}
+      {(feed.length > 0 || inmediatos.length > 0) && (
+        <Link
+          href="/buscar"
+          className="mt-6 block rounded-xl border border-surface-2 py-3 text-center text-sm text-zinc-300 transition-colors hover:bg-surface-2 hover:text-white"
+        >
+          Ver todas las publicaciones
+        </Link>
       )}
 
     </div>
