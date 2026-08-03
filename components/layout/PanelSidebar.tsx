@@ -182,7 +182,7 @@ export default function PanelSidebar({ userId, userName, unreadCount, unreadNoti
   function itemClass(href: string) {
     return `flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
       isActive(href)
-        ? 'bg-surface-2 text-white'
+        ? 'bg-blue-500/10 text-blue-400'
         : 'text-zinc-400 hover:bg-surface-2 hover:text-white'
     }`
   }

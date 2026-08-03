@@ -192,7 +192,7 @@ export default function SeccionCard({ s }: { s: Seccion }) {
           <button
             type="submit"
             disabled={editPending}
-            className="self-start rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:opacity-40"
+            className="self-start rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600 disabled:opacity-40"
           >
             {editPending ? 'Guardando...' : 'Guardar'}
           </button>

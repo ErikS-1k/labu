@@ -55,7 +55,7 @@ export default function PostularseForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:opacity-40"
+        className="rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-600 disabled:opacity-40"
       >
         {pending ? 'Enviando...' : textoBoton}
       </button>

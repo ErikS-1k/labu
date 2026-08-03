@@ -70,7 +70,7 @@ export default function OnboardingBanner({ step1Done, step2Done, step3Done }: Pr
   ]
 
   return (
-    <div className="mb-6 overflow-hidden rounded-xl border border-surface-2 bg-surface-1">
+    <div className="mb-6 overflow-hidden rounded-xl border border-blue-900/50 bg-blue-950/40">
       {/* Cabecera */}
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="min-w-0 flex-1">

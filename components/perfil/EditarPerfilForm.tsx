@@ -241,7 +241,7 @@ export default function EditarPerfilForm({ userId, first_name, last_name, userna
         className={`rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
           saved
             ? 'cursor-default bg-zinc-700 text-zinc-400'
-            : 'bg-white text-zinc-900 hover:bg-zinc-200 disabled:opacity-40'
+            : 'bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-40'
         }`}
       >
         {pending ? 'Guardando...' : saved ? 'Guardado ✓' : 'Guardar cambios'}

@@ -108,7 +108,7 @@ export default function BottomNav({ userId, unreadCount, isLoggedIn }: Props) {
     return (
       <Link href={href} className="flex flex-1 items-center justify-center">
         <span className={`flex flex-col items-center gap-0.5 rounded-xl px-2 py-1.5 ${
-          active ? 'bg-indigo-500/20 text-indigo-300' : 'text-zinc-500'
+          active ? 'bg-blue-500/15 text-blue-400' : 'text-zinc-500'
         }`}>
           <span className="relative">{icon}{badge}</span>
           <span className="text-[10px] font-semibold leading-none">{label}</span>

@@ -115,7 +115,7 @@ export default async function MiActividadPage({
         {tab === 'publicaciones' && (
           <Link
             href="/publicar"
-            className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-sm text-zinc-900 transition-colors hover:bg-zinc-200"
+            className="shrink-0 rounded-lg bg-blue-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-600"
           >
             + Publicar
           </Link>
@@ -152,7 +152,7 @@ export default async function MiActividadPage({
               <p className="text-zinc-500">Todavía no publicaste nada.</p>
               <Link
                 href="/publicar"
-                className="mt-4 inline-block rounded-lg bg-white px-4 py-2 text-sm text-zinc-900 hover:bg-zinc-200"
+                className="mt-4 inline-block rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600"
               >
                 Crear primera publicación
               </Link>

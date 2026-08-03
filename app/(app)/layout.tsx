@@ -32,7 +32,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-surface-1">
+    <div className="flex h-dvh overflow-hidden bg-surface-0">
       <Suspense fallback={<div className="hidden md:flex h-dvh w-14 shrink-0 border-r border-surface-2 bg-surface-0" />}>
         <PanelSidebar
           userId={user?.id ?? null}

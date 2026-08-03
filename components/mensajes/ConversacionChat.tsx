@@ -106,7 +106,7 @@ export default function ConversacionChat({
   return (
     <div className="flex h-full flex-col">
       {/* Encabezado */}
-      <div className="border-b border-zinc-200 px-4 py-3">
+      <div className="border-b border-surface-2 px-4 py-3">
         <p className="font-semibold text-white">{receiverName}</p>
         {receiverHeadline && (
           <p className="truncate text-xs text-zinc-500">{receiverHeadline}</p>
@@ -128,8 +128,8 @@ export default function ConversacionChat({
             >
               <div className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm leading-relaxed ${
                 msg.sender_id === currentUserId
-                  ? 'bg-white text-zinc-900'
-                  : 'bg-zinc-100 text-zinc-800'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-surface-2 text-zinc-200'
               }`}>
                 {msg.content}
               </div>
@@ -140,18 +140,18 @@ export default function ConversacionChat({
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} className="flex gap-3 border-t border-zinc-200 p-3">
+      <form onSubmit={handleSend} className="flex gap-3 border-t border-surface-2 p-3">
         <input
           value={content}
           onChange={e => setContent(e.target.value)}
           placeholder="Escribí un mensaje..."
           disabled={sending}
-          className="flex-1 rounded-lg border border-zinc-300 px-4 py-3 text-base outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
+          className="flex-1 rounded-lg border border-surface-2 bg-surface-2 px-4 py-3 text-base outline-none focus:border-zinc-600"
         />
         <button
           type="submit"
           disabled={!content.trim() || sending}
-          className="rounded-lg bg-white px-4 py-3 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:opacity-40"
+          className="rounded-lg bg-blue-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-600 disabled:opacity-40"
         >
           Enviar
         </button>

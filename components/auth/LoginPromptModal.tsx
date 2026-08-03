@@ -27,7 +27,7 @@ export default function LoginPromptModal({
         <div className="flex flex-col gap-2">
           <Link
             href="/registro"
-            className="w-full rounded-lg bg-white py-2.5 text-center text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200"
+            className="w-full rounded-lg bg-blue-500 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-blue-600"
           >
             Crear cuenta
           </Link>

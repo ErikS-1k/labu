@@ -149,7 +149,7 @@ export default function PostulacionesAutorSection({ initialPostulaciones, postId
                   <form action={iniciarConversacion} className="mt-3">
                     <input type="hidden" name="post_id"     value={postId} />
                     <input type="hidden" name="receiver_id" value={p.applicant_id} />
-                    <button type="submit" className="w-full rounded-lg bg-white px-4 py-2 text-xs font-medium text-zinc-900 hover:bg-zinc-200">
+                    <button type="submit" className="w-full rounded-lg bg-blue-500 px-4 py-2 text-xs font-medium text-white hover:bg-blue-600">
                       Iniciar conversación
                     </button>
                   </form>

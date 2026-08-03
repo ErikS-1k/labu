@@ -48,7 +48,7 @@ export default function VerificacionForm({ userId }: Props) {
             <button
               type="submit"
               disabled={pending}
-              className="rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:opacity-40"
+              className="rounded-lg bg-blue-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-600 disabled:opacity-40"
             >
               {pending ? 'Enviando...' : 'Enviar verificación'}
             </button>
