@@ -17,12 +17,11 @@ function IconBell() {
 type PageConfig = { title: string; subtitle: string }
 
 const PAGES: Record<string, PageConfig> = {
-  '/panel':          { title: 'Inicio',            subtitle: 'Descubrí quién puede ayudarte' },
-  '/buscar':         { title: 'Buscar',             subtitle: 'Encontrá personas, servicios o trabajo' },
-  '/publicar':       { title: 'Nueva publicación',  subtitle: 'Ofrecé un servicio o buscá contratar' },
-  '/mensajes':       { title: 'Mensajes',           subtitle: 'Tus conversaciones activas' },
-  '/mi-actividad':   { title: 'Mi actividad',       subtitle: 'Tus publicaciones y postulaciones' },
-  '/notificaciones': { title: 'Notificaciones',     subtitle: 'Tus novedades recientes' },
+  '/panel':          { title: 'Inicio',        subtitle: 'Descubrí quién puede ayudarte' },
+  '/buscar':         { title: 'Buscar',         subtitle: 'Encontrá personas, servicios o trabajo' },
+  '/mensajes':       { title: 'Mensajes',       subtitle: 'Tus conversaciones activas' },
+  '/mi-actividad':   { title: 'Mi actividad',   subtitle: 'Tus publicaciones y postulaciones' },
+  '/notificaciones': { title: 'Notificaciones', subtitle: 'Tus novedades recientes' },
 }
 
 function getConfig(pathname: string, userId: string | null): PageConfig | null {
