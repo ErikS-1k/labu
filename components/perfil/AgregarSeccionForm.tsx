@@ -15,8 +15,8 @@ const TIPOS = [
 const CURRENT_YEAR = new Date().getFullYear()
 const YEARS = Array.from({ length: CURRENT_YEAR - 1970 + 1 }, (_, i) => CURRENT_YEAR - i)
 
-const SELECT_CLS = 'rounded-lg border border-zinc-600 bg-surface-2 px-3 py-2 text-sm text-white outline-none focus:border-zinc-400'
-const INPUT_CLS  = 'rounded-lg border border-zinc-600 bg-surface-2 px-3 py-2 text-sm text-white outline-none focus:border-zinc-400 placeholder:text-zinc-500'
+const SELECT_CLS = 'rounded-xl border border-[#2a2a2a] bg-[#111] px-3 py-2 text-sm text-white outline-none transition-colors focus:border-zinc-500'
+const INPUT_CLS  = 'rounded-xl border border-[#2a2a2a] bg-[#111] px-3 py-2 text-sm text-white outline-none transition-colors focus:border-zinc-500 placeholder:text-zinc-600'
 
 const init = { error: null as string | null, ok: false }
 
@@ -40,7 +40,7 @@ export default function AgregarSeccionForm() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-surface-2 py-3 text-sm text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-300"
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[#2a2a2a] py-3 text-sm text-zinc-500 transition-colors hover:border-zinc-600 hover:text-zinc-300"
       >
         <span className="text-base leading-none">+</span>
         Agregar
@@ -49,7 +49,7 @@ export default function AgregarSeccionForm() {
   }
 
   return (
-    <form ref={formRef} action={action} className="flex flex-col gap-3 rounded-lg border border-surface-2 bg-surface-1 p-4">
+    <form ref={formRef} action={action} className="flex flex-col gap-3 rounded-2xl border border-[#2a2a2a] bg-[#0d0d0d] p-4">
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-zinc-300">Nueva entrada</p>
         <button type="button" onClick={() => { setOpen(false); setActualidad(false) }} className="text-xs text-zinc-500 hover:text-zinc-300">
@@ -89,7 +89,7 @@ export default function AgregarSeccionForm() {
             {actualidad ? (
               <>
                 <input type="hidden" name="date_to" value="Actualidad" />
-                <div className="flex h-[38px] items-center rounded-lg border border-zinc-600 bg-surface-2 px-3 text-sm text-zinc-400">
+                <div className="flex h-[38px] items-center rounded-xl border border-[#2a2a2a] bg-[#111] px-3 text-sm text-zinc-400">
                   Actualidad
                 </div>
               </>

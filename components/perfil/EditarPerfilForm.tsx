@@ -7,32 +7,78 @@ import { useProgress } from '@/lib/useProgress'
 import { showToast } from '@/lib/toast'
 import { avatarBg } from '@/lib/avatar'
 
+// ─── Tipos ────────────────────────────────────────────────────────────────────
+
 type Props = {
-  userId:      string
-  first_name:  string | null
-  last_name:   string | null
-  username:    string | null
-  headline:    string | null
-  bio:         string | null
-  location:    string | null
-  phone:       string | null
-  email:       string | null
-  avatar_url:  string | null
+  userId:     string
+  first_name: string | null
+  last_name:  string | null
+  username:   string | null
+  headline:   string | null
+  bio:        string | null
+  location:   string | null
+  phone:      string | null
+  email:      string | null
+  avatar_url: string | null
 }
+
+// ─── Estilos ──────────────────────────────────────────────────────────────────
+
+const inputDark =
+  'w-full rounded-xl border border-[#2a2a2a] bg-[#111] px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none transition-colors focus:border-zinc-500'
+
+// ─── Íconos de sección ────────────────────────────────────────────────────────
+
+function IconPerson() {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+}
+function IconDoc() {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+}
+function IconPhone() {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.62 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8a16 16 0 0 0 7.91 7.91l.81-.81a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+}
+
+// ─── Card de sección ──────────────────────────────────────────────────────────
+
+function SectionCard({
+  icon, iconCls, title, children,
+}: {
+  icon: React.ReactNode
+  iconCls: string
+  title: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex flex-col gap-4 rounded-2xl border border-[#2a2a2a] bg-[#171717] p-5">
+      <div className="flex items-center gap-2.5">
+        <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${iconCls}`}>
+          {icon}
+        </div>
+        <h2 className="text-sm font-semibold text-white">{title}</h2>
+      </div>
+      {children}
+    </div>
+  )
+}
+
+// ─── Componente principal ─────────────────────────────────────────────────────
 
 const init = { error: null as string | null, toast: null as string | null }
 
-export default function EditarPerfilForm({ userId, first_name, last_name, username, headline, bio, location, phone, email, avatar_url }: Props) {
+export default function EditarPerfilForm({
+  userId, first_name, last_name, username, headline, bio, location, phone, email, avatar_url,
+}: Props) {
   const [state, action, pending] = useActionState(actualizarPerfil, init)
   useProgress(pending)
-  const [saved, setSaved] = useState(false)
-  const [preview, setPreview] = useState<string | null>(avatar_url)
-  // dbAvatarUrl rastrea el estado real en la BD (se actualiza después de eliminar)
+  const [saved, setSaved]           = useState(false)
+  const [preview, setPreview]       = useState<string | null>(avatar_url)
   const [dbAvatarUrl, setDbAvatarUrl] = useState<string | null>(avatar_url)
-  const [isNewFile, setIsNewFile] = useState(false)
-  const [confirmar, setConfirmar] = useState(false)
+  const [isNewFile, setIsNewFile]   = useState(false)
+  const [confirmar, setConfirmar]   = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [deletePending, startDelete] = useTransition()
+  const avatarRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (state.toast === 'perfil_actualizado' && !state.error) {
@@ -40,7 +86,6 @@ export default function EditarPerfilForm({ userId, first_name, last_name, userna
       setSaved(true)
     }
   }, [state])
-  const avatarRef = useRef<HTMLInputElement>(null)
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -69,33 +114,33 @@ export default function EditarPerfilForm({ userId, first_name, last_name, userna
   const inicial = (first_name ?? username ?? 'U')[0].toUpperCase()
 
   return (
-    <form action={action} onChange={() => setSaved(false)} className="flex flex-col gap-4">
-      {/* Foto de perfil */}
-      <div className="flex items-center gap-4">
+    <form action={action} onChange={() => setSaved(false)} className="flex flex-col gap-5">
+
+      {/* ── Foto de perfil ── */}
+      <div className="flex flex-col items-center gap-4 rounded-2xl border border-[#2a2a2a] bg-[#171717] p-6">
         <button
           type="button"
           onClick={() => avatarRef.current?.click()}
-          className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-full hover:opacity-80 transition-opacity ${!preview ? avatarBg(username, first_name, userId) : ''}`}
+          className={`relative h-24 w-24 overflow-hidden rounded-full transition-opacity hover:opacity-80 ${!preview ? avatarBg(username, first_name, userId) : ''}`}
         >
           {preview
             ? preview.startsWith('blob:')
               ? <img src={preview} alt="Avatar" className="h-full w-full object-cover" />
-              : <Image src={preview} width={64} height={64} sizes="64px" className="object-cover" alt="Avatar" />
-            : <span className="flex h-full w-full items-center justify-center text-2xl font-bold text-white">{inicial}</span>
+              : <Image src={preview} width={96} height={96} sizes="96px" className="object-cover" alt="Avatar" />
+            : <span className="flex h-full w-full items-center justify-center text-4xl font-bold text-white">{inicial}</span>
           }
         </button>
 
         {confirmar ? (
-          /* Confirmación de eliminación */
-          <div className="flex flex-col gap-2">
-            <p className="text-sm text-white">¿Eliminar tu foto de perfil?</p>
+          <div className="flex flex-col items-center gap-3 text-center">
+            <p className="text-sm text-zinc-300">¿Eliminás tu foto de perfil?</p>
             {deleteError && <p className="text-xs text-red-400">{deleteError}</p>}
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={handleEliminarConfirmado}
                 disabled={deletePending}
-                className="rounded-lg bg-red-700 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+                className="rounded-xl bg-red-500/15 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/25 disabled:opacity-50"
               >
                 {deletePending ? 'Eliminando...' : 'Sí, eliminar'}
               </button>
@@ -103,27 +148,27 @@ export default function EditarPerfilForm({ userId, first_name, last_name, userna
                 type="button"
                 onClick={() => { setConfirmar(false); setDeleteError(null) }}
                 disabled={deletePending}
-                className="rounded-lg border border-surface-2 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-surface-2 disabled:opacity-50"
+                className="rounded-xl border border-[#2a2a2a] px-4 py-2 text-sm text-zinc-400 transition-colors hover:border-zinc-600 disabled:opacity-50"
               >
                 Cancelar
               </button>
             </div>
           </div>
         ) : (
-          <div>
+          <div className="flex flex-col items-center gap-2 text-center">
             <button
               type="button"
               onClick={() => avatarRef.current?.click()}
-              className="text-sm text-zinc-400 underline hover:text-white"
+              className="rounded-xl bg-blue-500/15 px-4 py-2 text-sm font-medium text-blue-400 transition-colors hover:bg-blue-500/25"
             >
               Cambiar foto
             </button>
-            <p className="mt-0.5 text-xs text-zinc-400">JPG o PNG · máx. 5MB</p>
+            <p className="text-xs text-zinc-600">JPG o PNG · máx. 5MB</p>
             {dbAvatarUrl && !isNewFile && (
               <button
                 type="button"
                 onClick={() => setConfirmar(true)}
-                className="mt-1 text-xs text-red-400 hover:text-red-300 transition-colors"
+                className="text-xs text-red-400 transition-colors hover:text-red-300"
               >
                 Eliminar foto
               </button>
@@ -141,111 +186,130 @@ export default function EditarPerfilForm({ userId, first_name, last_name, userna
         />
       </div>
 
-      <div className="flex gap-3">
-        <div className="flex flex-1 flex-col gap-1">
-          <label className="text-sm font-medium text-zinc-700">Nombre</label>
+      {/* ── Información personal ── */}
+      <SectionCard icon={<IconPerson />} iconCls="bg-blue-500/15 text-blue-400" title="Información personal">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-zinc-400">
+              Nombre <span className="text-red-400">*</span>
+            </label>
+            <input
+              name="first_name"
+              defaultValue={first_name ?? ''}
+              placeholder="Juan"
+              required
+              className={inputDark}
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-zinc-400">Apellido</label>
+            <input
+              name="last_name"
+              defaultValue={last_name ?? ''}
+              placeholder="Pérez"
+              className={inputDark}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-zinc-400">Username</label>
+          <div className="flex items-center rounded-xl border border-[#2a2a2a] bg-[#111] px-4 py-2.5 transition-colors focus-within:border-zinc-500">
+            <span className="mr-1 select-none text-sm text-zinc-600">@</span>
+            <input
+              name="username"
+              defaultValue={username ?? ''}
+              placeholder="tu_username"
+              className="flex-1 bg-transparent text-sm text-white outline-none placeholder-zinc-600"
+            />
+          </div>
+          <p className="text-xs text-zinc-600">Solo letras minúsculas, números y _ · 3 a 30 caracteres</p>
+        </div>
+      </SectionCard>
+
+      {/* ── Sobre vos ── */}
+      <SectionCard icon={<IconDoc />} iconCls="bg-violet-500/15 text-violet-400" title="Sobre vos">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-zinc-400">Titular profesional</label>
           <input
-            name="first_name"
-            defaultValue={first_name ?? ''}
-            placeholder="Juan"
-            required
-            className="rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
+            name="headline"
+            defaultValue={headline ?? ''}
+            placeholder="Ej: Electricista matriculado · Freelance"
+            className={inputDark}
           />
         </div>
-        <div className="flex flex-1 flex-col gap-1">
-          <label className="text-sm font-medium text-zinc-700">Apellido</label>
-          <input
-            name="last_name"
-            defaultValue={last_name ?? ''}
-            placeholder="Pérez"
-            className="rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-zinc-400">Bio</label>
+          <textarea
+            name="bio"
+            defaultValue={bio ?? ''}
+            rows={4}
+            placeholder="Contá quién sos, qué hacés, qué ofrecés..."
+            className={`${inputDark} resize-none`}
           />
         </div>
-      </div>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700">Titular profesional</label>
-        <input
-          name="headline"
-          defaultValue={headline ?? ''}
-          placeholder="Ej: Electricista matriculado · Freelance"
-          className="w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
-        />
-      </div>
-
-      <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700">Username</label>
-        <div className="flex items-center rounded-lg border border-zinc-300 px-4 py-2.5 focus-within:border-zinc-500 focus-within:ring-2 focus-within:ring-zinc-200">
-          <span className="mr-1 select-none text-sm text-zinc-400">@</span>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-zinc-400">Zona</label>
           <input
-            name="username"
-            defaultValue={username ?? ''}
-            placeholder="tu_username"
-            className="flex-1 text-sm outline-none"
+            name="location"
+            defaultValue={location ?? ''}
+            placeholder="Ej: Palermo, CABA"
+            className={inputDark}
           />
         </div>
-        <p className="mt-1 text-xs text-zinc-400">Solo letras minúsculas, números y _ · 3 a 30 caracteres</p>
-      </div>
+      </SectionCard>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700">Teléfono</label>
-        <input
-          name="phone"
-          defaultValue={phone ?? ''}
-          placeholder="Ej: +54 11 1234-5678"
-          className="w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
-        />
-        <p className="mt-1 text-xs text-zinc-400">Solo visible para vos. No se muestra públicamente.</p>
-      </div>
+      {/* ── Contacto ── */}
+      <SectionCard icon={<IconPhone />} iconCls="bg-green-500/15 text-green-400" title="Contacto">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-zinc-400">Teléfono</label>
+          <input
+            name="phone"
+            defaultValue={phone ?? ''}
+            placeholder="Ej: +54 11 1234-5678"
+            className={inputDark}
+          />
+          <p className="text-xs text-zinc-600">Solo visible para vos. No se muestra públicamente.</p>
+        </div>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700">Email de contacto</label>
-        <input
-          name="email"
-          type="email"
-          defaultValue={email ?? ''}
-          placeholder="Ej: juan@ejemplo.com"
-          className="w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
-        />
-        <p className="mt-1 text-xs text-zinc-400">Solo visible para vos. No se muestra públicamente.</p>
-      </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-zinc-400">Email de contacto</label>
+          <input
+            name="email"
+            type="email"
+            defaultValue={email ?? ''}
+            placeholder="Ej: juan@ejemplo.com"
+            className={inputDark}
+          />
+          <p className="text-xs text-zinc-600">Solo visible para vos. No se muestra públicamente.</p>
+        </div>
+      </SectionCard>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700">Zona</label>
-        <input
-          name="location"
-          defaultValue={location ?? ''}
-          placeholder="Ej: Palermo, CABA"
-          className="w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
-        />
-      </div>
-
-      <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700">Bio</label>
-        <textarea
-          name="bio"
-          defaultValue={bio ?? ''}
-          rows={4}
-          placeholder="Contá quién sos, qué hacés, qué ofrecés..."
-          className="w-full resize-none rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
-        />
-      </div>
-
+      {/* ── Error global ── */}
       {state.error && (
-        <p className="text-sm text-red-600">{state.error}</p>
+        <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          {state.error}
+        </p>
       )}
 
-      <button
-        type="submit"
-        disabled={saved || pending}
-        className={`rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
-          saved
-            ? 'cursor-default bg-zinc-700 text-zinc-400'
-            : 'bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-40'
-        }`}
-      >
-        {pending ? 'Guardando...' : saved ? 'Guardado ✓' : 'Guardar cambios'}
-      </button>
+      {/* ── CTA ── */}
+      <div className="rounded-2xl bg-gradient-to-b from-blue-600 to-blue-700 p-6 text-center md:p-8">
+        <h2 className="text-xl font-bold text-white">¿Todo listo?</h2>
+        <p className="mt-1 text-sm text-blue-100">Guardá los cambios para que sean visibles en tu perfil.</p>
+        <button
+          type="submit"
+          disabled={saved || pending}
+          className={`mt-5 w-full max-w-xs rounded-xl px-6 py-3 text-base font-bold transition-colors ${
+            saved
+              ? 'cursor-default bg-white/60 text-blue-600/60'
+              : 'bg-white text-blue-600 hover:bg-blue-50 disabled:opacity-50'
+          }`}
+        >
+          {pending ? 'Guardando...' : saved ? 'Guardado ✓' : 'Guardar cambios'}
+        </button>
+      </div>
     </form>
   )
 }

@@ -16,8 +16,8 @@ const TIPO_LABEL: Record<string, string> = Object.fromEntries(TIPOS.map(t => [t.
 const CURRENT_YEAR = new Date().getFullYear()
 const YEARS = Array.from({ length: CURRENT_YEAR - 1970 + 1 }, (_, i) => CURRENT_YEAR - i)
 
-const SELECT_CLS = 'rounded-lg border border-zinc-600 bg-surface-2 px-3 py-2 text-sm text-white outline-none focus:border-zinc-400'
-const INPUT_CLS  = 'rounded-lg border border-zinc-600 bg-surface-2 px-3 py-2 text-sm text-white outline-none focus:border-zinc-400 placeholder:text-zinc-500'
+const SELECT_CLS = 'rounded-xl border border-[#2a2a2a] bg-[#111] px-3 py-2 text-sm text-white outline-none transition-colors focus:border-zinc-500'
+const INPUT_CLS  = 'rounded-xl border border-[#2a2a2a] bg-[#111] px-3 py-2 text-sm text-white outline-none transition-colors focus:border-zinc-500 placeholder:text-zinc-600'
 
 type Seccion = {
   id: string
@@ -68,7 +68,7 @@ export default function SeccionCard({ s }: { s: Seccion }) {
   }
 
   return (
-    <div className={`rounded-lg border border-surface-2 bg-surface-1 px-4 py-3 transition-opacity ${deletePending ? 'opacity-40' : ''}`}>
+    <div className={`rounded-2xl border border-[#2a2a2a] bg-[#111] px-4 py-3 transition-opacity ${deletePending ? 'opacity-40' : ''}`}>
       {!editOpen ? (
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -91,17 +91,17 @@ export default function SeccionCard({ s }: { s: Seccion }) {
             <button
               type="button"
               onClick={() => setMenuOpen(o => !o)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-lg leading-none text-zinc-400 transition-colors hover:bg-surface-2 hover:text-white"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-lg leading-none text-zinc-400 transition-colors hover:bg-[#1e1e1e] hover:text-white"
               aria-label="Opciones"
             >
               ···
             </button>
             {menuOpen && (
-              <div className="absolute right-0 top-10 z-20 min-w-[130px] rounded-xl border border-surface-2 bg-surface-1 py-1 shadow-xl">
+              <div className="absolute right-0 top-10 z-20 min-w-[130px] rounded-xl border border-[#2a2a2a] bg-[#171717] py-1 shadow-xl">
                 <button
                   type="button"
                   onClick={handleEditarClick}
-                  className="block w-full px-4 py-2.5 text-left text-sm text-zinc-300 transition-colors hover:bg-surface-2 hover:text-white"
+                  className="block w-full px-4 py-2.5 text-left text-sm text-zinc-300 transition-colors hover:bg-[#1e1e1e] hover:text-white"
                 >
                   Editar
                 </button>
@@ -159,7 +159,7 @@ export default function SeccionCard({ s }: { s: Seccion }) {
                 {actualidad ? (
                   <>
                     <input type="hidden" name="date_to" value="Actualidad" />
-                    <div className="flex h-[38px] items-center rounded-lg border border-zinc-600 bg-surface-2 px-3 text-sm text-zinc-400">
+                    <div className="flex h-[38px] items-center rounded-xl border border-[#2a2a2a] bg-[#111] px-3 text-sm text-zinc-400">
                       Actualidad
                     </div>
                   </>
