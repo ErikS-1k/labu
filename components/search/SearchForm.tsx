@@ -11,6 +11,7 @@ export default function SearchForm({ initialQ }: { initialQ: string }) {
 
   function buildUrl(query: string) {
     const params = new URLSearchParams(searchParams.toString())
+    params.delete('pagina')
     if (query) params.set('q', query)
     else params.delete('q')
     return `/buscar${params.toString() ? '?' + params.toString() : ''}`
