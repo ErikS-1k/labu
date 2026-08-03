@@ -298,16 +298,18 @@ export default async function PerfilPage({
 
       {/* ── BIO ── */}
       {perfil.bio ? (
-        <SectionCard
-          icon={<IconDoc />}
-          iconCls="bg-violet-500/15 text-violet-400"
-          title="Sobre"
-          id="bio"
-        >
-          <p className="mt-0 text-sm leading-relaxed text-zinc-300">{perfil.bio}</p>
-        </SectionCard>
+        <div className="md:mt-4">
+          <SectionCard
+            icon={<IconDoc />}
+            iconCls="bg-violet-500/15 text-violet-400"
+            title="Sobre"
+            id="bio"
+          >
+            <p className="mt-0 text-sm leading-relaxed text-zinc-300">{perfil.bio}</p>
+          </SectionCard>
+        </div>
       ) : esPropio ? (
-        <div className="mt-4 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[#2a2a2a] bg-[#111] p-6 text-center">
+        <div className="md:mt-4 mt-4 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[#2a2a2a] bg-[#111] p-6 text-center">
           <p className="text-sm text-zinc-500">Todavía no tenés una bio.</p>
           <Link href="/perfil/editar" className="text-sm font-medium text-blue-400 transition-colors hover:text-blue-300">
             Agregar bio →
