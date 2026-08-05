@@ -71,14 +71,19 @@ export default function EditarPerfilForm({
 }: Props) {
   const [state, action, pending] = useActionState(actualizarPerfil, init)
   useProgress(pending)
-  const [saved, setSaved]           = useState(false)
-  const [preview, setPreview]       = useState<string | null>(avatar_url)
+  const [saved, setSaved]             = useState(false)
+  const [preview, setPreview]         = useState<string | null>(avatar_url)
   const [dbAvatarUrl, setDbAvatarUrl] = useState<string | null>(avatar_url)
-  const [isNewFile, setIsNewFile]   = useState(false)
-  const [confirmar, setConfirmar]   = useState(false)
+  const [isNewFile, setIsNewFile]     = useState(false)
+  const [confirmar, setConfirmar]     = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
-  const [deletePending, startDelete] = useTransition()
+  const [avatarError, setAvatarError] = useState<string | null>(null)
+  const [isConverting, setIsConverting] = useState(false)
+  const [deletePending, startDelete]  = useTransition()
   const avatarRef = useRef<HTMLInputElement>(null)
+
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
+  const MAX_BYTES = 10 * 1024 * 1024
 
   useEffect(() => {
     if (state.toast === 'perfil_actualizado' && !state.error) {
@@ -87,13 +92,53 @@ export default function EditarPerfilForm({
     }
   }, [state])
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      setPreview(URL.createObjectURL(file))
-      setIsNewFile(true)
-      setConfirmar(false)
+    if (!file) return
+
+    setAvatarError(null)
+
+    if (file.size > MAX_BYTES) {
+      setAvatarError('La foto es muy pesada. El máximo es 10MB.')
+      e.target.value = ''
+      return
     }
+
+    const isHeic = file.type === 'image/heic' || file.type === 'image/heif' ||
+                   /\.(heic|heif)$/i.test(file.name)
+    const isValid = ALLOWED_TYPES.includes(file.type) || isHeic
+
+    if (!isValid) {
+      setAvatarError('El formato no está soportado. Usá JPG, PNG, HEIC o WEBP.')
+      e.target.value = ''
+      return
+    }
+
+    let finalFile = file
+
+    if (isHeic) {
+      setIsConverting(true)
+      try {
+        const { default: heic2any } = await import('heic2any')
+        const result = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 })
+        const blob = Array.isArray(result) ? result[0] : result
+        finalFile = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' })
+        // Reemplazar el archivo en el input para que FormData envíe el JPEG
+        const dt = new DataTransfer()
+        dt.items.add(finalFile)
+        if (avatarRef.current) avatarRef.current.files = dt.files
+      } catch {
+        setAvatarError('No se pudo convertir la foto. Guardala como JPG desde tu galería e intentá de nuevo.')
+        e.target.value = ''
+        setIsConverting(false)
+        return
+      }
+      setIsConverting(false)
+    }
+
+    setPreview(URL.createObjectURL(finalFile))
+    setIsNewFile(true)
+    setConfirmar(false)
   }
 
   function handleEliminarConfirmado() {
@@ -131,6 +176,14 @@ export default function EditarPerfilForm({
           }
         </button>
 
+        {isConverting && (
+          <p className="text-xs text-blue-400">Convirtiendo foto...</p>
+        )}
+
+        {avatarError && (
+          <p className="text-xs text-red-400">{avatarError}</p>
+        )}
+
         {confirmar ? (
           <div className="flex flex-col items-center gap-3 text-center">
             <p className="text-sm text-zinc-300">¿Eliminás tu foto de perfil?</p>
@@ -159,11 +212,12 @@ export default function EditarPerfilForm({
             <button
               type="button"
               onClick={() => avatarRef.current?.click()}
-              className="rounded-xl bg-blue-500/15 px-4 py-2 text-sm font-medium text-blue-400 transition-colors hover:bg-blue-500/25"
+              disabled={isConverting}
+              className="rounded-xl bg-blue-500/15 px-4 py-2 text-sm font-medium text-blue-400 transition-colors hover:bg-blue-500/25 disabled:opacity-50"
             >
               Cambiar foto
             </button>
-            <p className="text-xs text-zinc-600">JPG o PNG · máx. 5MB</p>
+            <p className="text-xs text-zinc-600">JPG, PNG, HEIC o WEBP · máx. 10MB</p>
             {dbAvatarUrl && !isNewFile && (
               <button
                 type="button"
@@ -180,7 +234,7 @@ export default function EditarPerfilForm({
           ref={avatarRef}
           type="file"
           name="avatar"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
           className="hidden"
           onChange={handleAvatarChange}
         />

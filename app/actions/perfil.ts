@@ -43,7 +43,9 @@ export async function actualizarPerfil(
   let avatar_url: string | undefined
   const avatarFile = formData.get('avatar') as File
   if (avatarFile && avatarFile.size > 0) {
-    if (avatarFile.size > 5 * 1024 * 1024) return { error: 'La foto no puede superar 5MB.', toast: null }
+    if (avatarFile.size > 10 * 1024 * 1024) return { error: 'La foto es muy pesada. El máximo es 10MB.', toast: null }
+    const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
+    if (!ALLOWED.includes(avatarFile.type)) return { error: 'El formato no está soportado. Usá JPG, PNG, HEIC o WEBP.', toast: null }
     const ext = avatarFile.name.split('.').pop() ?? 'jpg'
     const path = `${user.id}/avatar.${ext}`
     const { error: uploadError } = await supabase.storage

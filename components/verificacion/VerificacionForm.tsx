@@ -8,10 +8,15 @@ type Props = { userId: string }
 
 const init = { error: null as string | null, ok: false }
 
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf']
+const MAX_BYTES = 10 * 1024 * 1024
+
 export default function VerificacionForm({ userId }: Props) {
   const [state, action, pending] = useActionState(solicitarVerificacion, init)
   useProgress(pending)
-  const [archivo, setArchivo] = useState<File | null>(null)
+  const [archivo, setArchivo]       = useState<File | null>(null)
+  const [clientError, setClientError] = useState<string | null>(null)
+  const [isConverting, setIsConverting] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // ── Éxito ──────────────────────────────────────────────────────────────────
@@ -29,6 +34,52 @@ export default function VerificacionForm({ userId }: Props) {
     )
   }
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setClientError(null)
+
+    if (file.size > MAX_BYTES) {
+      setClientError('El archivo es muy pesado. El máximo es 10MB.')
+      e.target.value = ''
+      return
+    }
+
+    const isHeic = file.type === 'image/heic' || file.type === 'image/heif' ||
+                   /\.(heic|heif)$/i.test(file.name)
+    const isValid = ALLOWED_TYPES.includes(file.type) || isHeic
+
+    if (!isValid) {
+      setClientError('El formato no está soportado. Usá JPG, PNG, HEIC, WEBP o PDF.')
+      e.target.value = ''
+      return
+    }
+
+    let finalFile = file
+
+    if (isHeic) {
+      setIsConverting(true)
+      try {
+        const { default: heic2any } = await import('heic2any')
+        const result = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 })
+        const blob = Array.isArray(result) ? result[0] : result
+        finalFile = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' })
+        const dt = new DataTransfer()
+        dt.items.add(finalFile)
+        if (inputRef.current) inputRef.current.files = dt.files
+      } catch {
+        setClientError('No se pudo convertir la foto. Guardala como JPG desde tu galería e intentá de nuevo.')
+        e.target.value = ''
+        setIsConverting(false)
+        return
+      }
+      setIsConverting(false)
+    }
+
+    setArchivo(finalFile)
+  }
+
   return (
     <form action={action} className="flex flex-col items-center gap-4">
       <input type="hidden" name="user_id" value={userId} />
@@ -38,18 +89,23 @@ export default function VerificacionForm({ userId }: Props) {
         ref={inputRef}
         type="file"
         name="documento"
-        accept="image/*,.pdf"
+        accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif,application/pdf,.pdf"
         required
         className="hidden"
-        onChange={e => setArchivo(e.target.files?.[0] ?? null)}
+        onChange={handleFileChange}
       />
+
+      {isConverting && (
+        <p className="text-sm text-blue-200">Convirtiendo foto...</p>
+      )}
 
       {!archivo ? (
         /* ── Botón principal ── */
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="w-full max-w-xs rounded-xl bg-white px-6 py-3 text-base font-bold text-blue-600 transition-colors hover:bg-blue-50 active:bg-blue-100"
+          disabled={isConverting}
+          className="w-full max-w-xs rounded-xl bg-white px-6 py-3 text-base font-bold text-blue-600 transition-colors hover:bg-blue-50 active:bg-blue-100 disabled:opacity-50"
         >
           Subir mi DNI
         </button>
@@ -73,7 +129,7 @@ export default function VerificacionForm({ userId }: Props) {
 
           <button
             type="button"
-            onClick={() => { setArchivo(null); if (inputRef.current) inputRef.current.value = '' }}
+            onClick={() => { setArchivo(null); setClientError(null); if (inputRef.current) inputRef.current.value = '' }}
             className="text-sm text-blue-200 underline transition-colors hover:text-white"
           >
             Cambiar archivo
@@ -81,8 +137,8 @@ export default function VerificacionForm({ userId }: Props) {
         </div>
       )}
 
-      {state.error && (
-        <p className="text-sm font-medium text-red-300">{state.error}</p>
+      {(clientError || state.error) && (
+        <p className="text-sm font-medium text-red-300">{clientError ?? state.error}</p>
       )}
     </form>
   )

@@ -24,7 +24,9 @@ export async function solicitarVerificacion(
 
   const archivo = formData.get('documento') as File
   if (!archivo || archivo.size === 0) return { error: 'Seleccioná una foto de tu DNI.', ok: false }
-  if (archivo.size > 5 * 1024 * 1024) return { error: 'El archivo no puede superar 5MB.', ok: false }
+  if (archivo.size > 10 * 1024 * 1024) return { error: 'El archivo es muy pesado. El máximo es 10MB.', ok: false }
+  const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf']
+  if (!ALLOWED.includes(archivo.type)) return { error: 'El formato no está soportado. Usá JPG, PNG, HEIC, WEBP o PDF.', ok: false }
 
   const ext = archivo.name.split('.').pop() ?? 'jpg'
   const path = `${user.id}/dni.${ext}`
