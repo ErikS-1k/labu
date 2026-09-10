@@ -45,7 +45,16 @@ app/
     mensajes/page.tsx              → lista de conversaciones (Realtime via ConversacionList)
     mensajes/[conversation_id]/page.tsx → chat individual (Supabase Realtime + smart scroll)
     mensajes/nuevo/page.tsx        → iniciar conversación nueva (sin lógica de dedup — vive en iniciarConversacion())
-    admin/verificaciones/page.tsx  → panel admin (solo ADMIN_EMAIL, guard en proxy.ts)
+    admin/page.tsx                 → hub admin con 9 cards + contadores (solo ADMIN_EMAIL)
+    admin/verificaciones/page.tsx  → revisar DNI pendientes + aprobar/rechazar
+    admin/usuarios/page.tsx        → lista paginada, filtros, buscador, estado verificación
+    admin/publicaciones/page.tsx   → lista paginada, filtros tipo/estado
+    admin/postulaciones/page.tsx   → enriquecida: conv data, emails, expandible, filtro sin_conv
+    admin/conversaciones/page.tsx  → deduplicado por conv_id (sin mostrar contenido)
+    admin/notificaciones/page.tsx  → filtros por tipo y lectura
+    admin/actividad/page.tsx       → feed 50 eventos de 5 tablas, auto-refresh 30s
+    admin/metricas/page.tsx        → stat cards + CSS bar charts (usuarios/día, posts/categoría)
+    admin/salud/page.tsx           → conteos por tabla + timestamps
 ```
 
 ### Componentes clave
@@ -231,6 +240,16 @@ Las páginas usan `user!.id` (non-null assertion) porque el proxy garantiza que 
 
 ---
 
+## Últimos cambios (sesión 2026-09-10)
+
+| Área | Cambio |
+|---|---|
+| Panel admin completo | 9 nuevas vistas en `/admin/*` — hub, usuarios, publicaciones, postulaciones, conversaciones, notificaciones, actividad, métricas, salud. Solo lectura. |
+| `/admin/postulaciones` enriquecida | Conversación activa entre partes, estado de completion, ratings, emails internos colapsables, mensaje expandible con `<details>`, filtro "aceptadas sin conversación", ordenamiento por estado/actividad. |
+| Fix crash `/perfil/editar` | Bug `??` vs `||` en `EditarPerfilForm.tsx:159` — `first_name = ""` causaba `undefined.toUpperCase()` → "This page couldn't load". Fix: `(first_name || username || 'U')`. |
+| Upload foto | Soporte HEIC/HEIF/WEBP, límite 10MB, conversión automática client-side con `heic2any`. |
+| Diseño admin | Rediseño de `/admin/verificaciones` al sistema visual actual. |
+
 ## Últimos cambios (sesión 2026-07-28)
 
 | Área | Cambio |
@@ -374,7 +393,10 @@ Leyenda: ✅ funciona en producción · ⚠️ funciona con limitaciones · 🔜
 
 ### Verificación y admin
 - ✅ Subir DNI → revisión manual → badge en perfil
-- ✅ Panel admin en /admin/verificaciones
+- ✅ Panel admin completo (`/admin`) — 9 vistas de monitoreo, solo lectura
+  - Hub, usuarios, publicaciones, postulaciones, conversaciones, notificaciones, actividad, métricas, salud
+  - `/admin/postulaciones` enriquecida: conversación activa, completion, ratings, emails internos, filtro "aceptadas sin conversación", ordenamiento por estado/actividad
+  - Protegidas por `proxy.ts` (ADMIN_EMAIL), no expuestas en la app pública
 
 ### SEO
 - ⚠️ Metadata estática genérica — sin metadata dinámica por post o perfil

@@ -63,7 +63,16 @@ El perfil público muestra información general. El teléfono y email del postul
     /mi-actividad         → mis publicaciones + mis postulaciones (con badges Realtime)
     /notificaciones       → lista de notificaciones agrupadas con auto-marcar
     /verificacion         → página explicativa + formulario subida DNI
-    /admin/verificaciones → panel admin (solo ADMIN_EMAIL)
+    /admin                → hub del panel de admin (solo ADMIN_EMAIL)
+    /admin/verificaciones → revisar y aprobar/rechazar DNI pendientes
+    /admin/usuarios       → lista de usuarios con filtros y buscador
+    /admin/publicaciones  → todas las publicaciones con filtros
+    /admin/postulaciones  → postulaciones enriquecidas (conv, emails, estados)
+    /admin/conversaciones → conversaciones (metadatos, sin contenido por privacidad)
+    /admin/notificaciones → todas las notificaciones con filtros
+    /admin/actividad      → feed cronológico de 50 eventos recientes (auto-refresh 30s)
+    /admin/metricas       → stat cards + CSS bar charts
+    /admin/salud          → conteos por tabla + timestamps de últimos registros
 /components               → componentes reutilizables
 /lib                      → clientes Supabase (server, client, service), utils
 /app/actions              → server actions (auth, perfil, posts, mensajes, notifications, etc.)
@@ -255,6 +264,8 @@ Tipos de notificación (`TIPOS_ACTIVIDAD`):
 - [x] Barra de progreso NProgress en navegación entre páginas
 - [x] Optimización mobile (Safari, Chrome; rgba() explícito en landing para compat. Safari < 16.2)
 - [x] Soporte HEIC/HEIF para subida de fotos (conversión automática a JPEG en el cliente)
+- [x] Panel admin completo (/admin) — 9 vistas de monitoreo: hub, usuarios, publicaciones, postulaciones, conversaciones, notificaciones, actividad, métricas, salud
+- [x] /admin/postulaciones enriquecida: conversación activa, emails internos, completion status, filtro "aceptadas sin conversación", ordenamiento
 
 ### NO construir en MVP (V2+)
 - Pagos / escrow con MercadoPago
