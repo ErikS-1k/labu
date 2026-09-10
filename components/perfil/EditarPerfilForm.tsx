@@ -156,7 +156,7 @@ export default function EditarPerfilForm({
     })
   }
 
-  const inicial = (first_name ?? username ?? 'U')[0].toUpperCase()
+  const inicial = (first_name || username || 'U')[0].toUpperCase()
 
   return (
     <form action={action} onChange={() => setSaved(false)} className="flex flex-col gap-5">
