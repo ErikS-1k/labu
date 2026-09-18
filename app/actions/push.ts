@@ -59,9 +59,17 @@ export async function guardarPushSubscription(sub: {
   endpoint: string
   keys: { p256dh: string; auth: string }
 }): Promise<{ error: string | null }> {
+  console.log('[PUSH][server] guardarPushSubscription — endpoint:', sub.endpoint.slice(0, 60) + '...')
+
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'No autorizado' }
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    console.error('[PUSH][server] No autenticado:', authError?.message)
+    return { error: 'No autorizado' }
+  }
+
+  console.log('[PUSH][server] userId:', user.id)
 
   const { error } = await createServiceClient()
     .from('push_subscriptions')
@@ -76,8 +84,10 @@ export async function guardarPushSubscription(sub: {
     )
 
   if (error) {
-    console.error('[guardarPushSubscription]', error.message)
+    console.error('[PUSH][server] upsert falló:', error.message, error.code)
     return { error: error.message }
   }
+
+  console.log('[PUSH][server] suscripción guardada OK para user:', user.id)
   return { error: null }
 }

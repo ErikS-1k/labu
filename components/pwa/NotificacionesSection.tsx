@@ -31,7 +31,6 @@ export default function NotificacionesSection({ hideWhenGranted = false }: { hid
   const [pending, setPending]     = useState(false)
 
   useEffect(() => {
-    // Sin soporte de Notification API
     if (!('Notification' in window)) {
       setPushState('unsupported')
       return
@@ -43,26 +42,19 @@ export default function NotificacionesSection({ hideWhenGranted = false }: { hid
       return
     }
 
-    // Sin service worker en el navegador — mostrar botón igual (fallará al intentar suscribirse)
     if (!('serviceWorker' in navigator)) {
       setPushState('default')
       return
     }
 
-    // Verificar si ya hay una suscripción activa
     navigator.serviceWorker.getRegistration()
       .then((reg) => {
         if (!reg) {
-          // SW no registrado (dev local sin build de producción)
           setPushState('default')
           return
         }
         reg.pushManager.getSubscription().then((sub) => {
-          if (sub && perm === 'granted') {
-            setPushState('granted')
-          } else {
-            setPushState('default')
-          }
+          setPushState(sub && perm === 'granted' ? 'granted' : 'default')
         }).catch(() => setPushState('default'))
       })
       .catch(() => setPushState('default'))
@@ -76,36 +68,67 @@ export default function NotificacionesSection({ hideWhenGranted = false }: { hid
 
     setPending(true)
     try {
+      // Paso 1: solicitar permiso
+      console.log('[PUSH] Solicitando permiso...')
       const perm = await Notification.requestPermission()
-      if (perm !== 'granted') {
+      console.log('[PUSH] Permiso:', perm)
+
+      if (perm === 'denied') {
         setPushState('denied')
         return
       }
+      if (perm !== 'granted') return
 
       if (!('serviceWorker' in navigator)) {
         showToast('Tu navegador no soporta notificaciones push.')
-        setPushState('default')
         return
       }
 
+      // Paso 2: service worker activo
+      console.log('[PUSH] Esperando service worker...')
       const reg = await navigator.serviceWorker.ready
+      console.log('[PUSH] SW listo:', reg.active?.state)
+
       const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-      if (!vapidKey) throw new Error('VAPID key no configurada')
+      if (!vapidKey) {
+        console.error('[PUSH] VAPID key no configurada')
+        showToast('Error de configuración. Contactá al soporte.')
+        return
+      }
 
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey),
-      })
+      // Paso 3: suscribir al servicio push
+      console.log('[PUSH] Suscribiendo a push...')
+      let sub: PushSubscription
+      try {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidKey),
+        })
+        console.log('[PUSH] Suscripción creada:', sub.endpoint.slice(0, 60) + '...')
+      } catch (err) {
+        console.error('[PUSH] pushManager.subscribe() falló:', err)
+        showToast('No se pudo suscribir a las notificaciones. Si estás en Safari, instalá la app en tu pantalla de inicio primero.')
+        return
+      }
 
+      // Paso 4: guardar en Supabase — crítico: sin esto no llegan notificaciones
+      console.log('[PUSH] Guardando suscripción en Supabase...')
       const json = sub.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } }
       const { error } = await guardarPushSubscription(json)
-      if (error) throw new Error(error)
+      if (error) {
+        console.error('[PUSH] guardarPushSubscription falló:', error)
+        showToast('No se pudo guardar la suscripción. Intentá de nuevo.')
+        return
+      }
 
+      // Solo aquí, cuando TODO fue exitoso, actualizamos el estado
+      console.log('[PUSH] Suscripción guardada. Activando estado granted.')
       setPushState('granted')
       showToast('Notificaciones activadas correctamente.')
     } catch (err) {
-      console.error('[NotificacionesSection] activar:', err)
-      showToast('No se pudieron activar las notificaciones.')
+      // Solo llega aquí si requestPermission o serviceWorker.ready fallan inesperadamente
+      console.error('[PUSH] Error inesperado:', err)
+      showToast('Ocurrió un error inesperado. Probá de nuevo.')
     } finally {
       setPending(false)
     }
@@ -146,7 +169,7 @@ export default function NotificacionesSection({ hideWhenGranted = false }: { hid
         <h2 className="text-sm font-semibold text-white">Notificaciones</h2>
       </div>
 
-      {/* Estado: cargando — mostrar botón deshabilitado para evitar flash de contenido vacío */}
+      {/* Cargando */}
       {pushState === 'loading' && (
         <div className="flex flex-col gap-3">
           <div className="h-4 w-3/4 animate-pulse rounded bg-zinc-800" />
@@ -154,7 +177,7 @@ export default function NotificacionesSection({ hideWhenGranted = false }: { hid
         </div>
       )}
 
-      {/* Estado: navegador sin soporte */}
+      {/* Sin soporte */}
       {pushState === 'unsupported' && (
         <p className="text-sm text-zinc-500">
           Tu navegador no soporta notificaciones push.

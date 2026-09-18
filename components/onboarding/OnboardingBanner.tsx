@@ -63,41 +63,74 @@ export default function OnboardingBanner({ step1Done, step2Done, step3Done, step
   async function activarNotificaciones() {
     setActivandoNotif(true)
     try {
+      // Paso 1: solicitar permiso
+      console.log('[PUSH] Onboarding: solicitando permiso...')
       const perm = await Notification.requestPermission()
+      console.log('[PUSH] Onboarding: permiso:', perm)
 
-      // Si bloqueó: marcar paso como hecho igual para no dejarlo trabado
-      if (perm === 'denied') {
+      // Bloqueó o dismissed: marcar paso como hecho para no dejarlo trabado
+      if (perm === 'denied' || perm !== 'granted') {
+        console.log('[PUSH] Onboarding: permiso no concedido, marcando paso hecho de todas formas')
         await completarOnboardingNotificaciones()
         setStep4LocalDone(true)
         router.refresh()
         return
       }
 
-      if (perm !== 'granted') return
-
-      if ('serviceWorker' in navigator) {
-        const reg = await navigator.serviceWorker.ready
-        const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-        if (vapidKey) {
-          const sub = await reg.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(vapidKey),
-          })
-          const json = sub.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } }
-          await guardarPushSubscription(json)
-        }
+      // Paso 2: service worker activo
+      if (!('serviceWorker' in navigator)) {
+        showToast('Tu navegador no soporta notificaciones push.')
+        return
       }
 
+      console.log('[PUSH] Onboarding: esperando service worker...')
+      const reg = await navigator.serviceWorker.ready
+      console.log('[PUSH] Onboarding: SW listo:', reg.active?.state)
+
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+      if (!vapidKey) {
+        console.error('[PUSH] Onboarding: VAPID key no configurada')
+        showToast('Error de configuración. Contactá al soporte.')
+        return
+      }
+
+      // Paso 3: suscribir al servicio push
+      console.log('[PUSH] Onboarding: suscribiendo...')
+      let sub: PushSubscription | null = null
+      try {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidKey),
+        })
+        console.log('[PUSH] Onboarding: suscripción creada:', sub.endpoint.slice(0, 60) + '...')
+      } catch (err) {
+        console.error('[PUSH] Onboarding: pushManager.subscribe() falló:', err)
+        showToast('No se pudo activar las notificaciones. Si estás en Safari, instalá la app en tu pantalla de inicio primero.')
+        return
+      }
+
+      if (!sub) return
+
+      // Paso 4: guardar en Supabase — crítico
+      console.log('[PUSH] Onboarding: guardando en Supabase...')
+      const json = sub.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } }
+      const { error } = await guardarPushSubscription(json)
+      if (error) {
+        console.error('[PUSH] Onboarding: guardarPushSubscription falló:', error)
+        showToast('No se pudo guardar la suscripción. Intentá de nuevo.')
+        return
+      }
+
+      // Solo marcar done cuando la suscripción está realmente en Supabase
+      console.log('[PUSH] Onboarding: suscripción guardada. Marcando paso hecho.')
       await completarOnboardingNotificaciones()
       setStep4LocalDone(true)
       router.refresh()
       showToast('Notificaciones activadas.')
     } catch (err) {
-      console.error('[OnboardingBanner] activarNotificaciones:', err)
-      // Marcar paso como hecho aunque haya fallado la suscripción push
-      await completarOnboardingNotificaciones()
-      setStep4LocalDone(true)
-      router.refresh()
+      // requestPermission o serviceWorker.ready fallaron inesperadamente — no marcar done
+      console.error('[PUSH] Onboarding: error inesperado:', err)
+      showToast('Ocurrió un error inesperado. Probá de nuevo.')
     } finally {
       setActivandoNotif(false)
     }
