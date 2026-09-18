@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getAuthUser } from '@/lib/auth'
 import NotificacionesList from '@/components/notificaciones/NotificacionesList'
+import NotificacionesSection from '@/components/pwa/NotificacionesSection'
 import PageHeader from '@/components/ui/PageHeader'
 
 export const metadata: Metadata = { title: 'Notificaciones — Labu' }
@@ -22,6 +23,7 @@ export default async function NotificacionesPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
       <PageHeader title="Notificaciones" subtitle="Tus novedades recientes" />
+      <NotificacionesSection hideWhenGranted />
       <NotificacionesList
         initialNotifs={lista}
         userId={user!.id}

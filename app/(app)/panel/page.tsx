@@ -23,11 +23,12 @@ export default async function PanelPage() {
   let step1Done = false
   let step2Done = false
   let step3Done = true
+  let step4Done = false
   if (user) {
     const [{ data: perfil }, { count: postsCount }] = await Promise.all([
       supabase
         .from('users')
-        .select('first_name, avatar_url, bio, location, first_login')
+        .select('first_name, avatar_url, bio, location, first_login, onboarding_notifications_done')
         .eq('id', user.id)
         .single(),
       supabase
@@ -38,8 +39,9 @@ export default async function PanelPage() {
     step1Done = !!(perfil?.avatar_url && perfil?.bio && perfil?.location)
     step2Done = (postsCount ?? 0) > 0
     step3Done = !(perfil?.first_login ?? true)
+    step4Done = !!(perfil?.onboarding_notifications_done)
   }
-  const allDone = step1Done && step2Done && step3Done
+  const allDone = step1Done && step2Done && step3Done && step4Done
 
   // Sección "Disponibles ahora"
   const { data: inmediatosRaw } = await supabase
@@ -69,7 +71,7 @@ export default async function PanelPage() {
       <PageHeader title="Inicio" subtitle="Descubrí quién puede ayudarte" />
 
       {user && !allDone && (
-        <OnboardingBanner step1Done={step1Done} step2Done={step2Done} step3Done={step3Done} />
+        <OnboardingBanner step1Done={step1Done} step2Done={step2Done} step3Done={step3Done} step4Done={step4Done} />
       )}
 
       {/* Banner para visitantes */}

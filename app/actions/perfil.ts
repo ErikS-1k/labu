@@ -175,3 +175,11 @@ export async function completarOnboarding() {
   await supabase.from('users').update({ first_login: false }).eq('id', user.id)
   revalidatePath('/panel')
 }
+
+export async function completarOnboardingNotificaciones() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+  await supabase.from('users').update({ onboarding_notifications_done: true }).eq('id', user.id)
+  revalidatePath('/panel')
+}

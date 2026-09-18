@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { crearNotificacion } from './notifications'
+import { enviarPushNotification } from './push'
 
 export async function iniciarConversacion(formData: FormData) {
   const supabase = await createClient()
@@ -54,12 +55,19 @@ export async function enviarMensaje(params: {
     return { error: 'No se pudo enviar el mensaje. Intentá de nuevo.' }
   }
 
-  await crearNotificacion({
-    userId:  params.receiverId,
-    type:    'nuevo_mensaje',
-    message: 'Tenés un mensaje nuevo',
-    link:    `/mensajes/${params.conversationId}`,
-  })
+  await Promise.all([
+    crearNotificacion({
+      userId:  params.receiverId,
+      type:    'nuevo_mensaje',
+      message: 'Tenés un mensaje nuevo',
+      link:    `/mensajes/${params.conversationId}`,
+    }),
+    enviarPushNotification(params.receiverId, {
+      title: 'Nuevo mensaje en Labu',
+      body:  params.content.slice(0, 60),
+      url:   `/mensajes/${params.conversationId}`,
+    }),
+  ])
 
   return { error: null }
 }

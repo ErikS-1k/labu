@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { crearNotificacion } from './notifications'
+import { enviarPushNotification } from './push'
 
 export async function postularse(
   _prevState: { error: string | null; ok: boolean },
@@ -42,6 +43,10 @@ export async function postularse(
   if (error) return { error: 'No se pudo enviar. Intentá de nuevo.', ok: false }
 
   const esOferta = post.type === 'oferta'
+  const { data: applicantUser } = await supabase
+    .from('users').select('first_name, username').eq('id', user.id).single()
+  const nombre = applicantUser?.first_name || applicantUser?.username || 'Alguien'
+
   await Promise.all([
     crearNotificacion({
       userId:  post.user_id,
@@ -58,6 +63,13 @@ export async function postularse(
         ? `Tu solicitud para "${post.title}" fue enviada. Te avisamos cuando el oferente responda.`
         : `Tu postulación a "${post.title}" fue enviada. Te avisamos cuando el empleador responda.`,
       link:    `/post/${postId}`,
+    }),
+    enviarPushNotification(post.user_id, {
+      title: esOferta
+        ? `${nombre} quiere contactarte`
+        : `${nombre} se postuló a "${post.title}"`,
+      body:  message ? message.slice(0, 60) : 'Entrá a ver los detalles',
+      url:   `/post/${postId}`,
     }),
   ])
 
@@ -83,14 +95,22 @@ export async function aceptarPostulacion(formData: FormData) {
   const { data: post } = await supabase.from('posts').select('title, type').eq('id', postId).single()
 
   if (app && post) {
-    await crearNotificacion({
-      userId:  app.applicant_id,
-      type:    'postulacion_aceptada',
-      message: post.type === 'oferta'
-        ? `Tu solicitud para "${post.title}" fue aceptada`
-        : `Tu postulación a "${post.title}" fue aceptada`,
-      link:    `/post/${postId}`,
-    })
+    const msg = post.type === 'oferta'
+      ? `Tu solicitud para "${post.title}" fue aceptada`
+      : `Tu postulación a "${post.title}" fue aceptada`
+    await Promise.all([
+      crearNotificacion({
+        userId:  app.applicant_id,
+        type:    'postulacion_aceptada',
+        message: msg,
+        link:    `/post/${postId}`,
+      }),
+      enviarPushNotification(app.applicant_id, {
+        title: 'Postulación aceptada',
+        body:  msg,
+        url:   `/post/${postId}`,
+      }),
+    ])
   }
 
   revalidatePath(`/post/${postId}`)
