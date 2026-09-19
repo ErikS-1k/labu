@@ -32,34 +32,48 @@ export default function NotificacionesSection() {
 
   useEffect(() => {
     async function detectState() {
+      console.log('[PUSH][state] Iniciando detección de estado')
+
       if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+        console.log('[PUSH][state] Navegador sin soporte — Notification:', 'Notification' in window, '/ serviceWorker:', 'serviceWorker' in navigator)
         setPushState('unsupported')
         return
       }
 
       const perm = Notification.permission
+      console.log('[PUSH][state] Notification.permission:', perm)
 
       if (perm === 'denied') { setPushState('denied'); return }
       if (perm === 'default') { setPushState('default'); return }
 
-      // perm === 'granted' — verificar consistencia entre navegador y Supabase
+      // perm === 'granted' — verificar consistencia por pasos independientes
+      let localSub: PushSubscription | null = null
       try {
+        console.log('[PUSH][state] Buscando service worker registration...')
         const reg = await navigator.serviceWorker.getRegistration()
-        const [localSub, dbHasSub] = await Promise.all([
-          reg ? reg.pushManager.getSubscription() : Promise.resolve(null),
-          verificarPushSubscription(),
-        ])
+        console.log('[PUSH][state] Service worker registration:', reg ? `encontrada (active: ${reg.active?.state})` : 'null/undefined')
 
-        if (localSub && dbHasSub) {
-          setPushState('granted')
-        } else {
-          console.warn('[PUSH] Inconsistencia — localSub:', !!localSub, '/ dbHasSub:', dbHasSub)
-          setPushState('inconsistent')
+        if (reg) {
+          localSub = await reg.pushManager.getSubscription()
         }
+        console.log('[PUSH][state] pushManager.getSubscription() result:', localSub ? localSub.endpoint.slice(0, 50) + '...' : 'null')
       } catch (err) {
-        console.error('[PUSH] Error al detectar estado:', err)
-        setPushState('inconsistent')
+        console.error('[PUSH][state] Error al obtener suscripción local:', err)
       }
+
+      let dbHasSub = false
+      try {
+        console.log('[PUSH][state] Consultando Supabase via verificarPushSubscription()...')
+        dbHasSub = await verificarPushSubscription()
+        console.log('[PUSH][state] Supabase result:', dbHasSub)
+      } catch (err) {
+        console.error('[PUSH][state] Error al consultar Supabase:', err)
+      }
+
+      const finalState = (localSub && dbHasSub) ? 'granted' : 'inconsistent'
+      console.log('[PUSH][state] Estado final calculado:', finalState === 'granted' ? 'B — granted' : 'D — inconsistent (localSub: ' + !!localSub + ', dbHasSub: ' + dbHasSub + ')')
+      console.log('[PUSH][state] shouldRender: true')
+      setPushState(finalState)
     }
 
     detectState()

@@ -56,16 +56,31 @@ export async function eliminarPushSubscription(endpoint: string): Promise<void> 
 }
 
 export async function verificarPushSubscription(): Promise<boolean> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return false
+  console.log('[PUSH][server] verificarPushSubscription iniciado')
 
-  const { count } = await createServiceClient()
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    console.error('[PUSH][server] verificarPushSubscription — no autenticado:', authError?.message)
+    return false
+  }
+
+  console.log('[PUSH][server] verificarPushSubscription — userId:', user.id)
+
+  const { count, error } = await createServiceClient()
     .from('push_subscriptions')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', user.id)
 
-  return (count ?? 0) > 0
+  if (error) {
+    console.error('[PUSH][server] verificarPushSubscription — query error:', error.message, error.code)
+    return false
+  }
+
+  const result = (count ?? 0) > 0
+  console.log('[PUSH][server] verificarPushSubscription — count:', count, '/ result:', result)
+  return result
 }
 
 export async function guardarPushSubscription(sub: {
