@@ -48,7 +48,8 @@ export async function eliminarPushSubscription(endpoint: string): Promise<void> 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
 
-  await createServiceClient()
+  // Usar cliente de sesión del usuario — RLS permite operar sobre sus propias filas
+  await supabase
     .from('push_subscriptions')
     .delete()
     .eq('user_id', user.id)
@@ -68,7 +69,8 @@ export async function verificarPushSubscription(): Promise<boolean> {
 
   console.log('[PUSH][server] verificarPushSubscription — userId:', user.id)
 
-  const { count, error } = await createServiceClient()
+  // Usar cliente de sesión del usuario — RLS permite leer sus propias filas
+  const { count, error } = await supabase
     .from('push_subscriptions')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', user.id)
@@ -99,7 +101,8 @@ export async function guardarPushSubscription(sub: {
 
   console.log('[PUSH][server] userId:', user.id)
 
-  const { error } = await createServiceClient()
+  // Usar cliente de sesión del usuario — RLS permite insertar/actualizar sus propias filas
+  const { error } = await supabase
     .from('push_subscriptions')
     .upsert(
       {
