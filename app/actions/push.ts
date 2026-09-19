@@ -55,6 +55,19 @@ export async function eliminarPushSubscription(endpoint: string): Promise<void> 
     .eq('endpoint', endpoint)
 }
 
+export async function verificarPushSubscription(): Promise<boolean> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return false
+
+  const { count } = await createServiceClient()
+    .from('push_subscriptions')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+
+  return (count ?? 0) > 0
+}
+
 export async function guardarPushSubscription(sub: {
   endpoint: string
   keys: { p256dh: string; auth: string }

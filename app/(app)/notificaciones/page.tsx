@@ -23,7 +23,7 @@ export default async function NotificacionesPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
       <PageHeader title="Notificaciones" subtitle="Tus novedades recientes" />
-      <NotificacionesSection hideWhenGranted />
+      <NotificacionesSection />
       <NotificacionesList
         initialNotifs={lista}
         userId={user!.id}
