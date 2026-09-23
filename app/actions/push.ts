@@ -14,32 +14,60 @@ export async function enviarPushNotification(
   userId: string,
   payload: { title: string; body: string; url: string; icon?: string }
 ): Promise<void> {
-  const service = createServiceClient()
-  const { data: subs } = await service
-    .from('push_subscriptions')
-    .select('id, endpoint, p256dh, auth')
-    .eq('user_id', userId)
+  console.log('=== PUSH FUNCTION CALLED ===', { userId, title: payload.title })
+  console.log('[PUSH] VAPID email:', process.env.VAPID_EMAIL ?? 'UNDEFINED')
+  console.log('[PUSH] VAPID public key:', process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ? 'SET' : 'UNDEFINED')
+  console.log('[PUSH] VAPID private key:', process.env.VAPID_PRIVATE_KEY ? 'SET' : 'UNDEFINED')
+  console.log('[PUSH] SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'UNDEFINED')
 
-  if (!subs?.length) return
+  try {
+    const service = createServiceClient()
+    console.log('[PUSH] Buscando suscripciones para userId:', userId)
 
-  const expiredIds: string[] = []
-  await Promise.all(
-    subs.map(async (sub) => {
-      try {
-        await webpush.sendNotification(
-          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-          JSON.stringify({ ...payload, icon: payload.icon ?? '/icons/icon-192x192.png' })
-        )
-      } catch (err: unknown) {
-        const status = (err as { statusCode?: number }).statusCode
-        if (status === 410 || status === 404) expiredIds.push(sub.id)
-        else console.error('[enviarPushNotification]', err)
-      }
-    })
-  )
+    const { data: subs, error: subsError } = await service
+      .from('push_subscriptions')
+      .select('id, endpoint, p256dh, auth')
+      .eq('user_id', userId)
 
-  if (expiredIds.length > 0) {
-    await service.from('push_subscriptions').delete().in('id', expiredIds)
+    if (subsError) {
+      console.log('=== PUSH ERROR — query suscripciones ===', subsError.message, subsError.code)
+      return
+    }
+
+    console.log('[PUSH] Suscripciones encontradas:', subs?.length ?? 0)
+
+    if (!subs?.length) {
+      console.log('[PUSH] Sin suscripciones activas para este usuario — saliendo')
+      return
+    }
+
+    const expiredIds: string[] = []
+    await Promise.all(
+      subs.map(async (sub) => {
+        console.log('[PUSH] Enviando a endpoint:', sub.endpoint.slice(0, 50) + '...')
+        try {
+          await webpush.sendNotification(
+            { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+            JSON.stringify({ ...payload, icon: payload.icon ?? '/icons/icon-192x192.png' })
+          )
+          console.log('=== PUSH SENT SUCCESSFULLY ===', sub.endpoint.slice(0, 50) + '...')
+        } catch (err: unknown) {
+          const status = (err as { statusCode?: number }).statusCode
+          const message = (err as { message?: string }).message
+          console.log('=== PUSH ERROR — sendNotification ===', { status, message, endpoint: sub.endpoint.slice(0, 50) })
+          if (status === 410 || status === 404) expiredIds.push(sub.id)
+        }
+      })
+    )
+
+    if (expiredIds.length > 0) {
+      console.log('[PUSH] Eliminando suscripciones expiradas:', expiredIds.length)
+      await service.from('push_subscriptions').delete().in('id', expiredIds)
+    }
+  } catch (err: unknown) {
+    const message = (err as { message?: string }).message
+    const stack = (err as { stack?: string }).stack
+    console.log('=== PUSH ERROR ===', message, stack)
   }
 }
 

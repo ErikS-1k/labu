@@ -37,6 +37,7 @@ El perfil público muestra información general. El teléfono y email del postul
 - **Estilos:** Tailwind CSS v4
 - **Deploy:** Vercel (producción)
 - **Conversión de imágenes:** heic2any (HEIC → JPEG client-side)
+- **Notificaciones push:** web-push (VAPID, server-side)
 - **Pagos (V2):** MercadoPago API
 
 ---
@@ -61,7 +62,7 @@ El perfil público muestra información general. El teléfono y email del postul
     /mensajes/[id]        → chat individual con Realtime
     /mensajes/nuevo       → iniciar conversación nueva
     /mi-actividad         → mis publicaciones + mis postulaciones (con badges Realtime)
-    /notificaciones       → lista de notificaciones agrupadas con auto-marcar
+    /notificaciones       → lista de notificaciones + card de activación push (NotificacionesSection)
     /verificacion         → página explicativa + formulario subida DNI
     /admin                → hub del panel de admin (solo ADMIN_EMAIL)
     /admin/verificaciones → revisar y aprobar/rechazar DNI pendientes
@@ -74,8 +75,19 @@ El perfil público muestra información general. El teléfono y email del postul
     /admin/metricas       → stat cards + CSS bar charts
     /admin/salud          → conteos por tabla + timestamps de últimos registros
 /components               → componentes reutilizables
+  /pwa
+    ServiceWorkerRegistration.tsx  → registra /sw.js solo en producción, escucha updates y mensajes NAVIGATE
+    InstallBanner.tsx              → banner fijo "Instalar app" (beforeinstallprompt, localStorage)
+    NotificacionesSection.tsx      → card de activación/desactivación push con estados A/B/C/D
+  /onboarding
+    OnboardingBanner.tsx           → banner 4 pasos (perfil, publicar, explorar, activar notificaciones)
 /lib                      → clientes Supabase (server, client, service), utils
-/app/actions              → server actions (auth, perfil, posts, mensajes, notifications, etc.)
+/app/actions              → server actions (auth, perfil, posts, mensajes, notifications, push, etc.)
+  push.ts                          → enviarPushNotification, guardarPushSubscription, eliminarPushSubscription, verificarPushSubscription
+/public
+  manifest.json                    → Web App Manifest (PWA)
+  sw.js                            → Service Worker (cache-first assets, network-first nav, push events)
+  icons/                           → íconos PWA (72×72 a 512×512 + maskable)
 /proxy.ts                 → auth guards + session refresh + legacy redirects (usado por middleware)
 /supabase                 → schema.sql
 ```
@@ -98,6 +110,7 @@ phone            text        (PRIVADO — visible solo al aceptar postulación)
 email            text        (PRIVADO — visible solo al aceptar postulación)
 fecha_nacimiento date        (PRIVADO — no se muestra en UI actualmente)
 first_login      boolean     (default true — controla si mostrar onboarding)
+onboarding_notifications_done boolean (default false — paso 4 del onboarding)
 rating_avg       numeric     (calculado automáticamente por trigger)
 rating_count     integer
 created_at       timestamp
@@ -198,6 +211,19 @@ created_at       timestamp
 Tipos de notificación (`TIPOS_ACTIVIDAD`):
 `nueva_postulacion` | `postulacion_aceptada` | `postulacion_rechazada` | `trabajo_completado` | `recordatorio_calificacion`
 
+### Tabla: push_subscriptions
+```
+id         uuid (primary key)
+user_id    uuid (foreign key → users, on delete cascade)
+endpoint   text (unique — URL del push service del navegador)
+p256dh     text (clave pública del cliente)
+auth       text (secreto de autenticación)
+created_at timestamp
+```
+RLS: usuarios solo gestionan sus propias filas (`auth.uid() = user_id`).
+IMPORTANTE: usar el cliente de sesión del usuario (createClient) para operaciones propias.
+Solo enviarPushNotification usa service role (lee suscripciones de otros usuarios).
+
 ### Storage buckets
 - `verificaciones` — privado, documentos de identidad (DNI, imágenes/PDF)
 - `avatars` — público, fotos de perfil (JPG, PNG, WEBP; HEIC se convierte a JPEG antes de subir)
@@ -243,10 +269,16 @@ Tipos de notificación (`TIPOS_ACTIVIDAD`):
 - [x] Historial de trabajos completados en el perfil
 - [x] Mi actividad — Mis publicaciones (con menú acciones) + Mis postulaciones
 
-### Fase 4 — Confianza ✅
+### Fase 4 — Confianza y retención ✅
 - [x] Badge de verificación (subir DNI → revisión manual → badge en perfil)
 - [x] Panel admin para revisar verificaciones (/admin/verificaciones, solo ADMIN_EMAIL)
 - [x] Sección "Inmediato" destacada en el feed con dot verde
+- [x] PWA instalable (manifest.json + service worker /sw.js, prioridad Android Chrome)
+- [x] Notificaciones push nativas (VAPID + Supabase push_subscriptions + web-push)
+  - Trigger en: nuevo mensaje, nueva postulación, postulación aceptada
+  - Gestión desde /notificaciones (activar / desactivar / reintentar si inconsistente)
+- [x] Banner de instalación PWA (beforeinstallprompt, dismissible 14 días)
+- [x] Onboarding de 4 pasos (completar perfil, publicar, explorar, activar notificaciones)
 
 ### Infraestructura y UX ✅
 - [x] Deploy en Vercel (producción)
@@ -258,7 +290,7 @@ Tipos de notificación (`TIPOS_ACTIVIDAD`):
 - [x] Campana de notificaciones en tiempo real (badge con contador)
 - [x] Página /notificaciones con agrupación por tipo+día y auto-marcar al ver
 - [x] Notificaciones toast globales (showToast desde cualquier client component)
-- [x] Onboarding para usuarios nuevos (banner 3 pasos: completar perfil, publicar, explorar)
+- [x] Onboarding para usuarios nuevos (banner 4 pasos: completar perfil, publicar, explorar, activar notificaciones)
 - [x] Breadcrumbs contextuales (navegación desde post → perfil)
 - [x] FloatingPublishMenu (botón flotante con opciones publicar, visible en mobile)
 - [x] Barra de progreso NProgress en navegación entre páginas
@@ -273,7 +305,6 @@ Tipos de notificación (`TIPOS_ACTIVIDAD`):
 - Verificación de competencias avanzada
 - App móvil nativa
 - Algoritmo de matching
-- Sistema de notificaciones push
 - Paginación infinita en feeds (actualmente límite fijo)
 - SEO dinámico por post/perfil
 
@@ -283,10 +314,13 @@ Tipos de notificación (`TIPOS_ACTIVIDAD`):
 ```
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=   ← solo para el panel admin y notificaciones (bypasa RLS)
-ADMIN_EMAIL=                 ← email del admin para acceder a /admin
-SITE_URL=                    ← URL base (http://localhost:3000 en dev, https://... en prod)
-                               Usada en email confirmation redirect. NO usar NEXT_PUBLIC_.
+SUPABASE_SERVICE_ROLE_KEY=              ← panel admin + enviarPushNotification (bypasa RLS)
+ADMIN_EMAIL=                            ← email del admin para acceder a /admin
+SITE_URL=                               ← URL base (http://localhost:3000 en dev, https://... en prod)
+                                          Usada en email confirmation redirect. NO usar NEXT_PUBLIC_.
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=           ← clave pública VAPID para push notifications
+VAPID_PRIVATE_KEY=                      ← clave privada VAPID (solo servidor)
+VAPID_EMAIL=mailto:erikshin2005@gmail.com
 ```
 
 ---
