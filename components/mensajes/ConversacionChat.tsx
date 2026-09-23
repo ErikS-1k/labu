@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { enviarMensaje } from '@/app/actions/mensajes'
+import { avatarBg } from '@/lib/avatar'
 
 type Mensaje = {
   id: string
@@ -20,6 +22,9 @@ type Props = {
   initialMessages: Mensaje[]
   receiverName: string
   receiverHeadline?: string | null
+  receiverAvatarUrl?: string | null
+  postTitle?: string | null
+  backHref?: string
   // true cuando todavía no existe en la DB — redirigir al enviar el primer mensaje
   isNew?: boolean
 }
@@ -32,6 +37,9 @@ export default function ConversacionChat({
   initialMessages,
   receiverName,
   receiverHeadline,
+  receiverAvatarUrl = null,
+  postTitle = null,
+  backHref = '/mensajes',
   isNew = false,
 }: Props) {
   const [messages, setMessages] = useState<Mensaje[]>(initialMessages)
@@ -104,17 +112,65 @@ export default function ConversacionChat({
   }
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Encabezado */}
-      <div className="border-b border-surface-2 px-4 py-3">
-        <p className="font-semibold text-white">{receiverName}</p>
-        {receiverHeadline && (
-          <p className="truncate text-xs text-zinc-500">{receiverHeadline}</p>
+    <div className="flex h-full min-h-0 flex-col">
+      {/* Encabezado sticky — respeta el notch/Dynamic Island con safe-area-inset-top */}
+      <header
+        className="shrink-0 border-b border-[#2a2a2a] bg-[#0a0a0a]/95 backdrop-blur"
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+      >
+        <div className="mx-auto flex max-w-3xl items-center gap-2 px-2 py-2.5">
+          <Link
+            href={backHref}
+            aria-label="Volver"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-zinc-300 transition-colors hover:bg-surface-2 hover:text-white"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </Link>
+
+          <Link
+            href={`/perfil/${receiverId}`}
+            className="flex min-w-0 flex-1 items-center gap-3 rounded-xl py-1 pr-2 transition-colors hover:bg-surface-1"
+          >
+            {receiverAvatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={receiverAvatarUrl}
+                alt={receiverName}
+                className="h-10 w-10 shrink-0 rounded-full object-cover"
+              />
+            ) : (
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white ${avatarBg(receiverId)}`}>
+                {receiverName.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="truncate text-[15px] font-semibold leading-tight text-white">{receiverName}</p>
+              {receiverHeadline && (
+                <p className="mt-0.5 truncate text-xs text-zinc-400">{receiverHeadline}</p>
+              )}
+            </div>
+          </Link>
+        </div>
+
+        {/* Contexto: publicación sobre la que se habla */}
+        {postId && postTitle && (
+          <div className="mx-auto max-w-3xl px-4 pb-2">
+            <Link
+              href={`/post/${postId}`}
+              className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-[#2a2a2a] bg-[#171717] px-3 py-1 text-xs text-zinc-400 transition-colors hover:text-zinc-200"
+            >
+              <span className="shrink-0">Sobre:</span>
+              <span className="truncate text-zinc-300">{postTitle}</span>
+            </Link>
+          </div>
         )}
-      </div>
+      </header>
 
       {/* Mensajes */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div className="mx-auto max-w-3xl px-4 py-4">
         {messages.length === 0 && (
           <p className="py-12 text-center text-sm text-zinc-400">
             Mandá el primer mensaje para iniciar la conversación.
@@ -137,24 +193,36 @@ export default function ConversacionChat({
           ))}
         </div>
         <div ref={bottomRef} />
+        </div>
       </div>
 
-      {/* Input */}
-      <form onSubmit={handleSend} className="flex gap-3 border-t border-surface-2 p-3">
-        <input
-          value={content}
-          onChange={e => setContent(e.target.value)}
-          placeholder="Escribí un mensaje..."
-          disabled={sending}
-          className="flex-1 rounded-lg border border-surface-2 bg-surface-2 px-4 py-3 text-base outline-none focus:border-zinc-600"
-        />
-        <button
-          type="submit"
-          disabled={!content.trim() || sending}
-          className="rounded-lg bg-blue-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-600 disabled:opacity-40"
-        >
-          Enviar
-        </button>
+      {/* Input fijo abajo — respeta la barra de inicio del iPhone con safe-area-inset-bottom */}
+      <form
+        onSubmit={handleSend}
+        className="shrink-0 border-t border-[#2a2a2a] bg-[#0a0a0a]"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
+        <div className="mx-auto flex max-w-3xl items-center gap-2 px-3 py-2.5">
+          <input
+            value={content}
+            onChange={e => setContent(e.target.value)}
+            placeholder="Escribí un mensaje..."
+            disabled={sending}
+            enterKeyHint="send"
+            className="min-w-0 flex-1 rounded-full border border-[#2a2a2a] bg-[#111] px-4 py-2.5 text-base text-white outline-none placeholder:text-zinc-500 focus:border-zinc-600"
+          />
+          <button
+            type="submit"
+            aria-label="Enviar"
+            disabled={!content.trim() || sending}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-700 text-white transition-opacity disabled:opacity-40"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+          </button>
+        </div>
       </form>
     </div>
   )

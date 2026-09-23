@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
 import ConversacionChat from '@/components/mensajes/ConversacionChat'
@@ -39,34 +38,28 @@ export default async function ConversacionPage({
 
   // Cargar receptor y post en paralelo
   const [{ data: receptor }, { data: post }] = await Promise.all([
-    supabase.from('users').select('id, username, first_name, headline').eq('id', receiverId).single(),
+    supabase.from('users').select('id, username, first_name, headline, avatar_url').eq('id', receiverId).single(),
     postId
       ? supabase.from('posts').select('id, title').eq('id', postId).single()
       : Promise.resolve({ data: null }),
   ])
 
   return (
-    <main className="mx-auto flex h-full max-w-xl flex-col px-4 py-4">
-      <Link href="/mensajes" className="mb-4 inline-block text-sm text-zinc-400 hover:text-zinc-700">
-        ← Mensajes
-      </Link>
-
-      <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-surface-2 bg-surface-1">
-        <ConversacionChat
-          conversationId={conversation_id}
-          currentUserId={user!.id}
-          receiverId={receiverId}
-          postId={postId}
-          initialMessages={messages.map(m => ({
-            id: m.id,
-            content: m.content,
-            sender_id: m.sender_id,
-            created_at: m.created_at,
-          }))}
-          receiverName={receptor?.first_name ?? receptor?.username ?? 'Usuario'}
-          receiverHeadline={receptor?.headline ?? null}
-        />
-      </div>
-    </main>
+    <ConversacionChat
+      conversationId={conversation_id}
+      currentUserId={user!.id}
+      receiverId={receiverId}
+      postId={postId}
+      initialMessages={messages.map(m => ({
+        id: m.id,
+        content: m.content,
+        sender_id: m.sender_id,
+        created_at: m.created_at,
+      }))}
+      receiverName={receptor?.first_name ?? receptor?.username ?? 'Usuario'}
+      receiverHeadline={receptor?.headline ?? null}
+      receiverAvatarUrl={receptor?.avatar_url ?? null}
+      postTitle={post?.title ?? null}
+    />
   )
 }
