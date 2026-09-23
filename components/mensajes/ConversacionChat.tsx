@@ -23,6 +23,7 @@ type Props = {
   receiverName: string
   receiverHeadline?: string | null
   receiverAvatarUrl?: string | null
+  receiverUsername?: string | null
   postTitle?: string | null
   backHref?: string
   // true cuando todavía no existe en la DB — redirigir al enviar el primer mensaje
@@ -38,6 +39,7 @@ export default function ConversacionChat({
   receiverName,
   receiverHeadline,
   receiverAvatarUrl = null,
+  receiverUsername = null,
   postTitle = null,
   backHref = '/mensajes',
   isNew = false,
@@ -141,7 +143,7 @@ export default function ConversacionChat({
                 className="h-10 w-10 shrink-0 rounded-full object-cover"
               />
             ) : (
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white ${avatarBg(receiverId)}`}>
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white ${avatarBg(receiverUsername, receiverName, receiverId)}`}>
                 {receiverName.charAt(0).toUpperCase()}
               </div>
             )}

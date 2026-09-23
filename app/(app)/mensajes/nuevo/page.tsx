@@ -32,6 +32,7 @@ export default async function NuevoMensajePage({
       initialMessages={[]}
       receiverName={receptor.first_name ?? receptor.username ?? 'Usuario'}
       receiverHeadline={receptor.headline ?? null}
+      receiverUsername={receptor.username ?? null}
       receiverAvatarUrl={receptor.avatar_url ?? null}
       postTitle={post.title}
       backHref={`/post/${post.id}`}

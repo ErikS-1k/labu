@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { avatarBg } from '@/lib/avatar'
 
 function IconBell() {
   return (
@@ -37,9 +38,15 @@ function getConfig(pathname: string, userId: string | null): PageConfig | null {
 
 export default function MobileHeader({
   userId,
+  userName,
+  userUsername,
+  userAvatarUrl,
   initialCount = 0,
 }: {
   userId: string | null
+  userName: string | null
+  userUsername: string | null
+  userAvatarUrl: string | null
   initialCount: number
 }) {
   const [unread, setUnread] = useState(initialCount)
@@ -79,6 +86,8 @@ export default function MobileHeader({
   // Solo se muestra en páginas raíz con configuración definida
   if (!userId || !config) return null
 
+  const enPerfilPropio = pathname === `/perfil/${userId}`
+
   return (
     <div className="mx-auto w-full max-w-2xl px-4 pt-8 pb-1 md:hidden">
       <div className="flex items-start justify-between gap-3">
@@ -87,18 +96,38 @@ export default function MobileHeader({
           <p className="mt-1 text-sm text-zinc-400">{config.subtitle}</p>
         </div>
 
-        <Link
-          href="/notificaciones"
-          className="relative mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 text-blue-400 transition-colors hover:bg-zinc-800"
-          aria-label="Notificaciones"
-        >
-          <IconBell />
-          {unread > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
-              {unread > 9 ? '9+' : unread}
-            </span>
-          )}
-        </Link>
+        <div className="mt-0.5 flex shrink-0 items-center gap-2">
+          <Link
+            href="/notificaciones"
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 text-blue-400 transition-colors hover:bg-zinc-800"
+            aria-label="Notificaciones"
+          >
+            <IconBell />
+            {unread > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
+                {unread > 9 ? '9+' : unread}
+              </span>
+            )}
+          </Link>
+
+          {/* Acceso al perfil propio (reemplaza el ítem "Perfil" de la barra inferior) */}
+          <Link
+            href={`/perfil/${userId}`}
+            aria-label="Mi perfil"
+            className={`flex h-10 w-10 items-center justify-center rounded-full ring-2 transition-colors ${
+              enPerfilPropio ? 'ring-blue-500' : 'ring-zinc-800 hover:ring-zinc-600'
+            }`}
+          >
+            {userAvatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={userAvatarUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
+            ) : (
+              <span className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-white ${avatarBg(userUsername, userName, userId)}`}>
+                {(userName ?? userUsername ?? '?').charAt(0).toUpperCase()}
+              </span>
+            )}
+          </Link>
+        </div>
       </div>
     </div>
   )

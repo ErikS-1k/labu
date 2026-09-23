@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 type Props = {
   userId: string | null
   unreadCount: number
+  unreadActividadCount: number
   isLoggedIn: boolean
 }
 
@@ -46,17 +47,33 @@ function IconMessage() {
   )
 }
 
-function IconUser() {
+function IconList() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-      <circle cx="12" cy="7" r="4"/>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+      <polyline points="10 9 9 9 8 9"/>
     </svg>
   )
 }
 
-export default function BottomNav({ userId, unreadCount, isLoggedIn }: Props) {
+function IconLogin() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+      <polyline points="10 17 15 12 10 7"/>
+      <line x1="15" y1="12" x2="3" y2="12"/>
+    </svg>
+  )
+}
+
+const TIPOS_ACTIVIDAD = ['nueva_postulacion', 'postulacion_aceptada', 'postulacion_rechazada', 'trabajo_completado', 'recordatorio_calificacion']
+
+export default function BottomNav({ userId, unreadCount, unreadActividadCount, isLoggedIn }: Props) {
   const [msgCount, setMsgCount] = useState(unreadCount)
+  const [actividadCount, setActividadCount] = useState(unreadActividadCount)
   const pathname     = usePathname()
   const searchParams = useSearchParams()
   const fromParam    = searchParams.get('from')
@@ -64,6 +81,42 @@ export default function BottomNav({ userId, unreadCount, isLoggedIn }: Props) {
   useEffect(() => {
     if (pathname === '/mensajes' || pathname.startsWith('/mensajes/')) setMsgCount(0)
   }, [pathname])
+
+  // Sincronizar el contador de actividad con el servidor
+  useEffect(() => {
+    setActividadCount(unreadActividadCount)
+  }, [unreadActividadCount])
+
+  useEffect(() => {
+    if (pathname === '/mi-actividad') setActividadCount(0)
+  }, [pathname])
+
+  // Realtime: novedades de actividad (postulaciones, cambios de estado, etc.)
+  useEffect(() => {
+    if (!userId) return
+    const supabase = createClient()
+    let channel: ReturnType<typeof supabase.channel> | undefined
+    let cancelled = false
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return
+      if (session?.access_token) supabase.realtime.setAuth(session.access_token)
+      channel = supabase
+        .channel(`bottomnav-actividad-${userId}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => {
+          const notif = payload.new as { user_id: string; type: string }
+          if (notif.user_id === userId && TIPOS_ACTIVIDAD.includes(notif.type)) {
+            if (window.location.pathname !== '/mi-actividad') setActividadCount(c => c + 1)
+          }
+        })
+        .subscribe()
+    })
+
+    return () => {
+      cancelled = true
+      if (channel) supabase.removeChannel(channel)
+    }
+  }, [userId])
 
   useEffect(() => {
     if (!userId) return
@@ -87,21 +140,24 @@ export default function BottomNav({ userId, unreadCount, isLoggedIn }: Props) {
       (isPost && (!fromParam || fromParam === 'panel'))
     )
     if (href === '/buscar') return pathname === '/buscar' || (isPost && fromParam === 'busqueda')
-    if (userId && href === `/perfil/${userId}`) return (
-      pathname.startsWith('/perfil/') ||
-      pathname === '/verificacion' ||
-      (isPost && fromParam === 'perfil')
+    // Mismo criterio que la sidebar desktop
+    if (href === '/mi-actividad') return (
+      pathname === '/mi-actividad' ||
+      pathname.startsWith('/mi-actividad/') ||
+      pathname.startsWith('/editar/') ||
+      (isPost && fromParam === 'mi-actividad')
     )
     return pathname === href || pathname.startsWith(href + '/')
   }
 
-  const perfilHref = isLoggedIn && userId ? `/perfil/${userId}` : '/login'
-
-  const msgBadge = msgCount > 0 ? (
-    <span className="absolute -right-1.5 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
-      {msgCount > 9 ? '9+' : msgCount}
-    </span>
-  ) : null
+  function badge(count: number) {
+    if (count <= 0) return null
+    return (
+      <span className="absolute -right-1.5 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
+        {count > 9 ? '9+' : count}
+      </span>
+    )
+  }
 
   function navItem(href: string, icon: React.ReactNode, label: string, badge?: React.ReactNode) {
     const active = isActive(href)
@@ -126,8 +182,10 @@ export default function BottomNav({ userId, unreadCount, isLoggedIn }: Props) {
         {navItem('/panel',    <IconHome />,    'Inicio')}
         {navItem('/buscar',   <IconSearch />,  'Buscar')}
         {navItem('/publicar', <IconPlus />,    'Publicar')}
-        {navItem('/mensajes', <IconMessage />, 'Mensajes', msgBadge)}
-        {navItem(perfilHref,  <IconUser />,    isLoggedIn ? 'Perfil' : 'Entrar')}
+        {navItem('/mensajes', <IconMessage />, 'Mensajes', badge(msgCount))}
+        {isLoggedIn
+          ? navItem('/mi-actividad', <IconList />, 'Actividad', badge(actividadCount))
+          : navItem('/login', <IconLogin />, 'Entrar')}
       </nav>
     </div>
   )
