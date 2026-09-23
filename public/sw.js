@@ -96,10 +96,6 @@ self.addEventListener('fetch', (event) => {
 })
 
 self.addEventListener('push', (event) => {
-  console.log('[SW][push] Evento push recibido')
-  console.log('[SW][push] event.data:', event.data ? 'presente' : 'null/undefined')
-
-  // Valores por defecto — se usan si no hay payload o si falla el parseo
   let title = 'Labu'
   let body  = 'Tenés una nueva notificación'
   let url   = '/panel'
@@ -107,30 +103,20 @@ self.addEventListener('push', (event) => {
 
   if (event.data) {
     let rawText = ''
-    try {
-      rawText = event.data.text()
-      console.log('[SW][push] Raw text:', rawText.slice(0, 120))
-    } catch (err) {
-      console.error('[SW][push] Error leyendo event.data.text():', err)
-    }
+    try { rawText = event.data.text() } catch { /* ignorar */ }
 
     if (rawText) {
       try {
-        console.log('[SW][push] Parseando payload...')
         const parsed = JSON.parse(rawText)
-        console.log('[SW][push] Payload parseado:', JSON.stringify(parsed))
         title = parsed.title || title
         body  = parsed.body  || body
         url   = parsed.url   || url
         icon  = parsed.icon  || icon
       } catch {
-        // Texto plano (ej: test desde DevTools sin JSON)
-        console.log('[SW][push] Payload no es JSON — usando texto como body')
+        // Texto plano (ej: test desde DevTools)
         body = rawText || body
       }
     }
-  } else {
-    console.log('[SW][push] Sin payload — mostrando notificación genérica')
   }
 
   const options = {
@@ -141,35 +127,26 @@ self.addEventListener('push', (event) => {
     vibrate: [200, 100, 200],
   }
 
-  console.log('[SW][push] Llamando showNotification — título:', title, '/ body:', body)
-
-  // event.waitUntil SIEMPRE se llama (incluso sin payload) para mantener el SW activo
+  // event.waitUntil siempre se llama para mantener el SW activo hasta mostrar la notif
   event.waitUntil(
     self.registration.showNotification(title, options)
-      .then(() => { console.log('[SW][push] Notificación mostrada exitosamente') })
-      .catch((err) => { console.error('[SW][push] Error en showNotification:', err) })
+      .catch((err) => { console.error('[SW] showNotification falló:', err) })
   )
 })
 
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SW][notificationclick] Click en notificación')
   event.notification.close()
   const url = event.notification.data?.url || '/panel'
-  console.log('[SW][notificationclick] Navegando a:', url)
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-      // Si la app ya está abierta, enfocarla y navegar
       for (const client of clients) {
         if ('focus' in client) {
-          console.log('[SW][notificationclick] App abierta — enfocando y navegando')
           client.focus()
           client.postMessage({ type: 'NAVIGATE', url })
           return
         }
       }
-      // Si no está abierta, abrir ventana nueva
-      console.log('[SW][notificationclick] App cerrada — abriendo nueva ventana')
       if (self.clients.openWindow) {
         return self.clients.openWindow(url)
       }

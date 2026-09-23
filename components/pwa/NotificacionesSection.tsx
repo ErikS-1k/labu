@@ -32,48 +32,32 @@ export default function NotificacionesSection() {
 
   useEffect(() => {
     async function detectState() {
-      console.log('[PUSH][state] Iniciando detección de estado')
-
       if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-        console.log('[PUSH][state] Navegador sin soporte — Notification:', 'Notification' in window, '/ serviceWorker:', 'serviceWorker' in navigator)
         setPushState('unsupported')
         return
       }
 
       const perm = Notification.permission
-      console.log('[PUSH][state] Notification.permission:', perm)
-
       if (perm === 'denied') { setPushState('denied'); return }
       if (perm === 'default') { setPushState('default'); return }
 
-      // perm === 'granted' — verificar consistencia por pasos independientes
+      // perm === 'granted' — verificar consistencia browser vs Supabase
       let localSub: PushSubscription | null = null
       try {
-        console.log('[PUSH][state] Buscando service worker registration...')
         const reg = await navigator.serviceWorker.getRegistration()
-        console.log('[PUSH][state] Service worker registration:', reg ? `encontrada (active: ${reg.active?.state})` : 'null/undefined')
-
-        if (reg) {
-          localSub = await reg.pushManager.getSubscription()
-        }
-        console.log('[PUSH][state] pushManager.getSubscription() result:', localSub ? localSub.endpoint.slice(0, 50) + '...' : 'null')
+        if (reg) localSub = await reg.pushManager.getSubscription()
       } catch (err) {
-        console.error('[PUSH][state] Error al obtener suscripción local:', err)
+        console.error('[push] getSubscription:', err)
       }
 
       let dbHasSub = false
       try {
-        console.log('[PUSH][state] Consultando Supabase via verificarPushSubscription()...')
         dbHasSub = await verificarPushSubscription()
-        console.log('[PUSH][state] Supabase result:', dbHasSub)
       } catch (err) {
-        console.error('[PUSH][state] Error al consultar Supabase:', err)
+        console.error('[push] verificarPushSubscription:', err)
       }
 
-      const finalState = (localSub && dbHasSub) ? 'granted' : 'inconsistent'
-      console.log('[PUSH][state] Estado final calculado:', finalState === 'granted' ? 'B — granted' : 'D — inconsistent (localSub: ' + !!localSub + ', dbHasSub: ' + dbHasSub + ')')
-      console.log('[PUSH][state] shouldRender: true')
-      setPushState(finalState)
+      setPushState((localSub && dbHasSub) ? 'granted' : 'inconsistent')
     }
 
     detectState()
@@ -87,10 +71,7 @@ export default function NotificacionesSection() {
 
     setPending(true)
     try {
-      console.log('[PUSH] Solicitando permiso...')
       const perm = await Notification.requestPermission()
-      console.log('[PUSH] Permiso:', perm)
-
       if (perm === 'denied') { setPushState('denied'); return }
       if (perm !== 'granted') return
 
@@ -99,45 +80,36 @@ export default function NotificacionesSection() {
         return
       }
 
-      console.log('[PUSH] Esperando service worker...')
       const reg = await navigator.serviceWorker.ready
-      console.log('[PUSH] SW listo:', reg.active?.state)
-
       const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
       if (!vapidKey) {
-        console.error('[PUSH] VAPID key no configurada')
         showToast('Error de configuración. Contactá al soporte.')
         return
       }
 
-      console.log('[PUSH] Suscribiendo a push...')
       let sub: PushSubscription
       try {
         sub = await reg.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(vapidKey),
         })
-        console.log('[PUSH] Suscripción creada:', sub.endpoint.slice(0, 60) + '...')
       } catch (err) {
-        console.error('[PUSH] pushManager.subscribe() falló:', err)
+        console.error('[push] pushManager.subscribe:', err)
         showToast('No se pudo suscribir a las notificaciones. Si estás en Safari, instalá la app en tu pantalla de inicio primero.')
         return
       }
 
-      console.log('[PUSH] Guardando suscripción en Supabase...')
       const json = sub.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } }
       const { error } = await guardarPushSubscription(json)
       if (error) {
-        console.error('[PUSH] guardarPushSubscription falló:', error)
         showToast('No se pudo guardar la suscripción. Intentá de nuevo.')
         return
       }
 
-      console.log('[PUSH] Suscripción guardada. Estado: granted.')
       setPushState('granted')
       showToast('Notificaciones activadas correctamente.')
     } catch (err) {
-      console.error('[PUSH] Error inesperado:', err)
+      console.error('[push] activar:', err)
       showToast('Ocurrió un error inesperado. Probá de nuevo.')
     } finally {
       setPending(false)
