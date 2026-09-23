@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
-import EditarPostForm from '@/components/posts/EditarPostForm'
+import PostForm from '@/components/posts/PostForm'
 
 export const metadata: Metadata = { title: 'Editar publicación — Labu' }
 
@@ -25,8 +25,8 @@ export default async function EditarPostPage({
   if (!post) notFound()
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-8">
-      <EditarPostForm post={post} />
+    <main className="mx-auto max-w-xl px-4 pb-12 pt-8">
+      <PostForm postId={post.id} initialData={post} />
     </main>
   )
 }

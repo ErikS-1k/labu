@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { publicarPost } from '@/app/actions/posts'
+import { publicarPost, editarPost } from '@/app/actions/posts'
 import { MODALIDADES, PRICE_TYPES } from '@/lib/constants'
 import { useProgress } from '@/lib/useProgress'
 
@@ -42,6 +42,12 @@ function IconTool() {
 function IconSearch() {
   return <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
 }
+function IconMegaphone() {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+}
+function IconPencil() {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+}
 
 // ─── Datos ────────────────────────────────────────────────────────────────────
 
@@ -56,26 +62,75 @@ const PRESENCIALIDAD_OPTS = [
   { value: 'ambos',      label: 'Ambos' },
 ]
 
+// ─── Tipos ────────────────────────────────────────────────────────────────────
+
+export type PostInitialData = {
+  type: 'oferta' | 'requerimiento'
+  title: string
+  description: string | null
+  category: string | null
+  modality: string[] | null
+  presencialidad: string | null
+  temporal_duration: string | null
+  price: number | null
+  price_type: string | null
+  location: string | null
+}
+
+type Props = {
+  defaultTipo?: 'oferta' | 'requerimiento'
+  // Modo editar: se pasan ambos. Sin postId el formulario crea una publicación nueva.
+  initialData?: PostInitialData
+  postId?: string
+}
+
+// Categoría guardada → estado del selector (las que no están en la lista van a "Otro")
+function categoriaInicial(category: string | null | undefined): { sel: string; custom: string } {
+  if (!category) return { sel: '', custom: '' }
+  if (CATEGORIAS.includes(category) && category !== 'Otro') return { sel: category, custom: '' }
+  return { sel: 'Otro', custom: category }
+}
+
+// Cabecera de sección dentro de cada card
+function SectionLabel({ icon, text }: { icon: React.ReactNode; text: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-zinc-500">{icon}</span>
+      <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{text}</p>
+    </div>
+  )
+}
+
 // ─── Componente ───────────────────────────────────────────────────────────────
 
-export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?: 'oferta' | 'requerimiento' }) {
-  const [state, action, pending]                = useActionState(publicarPost, null)
+export default function PostForm({ defaultTipo = 'oferta', initialData, postId }: Props) {
+  const esEdicion = !!postId
+  const [state, action, pending]                = useActionState(esEdicion ? editarPost : publicarPost, null)
   useProgress(pending)
-  const [tipo, setTipo]                         = useState<'oferta' | 'requerimiento'>(defaultTipo)
-  const [titulo, setTitulo]                     = useState('')
-  const [descripcion, setDescripcion]           = useState('')
-  const [catSel, setCatSel]                     = useState('')
-  const [catCustom, setCatCustom]               = useState('')
-  const [precio, setPrecio]                     = useState('')
-  const [precioTipo, setPrecioTipo]             = useState('hora')
-  const [aDefinir, setADefinir]                 = useState<boolean | null>(null)
-  const [zona, setZona]                         = useState('')
-  const [modalidades, setModalidades]           = useState<string[]>([])
-  const [temporalDuration, setTemporalDuration] = useState('')
-  const [presencialidad, setPresencialidad]     = useState('')
+
+  const catInicial = categoriaInicial(initialData?.category)
+  // En edición: sin precio = "a definir" (incluye publicaciones viejas con price_type null)
+  const aDefinirInicial = initialData ? initialData.price == null : null
+
+  const [tipo, setTipo]                         = useState<'oferta' | 'requerimiento'>(initialData?.type ?? defaultTipo)
+  const [titulo, setTitulo]                     = useState(initialData?.title ?? '')
+  const [descripcion, setDescripcion]           = useState(initialData?.description ?? '')
+  const [catSel, setCatSel]                     = useState(catInicial.sel)
+  const [catCustom, setCatCustom]               = useState(catInicial.custom)
+  const [precio, setPrecio]                     = useState(initialData?.price != null ? String(initialData.price) : '')
+  const [precioTipo, setPrecioTipo]             = useState(
+    aDefinirInicial === true ? 'a_convenir' : (initialData?.price_type ?? 'hora')
+  )
+  const [aDefinir, setADefinir]                 = useState<boolean | null>(aDefinirInicial)
+  const [zona, setZona]                         = useState(initialData?.location ?? '')
+  const [modalidades, setModalidades]           = useState<string[]>(initialData?.modality ?? [])
+  const [temporalDuration, setTemporalDuration] = useState(initialData?.temporal_duration ?? '')
+  const [presencialidad, setPresencialidad]     = useState(initialData?.presencialidad ?? '')
   const [fieldErrors, setFieldErrors]           = useState<{ title?: string; modality?: string; precio?: string }>({})
 
   function handleTipoChange(nuevoTipo: 'oferta' | 'requerimiento') {
+    // El tipo no se puede cambiar una vez creada la publicación
+    if (esEdicion) return
     setTipo(nuevoTipo)
     setModalidades([])
     setFieldErrors({})
@@ -105,18 +160,29 @@ export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?:
 
   const categoryValue = catSel === 'Otro' ? catCustom.trim() : catSel
 
-  // Helper: cabecera de sección dentro de cada card
-  function SectionLabel({ icon, text }: { icon: React.ReactNode; text: string }) {
-    return (
-      <div className="flex items-center gap-2">
-        <span className="text-zinc-500">{icon}</span>
-        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{text}</p>
-      </div>
-    )
-  }
+  // En edición el botón del tipo no elegido queda apagado y sin interacción
+  const tipoBloqueado = 'cursor-not-allowed opacity-40'
 
   return (
+    <>
+    {/* Hero — visible en todos los viewports (MobileHeader no cubre /publicar ni /editar) */}
+    <div className="mb-10 text-center">
+      <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-500/15 text-blue-400 ring-1 ring-blue-500/20">
+        {esEdicion ? <IconPencil /> : <IconMegaphone />}
+      </div>
+      <h1 className="text-3xl font-bold text-white">
+        {esEdicion ? 'Editá tu publicación' : 'Publicá tu servicio o búsqueda'}
+      </h1>
+      <p className="mx-auto mt-3 max-w-sm text-zinc-400">
+        {esEdicion
+          ? 'Actualizá los datos y guardá los cambios.'
+          : 'Es gratis y tarda menos de un minuto. Empezá a conectar hoy mismo.'}
+      </p>
+    </div>
+
     <form action={action} onSubmit={handleSubmit} className="flex flex-col gap-5">
+
+      {esEdicion && <input type="hidden" name="post_id" value={postId} />}
 
       {/* Error global del server action */}
       {state?.error && (
@@ -127,17 +193,21 @@ export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?:
 
       {/* ── 1. Selector de tipo ── */}
       <div>
-        <p className="mb-3 text-sm font-semibold text-zinc-300">¿Qué querés hacer?</p>
+        <p className="mb-3 text-sm font-semibold text-zinc-300">
+          {esEdicion ? 'Tipo de publicación' : '¿Qué querés hacer?'}
+        </p>
         <input type="hidden" name="type" value={tipo} />
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
             onClick={() => handleTipoChange('oferta')}
+            disabled={esEdicion && tipo !== 'oferta'}
+            aria-disabled={esEdicion}
             className={`rounded-2xl border-2 p-5 text-left transition-all ${
               tipo === 'oferta'
                 ? 'border-green-500 bg-green-500/10'
-                : 'border-[#2a2a2a] bg-[#171717] hover:border-zinc-600'
-            }`}
+                : `border-[#2a2a2a] bg-[#171717] ${esEdicion ? tipoBloqueado : 'hover:border-zinc-600'}`
+            } ${esEdicion ? 'cursor-default' : ''}`}
           >
             <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${
               tipo === 'oferta' ? 'bg-green-500/20 text-green-400' : 'bg-surface-2 text-zinc-400'
@@ -153,11 +223,13 @@ export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?:
           <button
             type="button"
             onClick={() => handleTipoChange('requerimiento')}
+            disabled={esEdicion && tipo !== 'requerimiento'}
+            aria-disabled={esEdicion}
             className={`rounded-2xl border-2 p-5 text-left transition-all ${
               tipo === 'requerimiento'
                 ? 'border-blue-500 bg-blue-500/10'
-                : 'border-[#2a2a2a] bg-[#171717] hover:border-zinc-600'
-            }`}
+                : `border-[#2a2a2a] bg-[#171717] ${esEdicion ? tipoBloqueado : 'hover:border-zinc-600'}`
+            } ${esEdicion ? 'cursor-default' : ''}`}
           >
             <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${
               tipo === 'requerimiento' ? 'bg-blue-500/20 text-blue-400' : 'bg-surface-2 text-zinc-400'
@@ -170,6 +242,9 @@ export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?:
             </p>
           </button>
         </div>
+        {esEdicion && (
+          <p className="mt-2 text-xs text-zinc-500">El tipo no se puede cambiar una vez creada la publicación.</p>
+        )}
       </div>
 
       {/* ── 2. Descripción ── */}
@@ -354,7 +429,9 @@ export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?:
 
       {/* ── CTA ── */}
       <div className="rounded-2xl bg-gradient-to-b from-blue-600 to-blue-700 p-6 text-center md:p-8">
-        <h2 className="text-xl font-bold text-white">¿Listo para publicar?</h2>
+        <h2 className="text-xl font-bold text-white">
+          {esEdicion ? '¿Todo listo?' : '¿Listo para publicar?'}
+        </h2>
         <p className="mt-1 text-sm text-blue-100">
           * Título, duración y precio son obligatorios
         </p>
@@ -363,9 +440,12 @@ export default function PublicarForm({ defaultTipo = 'oferta' }: { defaultTipo?:
           disabled={pending}
           className="mt-5 w-full max-w-xs rounded-xl bg-white px-6 py-3 text-base font-bold text-blue-600 transition-colors hover:bg-blue-50 disabled:opacity-50"
         >
-          {pending ? 'Publicando...' : 'Publicar ahora'}
+          {esEdicion
+            ? (pending ? 'Guardando...' : 'Guardar cambios')
+            : (pending ? 'Publicando...' : 'Publicar ahora')}
         </button>
       </div>
     </form>
+    </>
   )
 }
