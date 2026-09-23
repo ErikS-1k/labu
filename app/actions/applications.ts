@@ -47,6 +47,12 @@ export async function postularse(
     .from('users').select('first_name, username').eq('id', user.id).single()
   const nombre = applicantUser?.first_name || applicantUser?.username || 'Alguien'
 
+  const trunc = (s: string, n = 100) => s.length > n ? s.slice(0, n) + '...' : s
+
+  const pushBodyPostulacion = message
+    ? trunc(`En "${post.title}" — ${message}`)
+    : trunc(`En "${post.title}"`)
+
   await Promise.all([
     crearNotificacion({
       userId:  post.user_id,
@@ -67,9 +73,9 @@ export async function postularse(
     enviarPushNotification(post.user_id, {
       title: esOferta
         ? `${nombre} quiere contactarte`
-        : `${nombre} se postuló a "${post.title}"`,
-      body:  message ? message.slice(0, 60) : 'Entrá a ver los detalles',
-      url:   `/post/${postId}`,
+        : `${nombre} se postuló a tu publicación`,
+      body:  pushBodyPostulacion,
+      url:   `/post/${postId}?from=notification`,
     }),
   ])
 
@@ -92,23 +98,30 @@ export async function aceptarPostulacion(formData: FormData) {
     supabase.from('applications').select('applicant_id').eq('id', applicationId).single(),
   ])
 
-  const { data: post } = await supabase.from('posts').select('title, type').eq('id', postId).single()
+  const [{ data: post }, { data: authorUser }] = await Promise.all([
+    supabase.from('posts').select('title, type').eq('id', postId).single(),
+    supabase.from('users').select('first_name, username').eq('id', user.id).single(),
+  ])
 
   if (app && post) {
-    const msg = post.type === 'oferta'
+    const authorNombre = authorUser?.first_name || authorUser?.username || 'El empleador'
+    const trunc = (s: string, n = 100) => s.length > n ? s.slice(0, n) + '...' : s
+
+    const notifMsg = post.type === 'oferta'
       ? `Tu solicitud para "${post.title}" fue aceptada`
       : `Tu postulación a "${post.title}" fue aceptada`
+
     await Promise.all([
       crearNotificacion({
         userId:  app.applicant_id,
         type:    'postulacion_aceptada',
-        message: msg,
+        message: notifMsg,
         link:    `/post/${postId}`,
       }),
       enviarPushNotification(app.applicant_id, {
-        title: 'Postulación aceptada',
-        body:  msg,
-        url:   `/post/${postId}`,
+        title: `${authorNombre} aceptó tu postulación`,
+        body:  trunc(`En "${post.title}" — Ahora podés coordinar los detalles`),
+        url:   `/post/${postId}?from=notification`,
       }),
     ])
   }

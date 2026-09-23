@@ -55,6 +55,12 @@ export async function enviarMensaje(params: {
     return { error: 'No se pudo enviar el mensaje. Intentá de nuevo.' }
   }
 
+  const { data: senderUser } = await supabase
+    .from('users').select('first_name, username').eq('id', user.id).single()
+  const senderName = senderUser?.first_name || senderUser?.username || 'Mensaje nuevo'
+
+  const trunc = (s: string, n = 100) => s.length > n ? s.slice(0, n) + '...' : s
+
   await Promise.all([
     crearNotificacion({
       userId:  params.receiverId,
@@ -63,8 +69,8 @@ export async function enviarMensaje(params: {
       link:    `/mensajes/${params.conversationId}`,
     }),
     enviarPushNotification(params.receiverId, {
-      title: 'Nuevo mensaje en Labu',
-      body:  params.content.slice(0, 60),
+      title: senderName,
+      body:  trunc(params.content),
       url:   `/mensajes/${params.conversationId}`,
     }),
   ])
