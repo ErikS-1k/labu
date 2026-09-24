@@ -76,6 +76,8 @@ export type PostInitialData = {
 
 type Props = {
   defaultTipo?: 'oferta' | 'requerimiento'
+  // Título precargado en modo crear (ej. desde "Publicar lo que busco" en /buscar)
+  defaultTitulo?: string
   // Modo editar: se pasan ambos. Sin postId el formulario crea una publicación nueva.
   initialData?: PostInitialData
   postId?: string
@@ -100,7 +102,7 @@ function SectionLabel({ icon, text }: { icon: React.ReactNode; text: string }) {
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
-export default function PostForm({ defaultTipo = 'oferta', initialData, postId }: Props) {
+export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', initialData, postId }: Props) {
   const esEdicion = !!postId
   const [state, action, pending]                = useActionState(esEdicion ? editarPost : publicarPost, null)
   useProgress(pending)
@@ -110,7 +112,7 @@ export default function PostForm({ defaultTipo = 'oferta', initialData, postId }
   const aDefinirInicial = initialData ? initialData.price == null : null
 
   const [tipo, setTipo]                         = useState<'oferta' | 'requerimiento'>(initialData?.type ?? defaultTipo)
-  const [titulo, setTitulo]                     = useState(initialData?.title ?? '')
+  const [titulo, setTitulo]                     = useState(initialData?.title ?? defaultTitulo)
   const [descripcion, setDescripcion]           = useState(initialData?.description ?? '')
   const [catSel, setCatSel]                     = useState(catInicial.sel)
   const [catCustom, setCatCustom]               = useState(catInicial.custom)

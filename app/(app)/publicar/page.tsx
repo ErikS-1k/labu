@@ -11,6 +11,10 @@ export default async function PublicarPage({
 }) {
   const params      = await searchParams
   const defaultTipo = params.tipo === 'requerimiento' ? 'requerimiento' : 'oferta'
+  // ?titulo= viene del CTA "Publicar lo que busco" de /buscar. Se capitaliza la primera letra
+  // ("profesora de inglés" → "Profesora de inglés") y se recorta al máximo de 100 caracteres.
+  const tituloRaw     = (params.titulo ?? '').trim().slice(0, 100)
+  const defaultTitulo = tituloRaw ? tituloRaw[0].toUpperCase() + tituloRaw.slice(1) : ''
   const exito       = params.exito === '1'
   const tipoExito   = params.tipo === 'requerimiento' ? 'requerimiento' : 'oferta'
 
@@ -53,7 +57,7 @@ export default async function PublicarPage({
 
   return (
     <main className="mx-auto max-w-xl px-4 pb-12 pt-8">
-      <PostForm defaultTipo={defaultTipo} />
+      <PostForm defaultTipo={defaultTipo} defaultTitulo={defaultTitulo} />
     </main>
   )
 }

@@ -17,6 +17,7 @@ import SearchForm from '@/components/search/SearchForm'
 import SearchTabs from '@/components/search/SearchTabs'
 import SearchFilters from '@/components/search/SearchFilters'
 import CategoriaSugerencias from '@/components/search/CategoriaSugerencias'
+import PublicarBusquedaCTA from '@/components/search/PublicarBusquedaCTA'
 import { SearchNavigationProvider, SearchPendingArea } from '@/components/search/SearchNavigation'
 import PageHeader from '@/components/ui/PageHeader'
 
@@ -75,7 +76,7 @@ function ErrorCard({ mensaje }: { mensaje: string }) {
   )
 }
 
-function SinResultados({ q }: { q: string }) {
+function SinResultados({ q, logueado }: { q: string; logueado: boolean }) {
   return (
     <div className="rounded-2xl border border-[#2a2a2a] bg-[#171717] px-5 py-10 text-center">
       <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(59,130,246,0.12)] text-blue-400">
@@ -88,17 +89,25 @@ function SinResultados({ q }: { q: string }) {
       </p>
       <p className="mt-1.5 text-sm text-zinc-400">Probá buscar con otras palabras o revisá los filtros.</p>
 
+      {/* Bloque 1 — sugerencias de categorías */}
       <p className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-        Explorá por categoría
+        Ampliá tu búsqueda
       </p>
       <CategoriaSugerencias />
+
+      {/* Bloque 2 — publicar un requerimiento con lo buscado (solo existe con texto buscado) */}
+      {q && (
+        <div className="mt-8 border-t border-[#2a2a2a] pt-8">
+          <PublicarBusquedaCTA q={q} logueado={logueado} />
+        </div>
+      )}
     </div>
   )
 }
 
-function ResultadosBusqueda({ q, resultados }: { q: string; resultados: SearchResults }) {
+function ResultadosBusqueda({ q, resultados, logueado }: { q: string; resultados: SearchResults; logueado: boolean }) {
   const { posts, users, totalPosts, totalUsers } = resultados
-  if (posts.length === 0 && users.length === 0) return <SinResultados q={q} />
+  if (posts.length === 0 && users.length === 0) return <SinResultados q={q} logueado={logueado} />
 
   return (
     <div className="flex flex-col gap-8">
@@ -203,7 +212,7 @@ export default async function BuscarPage({
             {isSearch && resultados ? (
               resultados.error
                 ? <ErrorCard mensaje={resultados.error} />
-                : <ResultadosBusqueda q={q} resultados={resultados} />
+                : <ResultadosBusqueda q={q} resultados={resultados} logueado={!!user} />
             ) : listadoError ? (
               <ErrorCard mensaje={listadoError} />
             ) : listado.length > 0 ? (
