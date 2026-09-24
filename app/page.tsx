@@ -244,7 +244,7 @@ export default async function Home() {
             {CATEGORIAS.map(cat => (
               <Link
                 key={cat.label}
-                href={`/buscar?categoria=${encodeURIComponent(cat.label)}`}
+                href={`/buscar?q=${encodeURIComponent(cat.label)}`}
                 className="flex items-center gap-2.5 rounded-xl border border-surface-2 bg-surface-1 px-4 py-3 text-sm font-medium text-zinc-300 transition-colors hover:border-[rgba(59,130,246,0.4)] hover:bg-[rgba(30,58,138,0.2)] hover:text-blue-400"
               >
                 <span className="text-lg leading-none">{cat.emoji}</span>

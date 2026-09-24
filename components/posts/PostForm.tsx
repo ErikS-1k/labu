@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { publicarPost, editarPost } from '@/app/actions/posts'
-import { MODALIDADES, PRICE_TYPES } from '@/lib/constants'
+import { CATEGORIAS_PUBLICACION, MODALIDADES, PRICE_TYPES } from '@/lib/constants'
 import { useProgress } from '@/lib/useProgress'
 
 // ─── Estilos compartidos ──────────────────────────────────────────────────────
@@ -51,10 +51,7 @@ function IconPencil() {
 
 // ─── Datos ────────────────────────────────────────────────────────────────────
 
-const CATEGORIAS = [
-  'Oficios', 'Tecnología', 'Educación', 'Salud y bienestar',
-  'Arte y diseño', 'Gastronomía', 'Transporte', 'Otro',
-]
+const CATEGORIAS = [...CATEGORIAS_PUBLICACION, 'Otro']
 
 const PRESENCIALIDAD_OPTS = [
   { value: 'presencial', label: 'Presencial' },
