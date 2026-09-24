@@ -54,13 +54,13 @@ El perfil público muestra información general. El teléfono y email del postul
     /ofertas              → feed de ofertas con filtros y búsqueda en tiempo real
     /requerimientos       → feed de requerimientos con filtros y búsqueda en tiempo real
     /post/[id]            → detalle de post + postulaciones + sección de contacto
-    /editar/[id]          → editar publicación existente (solo el autor)
+    /editar/[id]          → editar publicación existente (solo el autor, mismo PostForm que /publicar)
     /perfil/[id]          → perfil público/propio (hero, bio, experiencia, reseñas, publicaciones)
     /perfil/editar        → editar perfil + secciones LinkedIn
-    /publicar             → crear nuevo post (oferta o requerimiento)
+    /publicar             → crear nuevo post (oferta o requerimiento) con PostForm
     /mensajes             → lista de conversaciones con badges de no leídos
-    /mensajes/[id]        → chat individual con Realtime
-    /mensajes/nuevo       → iniciar conversación nueva
+    /mensajes/[id]        → chat individual fullscreen (layout propio fixed inset-0 z-[90]) con Realtime
+    /mensajes/nuevo       → iniciar conversación nueva (mismo layout fullscreen)
     /mi-actividad         → mis publicaciones + mis postulaciones (con badges Realtime)
     /notificaciones       → lista de notificaciones + card de activación push (NotificacionesSection)
     /verificacion         → página explicativa + formulario subida DNI
@@ -75,6 +75,13 @@ El perfil público muestra información general. El teléfono y email del postul
     /admin/metricas       → stat cards + CSS bar charts
     /admin/salud          → conteos por tabla + timestamps de últimos registros
 /components               → componentes reutilizables
+  /layout
+    BottomNav.tsx                  → nav mobile: Inicio · Buscar · Publicar · Mensajes · Actividad (sin Perfil)
+    MobileHeader.tsx               → título de página + campana + avatar propio (→ perfil propio)
+  /posts
+    PostForm.tsx                   → formulario único crear/editar (props: defaultTipo?, initialData?, postId?)
+  /mensajes
+    ConversacionChat.tsx           → chat fullscreen estilo WhatsApp (header con avatar → perfil del otro)
   /pwa
     ServiceWorkerRegistration.tsx  → registra /sw.js solo en producción, escucha updates y mensajes NAVIGATE
     InstallBanner.tsx              → banner fijo "Instalar app" (beforeinstallprompt, localStorage)
@@ -247,7 +254,7 @@ Solo enviarPushNotification usa service role (lee suscripciones de otros usuario
 - [x] Modalidades como botones seleccionables (Inmediato / Temporal / Por proyecto / Permanente)
 - [x] Presencialidad en publicaciones (Presencial / Virtual / Híbrido)
 - [x] Precio fijo o "A convenir" (toggle selector)
-- [x] Editar publicaciones existentes (/editar/[id])
+- [x] Editar publicaciones existentes (/editar/[id]) — mismo formulario y diseño que /publicar
 - [x] Modales de confirmación para Cerrar y Eliminar publicaciones
 - [x] Feed de Ofertas con filtros (búsqueda, categoría, duración)
 - [x] Feed de Requerimientos con filtros
@@ -262,6 +269,7 @@ Solo enviarPushNotification usa service role (lee suscripciones de otros usuario
 
 ### Fase 3 — Interacción ✅
 - [x] Sistema de mensajería interna (Supabase Realtime, mensajes se marcan leídos al abrir)
+- [x] Chat fullscreen estilo WhatsApp (tapa sidebar/BottomNav; header con avatar, nombre y link al perfil)
 - [x] Sistema de postulaciones (postularse a requerimientos, aceptar/rechazar, desbloqueo de contacto)
 - [x] Flujo de aceptar/rechazar con Realtime para autor y postulante
 - [x] Doble confirmación para marcar trabajo completado (cliente + trabajador)
@@ -285,7 +293,7 @@ Solo enviarPushNotification usa service role (lee suscripciones de otros usuario
 - [x] Landing page dark con explicación de Labu, categorías, cómo funciona y CTA
 - [x] Auth guards centralizados en proxy.ts (session refresh + redirecciones)
 - [x] Sidebar desktop con badges Realtime (mensajes + notificaciones + actividad)
-- [x] BottomNav mobile con badges de no leídos
+- [x] BottomNav mobile con badges de no leídos (Mensajes + Actividad); perfil propio desde el avatar del MobileHeader
 - [x] MobileHeader con títulos grandes por página y campana de notificaciones
 - [x] Campana de notificaciones en tiempo real (badge con contador)
 - [x] Página /notificaciones con agrupación por tipo+día y auto-marcar al ver

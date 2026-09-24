@@ -10,12 +10,13 @@ Marketplace bidireccional de trabajo que cubre todos los rubros (oficios físico
 
 ## Estado actual del código
 
-MVP completo y deployado en Vercel. Todas las funcionalidades principales están operativas.
+MVP completo y deployado en Vercel. Todas las funcionalidades principales están operativas. Desde 2026-09-23 también es PWA instalable con notificaciones push nativas.
 
 ### Stack
 - **Framework:** Next.js 16 con App Router
 - **Auth + DB + Storage:** Supabase
 - **Estilos:** Tailwind CSS v4
+- **Push:** web-push (VAPID, server-side) + Service Worker propio (`public/sw.js`)
 - **Deploy:** Vercel (producción)
 
 ### Estructura de rutas
@@ -34,17 +35,20 @@ app/
     post/[id]/page.tsx             → detalle de post; postulaciones via PostulacionesAutorSection + MiPostulacionSection (Realtime)
     perfil/[id]/page.tsx           → perfil público/propio
     perfil/editar/page.tsx         → editar perfil + secciones LinkedIn + eliminar foto
-    publicar/page.tsx              → crear nuevo post
-    editar/[id]/page.tsx           → editar post propio
-    mi-actividad/page.tsx          → tabs: Mis publicaciones + Mis trabajos
+    publicar/page.tsx              → crear nuevo post (PostForm sin postId) + pantalla de éxito (?exito=1)
+    editar/[id]/page.tsx           → editar post propio (mismo PostForm con postId + initialData)
+    notificaciones/page.tsx        → lista de notificaciones + NotificacionesSection (activar/desactivar push)
+    mi-actividad/page.tsx          → tabs: Mis publicaciones + Mis postulaciones
     mi-actividad/CalificarModal.tsx → modal de calificación (client component)
     mi-actividad/ActividadRealtimeSync.tsx → Realtime para refresh de mi-actividad (client, render null)
     mi-actividad/AutoMarcarActividadLeida.tsx → marca notificaciones de actividad como leídas al entrar (client, render null)
     mis-publicaciones/page.tsx     → redirect a /mi-actividad
     verificacion/page.tsx          → formulario DNI + explicación proceso
     mensajes/page.tsx              → lista de conversaciones (Realtime via ConversacionList)
-    mensajes/[conversation_id]/page.tsx → chat individual (Supabase Realtime + smart scroll)
-    mensajes/nuevo/page.tsx        → iniciar conversación nueva (sin lógica de dedup — vive en iniciarConversacion())
+    mensajes/[conversation_id]/layout.tsx → overlay fullscreen `fixed inset-0 z-[90]` (tapa sidebar, BottomNav, botón flotante; deja pasar toasts z-[100])
+    mensajes/[conversation_id]/page.tsx → chat individual fullscreen estilo WhatsApp (Realtime + smart scroll)
+    mensajes/nuevo/layout.tsx      → re-exporta el layout fullscreen de [conversation_id]
+    mensajes/nuevo/page.tsx        → iniciar conversación nueva, fullscreen, flecha vuelve al post (dedup vive en iniciarConversacion())
     admin/page.tsx                 → hub admin con 9 cards + contadores (solo ADMIN_EMAIL)
     admin/verificaciones/page.tsx  → revisar DNI pendientes + aprobar/rechazar
     admin/usuarios/page.tsx        → lista paginada, filtros, buscador, estado verificación
@@ -62,7 +66,10 @@ app/
 components/
   layout/
     PanelSidebar.tsx          → sidebar desktop, badge mensajes + notifs + Mi Actividad (Realtime)
-    BottomNav.tsx             → nav mobile inferior, py-3 para touch targets 44px
+    BottomNav.tsx             → nav mobile: Inicio · Buscar · Publicar · Mensajes · Actividad (guest: "Entrar").
+                                Badges Realtime de mensajes y de actividad. Ya NO tiene ítem Perfil.
+    MobileHeader.tsx          → título grande por página + campana + avatar del usuario (→ /perfil/[id], ring azul si estás en tu perfil).
+                                Solo se muestra en páginas raíz: panel, buscar, mensajes, mi-actividad, notificaciones, perfil propio.
     FloatingPublishMenu.tsx   → botón "+", oculto en /publicar, modal para guests
     NotificationBell.tsx      → campana con badge (Realtime)
     Breadcrumbs.tsx           → breadcrumbs dinámicos
@@ -70,12 +77,21 @@ components/
     Toaster.tsx               → toasts efímeros (URL param + CustomEvent)
     ProgressBar.tsx           → barra de progreso NProgress en navegación
   onboarding/
-    OnboardingBanner.tsx      → banner persistente 3 pasos (reemplaza el modal)
+    OnboardingBanner.tsx      → banner persistente 4 pasos (perfil, publicar, explorar, activar notificaciones).
+                                El paso 4 solo se marca hecho cuando la suscripción push quedó guardada en Supabase.
+  pwa/
+    ServiceWorkerRegistration.tsx → registra /sw.js SOLO en producción; avisa updates y maneja mensajes NAVIGATE
+    InstallBanner.tsx         → banner "Instalar app" (beforeinstallprompt, descartable 14 días en localStorage)
+    NotificacionesSection.tsx → card en /notificaciones, siempre visible. Estados: loading · unsupported ·
+                                default (A: activar) · granted (B: desactivar) · denied (C: bloqueadas) ·
+                                inconsistent (D: permiso OK pero falta la suscripción local o la fila en DB → "Reintentar")
   auth/
     LoginPromptModal.tsx      → modal reutilizable para acciones de guests
   posts/
-    PublicarForm.tsx          → formulario controlado, validación por campo
-    EditarPostForm.tsx        → editar post existente
+    PostForm.tsx              → formulario ÚNICO de crear y editar (antes PublicarForm + EditarPostForm).
+                                Props: defaultTipo?, initialData?, postId?. Con postId → editarPost; sin postId → publicarPost.
+                                Incluye el hero (megáfono / lápiz). En edición el tipo queda bloqueado y todo viene precargado;
+                                categorías que no están en la lista se cargan como "Otro" + texto.
     PostCard.tsx              → card del feed con íconos de tipo (wrench/briefcase)
     PostActionsMenu.tsx       → menú de acciones (editar, cerrar, eliminar) en mi-actividad
     FeedFilters.tsx           → filtros con íconos en tabs + búsqueda en tiempo real + debounce 300ms
@@ -93,7 +109,9 @@ components/
   ratings/
     RatingForm.tsx            → calificación 1-5 estrellas, toast en state.ok
   mensajes/
-    ConversacionChat.tsx      → chat Realtime, smart scroll, input text-base (evita iOS zoom)
+    ConversacionChat.tsx      → chat fullscreen: header con flecha (backHref, default /mensajes), avatar, nombre + headline
+                                (→ perfil del OTRO usuario), chip "Sobre: [post]"; input píldora fijo abajo;
+                                safe-area insets; mensajes centrados max-w-3xl en desktop. Realtime + smart scroll.
     ConversacionList.tsx      → lista de conversaciones con Realtime (client component)
   search/
     SearchForm.tsx            → búsqueda en tiempo real con debounce 300ms
@@ -110,14 +128,17 @@ components/
 app/actions/
   auth.ts          → registro (→ /panel?toast=bienvenido), login, logout
   perfil.ts        → actualizarPerfil (incluye email), agregarSeccion, editarSeccion,
-                     eliminarSeccion, eliminarFoto, completarOnboarding
+                     eliminarSeccion, eliminarFoto, completarOnboarding, completarOnboardingNotificaciones
+  push.ts          → enviarPushNotification (service role: lee suscripciones de OTRO usuario),
+                     guardarPushSubscription / eliminarPushSubscription / verificarPushSubscription
+                     (cliente de SESIÓN del usuario — RLS auth.uid() = user_id)
   posts.ts         → publicarPost (→ toast), editarPost (→ toast), eliminarPost,
                      cerrarPost, marcarCompletado
-  applications.ts  → postularse, aceptarPostulacion, rechazarPostulacion
+  applications.ts  → postularse, aceptarPostulacion, rechazarPostulacion (+ push al autor / al postulante)
   ratings.ts       → calificar
   notifications.ts → crearNotificacion, marcarTodasLeidas, marcarActividadLeida
   verificacion.ts  → subirVerificacion
-  mensajes.ts      → iniciarConversacion (incluye dedup de conversación), enviarMensaje
+  mensajes.ts      → iniciarConversacion (incluye dedup de conversación), enviarMensaje (+ push con nombre del remitente)
   admin.ts         → aprobar/rechazar verificaciones
 ```
 
@@ -138,9 +159,17 @@ lib/
 ### Tabla `users`
 ```
 first_login     boolean default true  — true = primer acceso, muestra onboarding banner
+onboarding_notifications_done boolean default false — paso 4 del onboarding (activar notificaciones)
 email           text                  — email de contacto, visible solo para el propio usuario
 phone           text                  — teléfono, visible solo para el propio usuario (no se desbloquea más)
 ```
+
+### Tabla `push_subscriptions`
+```
+id, user_id (→ users, on delete cascade), endpoint (unique), p256dh, auth, created_at
+```
+RLS: `auth.uid() = user_id` para todo. Las operaciones sobre las propias filas usan el cliente de sesión
+(`createClient()`); solo `enviarPushNotification` usa service role. Las suscripciones vencidas (410/404) se borran solas al enviar.
 
 ### Tabla `posts`
 ```
@@ -179,6 +208,19 @@ ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS temporal_duration text;
 -- Onboarding (first_login)
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS first_login boolean DEFAULT true;
 UPDATE public.users SET first_login = false;  -- usuarios existentes no ven onboarding
+
+-- PWA / push (2026-09)
+create table push_subscriptions (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid not null references users(id) on delete cascade,
+  endpoint text not null unique, p256dh text not null, auth text not null,
+  created_at timestamptz default now()
+);
+create index push_subscriptions_user_id_idx on push_subscriptions(user_id);
+alter table push_subscriptions enable row level security;
+create policy "Usuarios gestionan sus propias subscripciones" on push_subscriptions
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS onboarding_notifications_done boolean DEFAULT false;
 ```
 
 ### RLS — política UPDATE en messages
@@ -239,6 +281,21 @@ Todos los redirects de auth están centralizados en `proxy.ts` (raíz del proyec
 Las páginas usan `user!.id` (non-null assertion) porque el proxy garantiza que el usuario existe antes de que la página se renderice.
 
 ---
+
+## Últimos cambios (sesión 2026-09-23)
+
+| Área | Cambio |
+|---|---|
+| PWA | `public/manifest.json` + `public/sw.js` + íconos. SW: cache-first assets, network-first navegación, network-only Supabase. Registro solo en producción. Banner de instalación. |
+| Push — infraestructura | `web-push` + VAPID. Tabla `push_subscriptions`. Triggers: mensaje nuevo, postulación nueva, postulación aceptada. |
+| Push — bug RLS | `guardar/eliminar/verificarPushSubscription` usaban `createServiceClient()` → "permission denied" en prod. Fix: cliente de sesión del usuario. |
+| Push — bug SW | El handler hacía `return` sin `event.waitUntil()` cuando no había payload → el navegador mataba el SW antes de mostrar. Fix: siempre `waitUntil`, maneja sin payload / JSON / texto plano. |
+| Push — contenido | Mensaje: título = nombre del remitente, body = primeros 100 caracteres. Postulación: "X se postuló / quiere contactarte" + título del post. Aceptada: "X aceptó tu postulación". URLs con `?from=notification`. |
+| Push — UI | `NotificacionesSection` siempre visible con estados A/B/C/D. Onboarding pasa a 4 pasos; el paso 4 solo se marca cuando la suscripción está realmente en Supabase. |
+| Chat fullscreen | `/mensajes/[id]` y `/mensajes/nuevo` ocupan toda la pantalla (layout `fixed inset-0 z-[90]`). Header estilo WhatsApp con avatar + link al perfil del otro, chip del post, input píldora, safe-area insets. |
+| Navegación mobile | BottomNav: "Perfil" → "Actividad" (con badge Realtime). Perfil propio ahora se abre desde el avatar del MobileHeader (a la derecha de la campana). Desktop sin cambios. |
+| Formulario único de posts | `PublicarForm` renombrado a `PostForm` y reutilizado en `/editar/[id]` (diseño nuevo, datos precargados, tipo bloqueado, textos de edición). `EditarPostForm.tsx` eliminado. Backend sin cambios. |
+| Colores de avatar | Headers de chat y MobileHeader usan `avatarBg(username, first_name, id)` — mismo orden que el resto de la app para que el color coincida. |
 
 ## Últimos cambios (sesión 2026-09-10)
 
@@ -313,6 +370,7 @@ Leyenda: ✅ funciona en producción · ⚠️ funciona con limitaciones · 🔜
 - ✅ Categorías predefinidas + "Otro"
 - ✅ Precio + unidad o "A convenir"
 - ✅ Formulario: inputs controlados, validación por campo, datos persistentes ante error
+- ✅ Crear y editar usan el mismo formulario (`PostForm`) con el mismo diseño; en edición todo viene precargado y el tipo no se puede cambiar
 
 ### Feeds
 - ✅ Panel hub con tabs Todos / Ofrece sus servicios / Necesita contratar
@@ -357,7 +415,8 @@ Leyenda: ✅ funciona en producción · ⚠️ funciona con limitaciones · 🔜
 - ✅ Chat con Supabase Realtime — mensajes aparecen sin recargar
 - ✅ Lista de conversaciones con Realtime — último mensaje y orden se actualizan en tiempo real
 - ✅ Smart scroll — solo baja al fondo si el usuario ya estaba ahí
-- ✅ Header del chat muestra nombre + profesión del otro usuario (no título del post)
+- ✅ Chat fullscreen estilo WhatsApp (sin sidebar/BottomNav), header con avatar + nombre + profesión → perfil del otro usuario
+- ✅ Chip "Sobre: [título del post]" en el header cuando la conversación viene de una publicación
 - ✅ Mensajes marcados como leídos al abrir la conversación
 - ✅ Badge sidebar actualizado via router.refresh()
 - ✅ Sin duplicados de conversación: dedup centralizado en iniciarConversacion()
@@ -368,11 +427,22 @@ Leyenda: ✅ funciona en producción · ⚠️ funciona con limitaciones · 🔜
 - ✅ Duración 4s, animación, botón X manual
 
 ### Onboarding
-- ✅ Banner persistente 3 pasos en /panel para usuarios nuevos
+- ✅ Banner persistente 4 pasos en /panel para usuarios nuevos
 - ✅ Paso 1: completar perfil (avatar + bio + zona detectados desde DB)
 - ✅ Paso 2: hacer una publicación (count de posts del usuario)
 - ✅ Paso 3: explorar (first_login = false al clickear "Explorar")
-- ✅ Banner desaparece cuando los 3 pasos están completos
+- ✅ Paso 4: activar notificaciones (se omite si el navegador no las soporta; si el usuario las bloquea se marca hecho para no trabarlo)
+- ✅ Banner desaparece cuando todos los pasos aplicables están completos
+
+### PWA y notificaciones push
+- ✅ App instalable (manifest + service worker), prioridad Android Chrome
+- ✅ Push nativo en: mensaje nuevo, postulación nueva, postulación aceptada
+- ✅ Activar / desactivar / reintentar desde /notificaciones
+- ⚠️ iOS: push solo funciona con la app instalada en la pantalla de inicio (Safari ≥ 16.4)
+
+### Navegación mobile
+- ✅ BottomNav: Inicio · Buscar · Publicar · Mensajes · Actividad (badges Realtime en Mensajes y Actividad)
+- ✅ Avatar propio en el MobileHeader → perfil propio
 
 ### Landing page
 - ✅ Hero con ilustración SVG de red de nodos
@@ -414,7 +484,11 @@ input, textarea, select {
 ```
 
 - Layout raíz usa `h-dvh` (no `h-screen`) para compatibilidad con Safari dynamic toolbar
-- Chat usa `calc(100dvh - 57px)` por la misma razón
+- Chat: overlay `fixed inset-0` (layout de la ruta) + `flex-col` con `min-h-0` en la zona de mensajes
+- Safe areas: header del chat, input del chat, BottomNav y FloatingPublishMenu usan `env(safe-area-inset-*)`.
+  OJO: hoy valen 0 porque el viewport NO tiene `viewportFit: 'cover'` (iOS ya deja el contenido fuera del notch).
+  Si algún día se activa `cover`, revisar todas las páginas en la PWA instalada.
+- Capas: BottomNav/InstallBanner z-50 · chat fullscreen z-[90] · Toaster z-[100]
 - BottomNav usa `py-3` en items para touch targets de ~44px
 - Botones de aceptar/rechazar en post detail: `py-2.5 text-sm` (mínimo 44px)
 
@@ -437,6 +511,9 @@ input, textarea, select {
 | Realtime no entregaba eventos (SUBSCRIBED pero silencioso) | Root cause: `@supabase/ssr` no pasa el JWT al WebSocket de Realtime. Fix: llamar `supabase.realtime.setAuth(session.access_token)` antes de subscribir. Sin esto, RLS ve `auth.uid() = null` y bloquea todo. |
 | React Strict Mode: canal CLOSED en dev | `createClient()` fuera del useEffect + doble mount = canal stale. Fix: mover `createClient()` dentro del useEffect + flag `cancelled`. |
 | `use server` no puede exportar objetos | `TIPOS_ACTIVIDAD` era exportada desde `notifications.ts` (archivo `use server`). Fix: moverla a `lib/constants.ts`. |
+| "permission denied for table push_subscriptions" | Las actions de suscripción usaban service role (sin key en Vercel → sin auth). Fix: cliente de sesión del usuario para datos propios. |
+| Push llegaba al navegador pero no se mostraba | Handler `push` del SW sin `event.waitUntil()` en un camino. Siempre llamar `waitUntil(showNotification(...))`. |
+| Toasts tapados por el chat fullscreen | Chat en `z-[90]`, por debajo del Toaster (`z-[100]`). |
 
 ---
 
@@ -451,9 +528,11 @@ input, textarea, select {
 - **SEO** — metadata dinámica por post y perfil para indexado en Google
 - **Validaciones robustas** en server actions (hoy son básicas)
 - **Safari/Tailwind v4** — otros modificadores de opacidad en el resto de la app aún usan `color-mix()`; si hay reportes, reemplazarlos con `rgba()` del mismo modo que en landing
+- **Realtime fuera de patrón** — `ConversacionChat` (chat) y el contador de mensajes de `BottomNav` todavía crean el cliente fuera del useEffect y no llaman `setAuth()`. Si el chat o el badge de mensajes dejan de actualizarse en vivo, migrarlos al patrón.
+- **Chat desktop en 2 columnas** (lista + chat, estilo WhatsApp Web) — hoy el chat es fullscreen también en desktop. Requiere reestructurar las rutas de `/mensajes`.
+- **Redirect post-publicar** — hoy va a la pantalla de éxito (`/publicar?exito=1`); si se prefiere ir directo al post, es una línea en `publicarPost`.
 
 ### V2 (post-validación)
 - Pagos con MercadoPago (escrow: deposita → Labu retiene → libera al completar)
-- Notificaciones push
 - Algoritmo de matching / recomendaciones
 - App móvil nativa
