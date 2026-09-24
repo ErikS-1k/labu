@@ -392,3 +392,27 @@ Sin `setAuth()`, RLS bloquea todos los eventos silenciosamente (canal aparece co
 - Mercado objetivo inicial: CABA, Argentina
 - El cold start es el mayor riesgo: hay que conseguir oferentes manualmente antes de escalar
 - Precios siempre en ARS, con opción futura de USD
+
+---
+
+## Últimos cambios grandes (referencia para retomar contexto)
+
+- **PWA con notificaciones push completas** — Web App Manifest, Service Worker, VAPID keys, tabla push_subscriptions con RLS, activación desde onboarding paso 4 y card en /notificaciones, envío automático al recibir mensaje o postulación (título = nombre del remitente, body = contenido). Funciona en Android Chrome, iPhone Safari (iOS 16.4+ con PWA instalada) y Chrome desktop.
+- **Chat estilo WhatsApp fullscreen** — /mensajes/[conversation_id] usa layout propio z-[90] que tapa sidebar, BottomNav y botón flotante. Header propio con flecha para volver, avatar del otro usuario y nombre/headline que llevan a su perfil.
+- **Reestructuración de navegación mobile** — BottomNav con Inicio, Buscar, Publicar, Mensajes, Actividad (reemplaza Perfil). Avatar del usuario en MobileHeader a la derecha de la campana, lleva a perfil propio (estilo LinkedIn).
+- **Formulario unificado crear/editar publicación** — PostForm.tsx recibe props opcionales (defaultTipo, initialData, postId) para funcionar en modo crear o editar. Ambos flujos comparten el diseño premium con hero, cards con íconos y CTA destacado.
+
+## Pendientes conocidos
+
+- **Punto 16 — Display separado por tipo de usuario** (oferente vs demandante). Cambio grande, hacer en Git branch antes de mergear.
+- **Deuda técnica:**
+  - ~~Centralizar guards de auth en middleware.ts (hoy duplicados en 9+ páginas via proxy.ts).~~ — Verificado 2026-09-23: YA RESUELTO. En Next.js 16 `proxy.ts` ES el middleware (se renombró); ninguna página tiene `redirect('/login')` propio.
+  - ~~Eliminar lógica duplicada de conversaciones (app/actions/mensajes.ts y app/(app)/mensajes/nuevo/page.tsx).~~ — Verificado 2026-09-23: YA RESUELTO. El dedup vive solo en `iniciarConversacion()`; `mensajes/nuevo/page.tsx` no busca conversaciones existentes.
+- **Cuando haya usuarios reales:**
+  - Sección "Profesionales cerca tuyo" en landing con perfiles reales.
+  - Estadísticas reales en landing (trabajos completados, calificación promedio, tiempo de respuesta).
+  - Sección de testimonios con reseñas reales.
+- **A largo plazo:**
+  - Fotos en mensajes (requiere sistema de moderación).
+  - Fotos en publicaciones (requiere OCR para bloquear datos de contacto que suelen venir en flyers).
+  - Chat estilo WhatsApp Web en desktop (layout 2 columnas: lista de conversaciones + chat abierto).

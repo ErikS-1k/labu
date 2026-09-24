@@ -523,6 +523,15 @@ input, textarea, select {
 1. **Conseguir usuarios reales** — primeros 10–20 manualmente (CABA). Cold start es el mayor riesgo del marketplace.
 2. **Feedback loop** — qué flujos confunden, qué falta, qué sobra.
 
+### Próximo cambio grande
+- **Punto 16 — Display separado por tipo de usuario** (oferente vs demandante). Hacerlo en una branch de Git antes de mergear a main.
+
+### Cuando haya usuarios reales
+- Landing: sección "Profesionales cerca tuyo" con perfiles reales, estadísticas reales (trabajos completados, calificación promedio, tiempo de respuesta) y testimonios con reseñas reales.
+
+### A largo plazo
+- Fotos en mensajes (requiere moderación) y en publicaciones (requiere OCR para bloquear datos de contacto de flyers).
+
 ### Mejoras técnicas (cuando el feedback lo pida)
 - **Paginación** — feeds tienen límite fijo hoy; cuando haya volumen se nota
 - **SEO** — metadata dinámica por post y perfil para indexado en Google
