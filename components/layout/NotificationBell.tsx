@@ -70,7 +70,7 @@ export default function NotificationBell({ userId, initialCount = 0 }: { userId:
           </span>
         )}
       </span>
-      <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
+      <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100 group-data-[expandido=true]:opacity-100">
         Notificaciones
       </span>
     </Link>

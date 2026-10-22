@@ -23,6 +23,7 @@ const PAGES: Record<string, PageConfig> = {
   '/mensajes':       { title: 'Mensajes',       subtitle: 'Tus conversaciones activas' },
   '/mi-actividad':   { title: 'Mi actividad',   subtitle: 'Tus publicaciones y postulaciones' },
   '/notificaciones': { title: 'Notificaciones', subtitle: 'Tus novedades recientes' },
+  '/configuracion':  { title: 'Configuración',  subtitle: 'Preferencias de tu cuenta' },
 }
 
 function getConfig(pathname: string, userId: string | null): PageConfig | null {

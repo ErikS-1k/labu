@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import NotificationBell from './NotificationBell'
-import { logout } from '@/app/actions/auth'
+import MenuMas from './MenuMas'
 
 type Props = {
   userId: string | null
@@ -43,18 +43,6 @@ function IconSearch() {
   )
 }
 
-function IconList() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-      <polyline points="14 2 14 8 20 8"/>
-      <line x1="16" y1="13" x2="8" y2="13"/>
-      <line x1="16" y1="17" x2="8" y2="17"/>
-      <polyline points="10 9 9 9 8 9"/>
-    </svg>
-  )
-}
-
 function IconMessage() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -63,13 +51,25 @@ function IconMessage() {
   )
 }
 
-function IconLogout() {
+function IconMenu() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-      <polyline points="16 17 21 12 16 7"/>
-      <line x1="21" y1="12" x2="9" y2="12"/>
+      <line x1="4" y1="6" x2="20" y2="6"/>
+      <line x1="4" y1="12" x2="20" y2="12"/>
+      <line x1="4" y1="18" x2="20" y2="18"/>
     </svg>
+  )
+}
+
+// Texto de cada ítem: visible con hover o mientras el menú "Más" está abierto (data-expandido en el aside)
+const labelCls = 'overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100 group-data-[expandido=true]:opacity-100'
+
+function Badge({ count }: { count: number }) {
+  if (count <= 0) return null
+  return (
+    <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
+      {count > 9 ? '9+' : count}
+    </span>
   )
 }
 
@@ -85,6 +85,9 @@ function IconUser() {
 export default function PanelSidebar({ userId, userName, unreadCount, unreadNotifCount, unreadActividadCount, isLoggedIn }: Props) {
   const [count, setCount]               = useState(unreadCount)
   const [actividadCount, setActividad]  = useState(unreadActividadCount)
+  // Mientras el popover "Más" está abierto el sidebar queda expandido (si se colapsara al
+  // mover el mouse hacia el popover, éste quedaría flotando lejos del botón)
+  const [menuAbierto, setMenuAbierto]   = useState(false)
   const pathname     = usePathname()
   const searchParams = useSearchParams()
   const fromParam    = searchParams.get('from')
@@ -166,14 +169,8 @@ export default function PanelSidebar({ userId, userName, unreadCount, unreadNoti
       (isPost && (!fromParam || fromParam === 'panel'))
     )
     if (href === '/buscar') return pathname === '/buscar' || (isPost && fromParam === 'busqueda')
-    if (href === '/mi-actividad') return (
-      pathname === '/mi-actividad' ||
-      pathname.startsWith('/editar/') ||
-      (isPost && fromParam === 'mi-actividad')
-    )
     if (userId && href === `/perfil/${userId}`) return (
       pathname.startsWith('/perfil/') ||
-      pathname === '/verificacion' ||
       (isPost && fromParam === 'perfil')
     )
     return pathname === href || pathname.startsWith(href + '/')
@@ -187,8 +184,21 @@ export default function PanelSidebar({ userId, userName, unreadCount, unreadNoti
     }`
   }
 
+  // "Más" se marca activo en las páginas que se abren desde su popover
+  const masActivo =
+    pathname === '/mi-actividad' ||
+    pathname.startsWith('/editar/') ||
+    pathname === '/configuracion' ||
+    pathname === '/verificacion' ||
+    (pathname.startsWith('/post/') && fromParam === 'mi-actividad')
+
   return (
-    <aside className="group hidden md:flex h-dvh w-14 hover:w-56 flex-col border-r border-surface-2 bg-surface-0 transition-[width] duration-200 ease-in-out overflow-hidden shrink-0">
+    <aside
+      data-expandido={menuAbierto}
+      className={`group hidden md:flex h-dvh flex-col border-r border-surface-2 bg-surface-0 transition-[width] duration-200 ease-in-out overflow-hidden shrink-0 ${
+        menuAbierto ? 'w-56' : 'w-14 hover:w-56'
+      }`}
+    >
 
       {/* Logo — usuarios autenticados van al panel, invitados a la landing */}
       <Link href={isLoggedIn ? '/panel' : '/'} className="flex items-center gap-3 px-3 py-4 border-b border-surface-2 hover:bg-surface-2 transition-colors">
@@ -197,49 +207,27 @@ export default function PanelSidebar({ userId, userName, unreadCount, unreadNoti
           alt="Labu"
           className="h-8 w-8 shrink-0 object-contain"
         />
-        <span className="overflow-hidden whitespace-nowrap text-base font-bold tracking-tight text-white opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
+        <span className="overflow-hidden whitespace-nowrap text-base font-bold tracking-tight text-white opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100 group-data-[expandido=true]:opacity-100">
           Labu
         </span>
       </Link>
 
-      {/* Nav items */}
+      {/* Nav items: Inicio · Buscar · Publicar · Mensajes · Notificaciones · Perfil (· Más abajo) */}
       <nav className="flex flex-col gap-1 p-2 flex-1">
         <Link href="/panel" className={itemClass('/panel')}>
           <span className="shrink-0"><IconHome /></span>
-          <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
-            Inicio
-          </span>
+          <span className={labelCls}>Inicio</span>
         </Link>
 
         <Link href="/buscar" className={itemClass('/buscar')}>
           <span className="shrink-0"><IconSearch /></span>
-          <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
-            Buscar
-          </span>
+          <span className={labelCls}>Buscar</span>
         </Link>
 
         {isLoggedIn && (
           <Link href="/publicar" className={itemClass('/publicar')}>
             <span className="shrink-0"><IconPlus /></span>
-            <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
-              Publicar
-            </span>
-          </Link>
-        )}
-
-        {isLoggedIn && (
-          <Link href="/mi-actividad" className={itemClass('/mi-actividad')}>
-            <span className="relative shrink-0">
-              <IconList />
-              {actividadCount > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
-                  {actividadCount > 9 ? '9+' : actividadCount}
-                </span>
-              )}
-            </span>
-            <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
-              Mi actividad
-            </span>
+            <span className={labelCls}>Publicar</span>
           </Link>
         )}
 
@@ -247,15 +235,9 @@ export default function PanelSidebar({ userId, userName, unreadCount, unreadNoti
           <Link href="/mensajes" className={itemClass('/mensajes')}>
             <span className="relative shrink-0">
               <IconMessage />
-              {count > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold leading-none text-white">
-                  {count > 9 ? '9+' : count}
-                </span>
-              )}
+              <Badge count={count} />
             </span>
-            <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
-              Mensajes
-            </span>
+            <span className={labelCls}>Mensajes</span>
           </Link>
         )}
 
@@ -266,34 +248,38 @@ export default function PanelSidebar({ userId, userName, unreadCount, unreadNoti
         {isLoggedIn && userId ? (
           <Link href={`/perfil/${userId}`} className={itemClass(`/perfil/${userId}`)}>
             <span className="shrink-0"><IconUser /></span>
-            <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
-              {userName ?? 'Mi perfil'}
-            </span>
+            <span className={labelCls}>{userName ?? 'Mi perfil'}</span>
           </Link>
         ) : (
           <Link href="/login" className={itemClass('/login')}>
             <span className="shrink-0"><IconUser /></span>
-            <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
-              Entrar
-            </span>
+            <span className={labelCls}>Entrar</span>
           </Link>
         )}
       </nav>
 
-      {/* Cerrar sesión */}
+      {/* Más — popover con configuración, actividad, verificación y salir */}
       {isLoggedIn && (
         <div className="border-t border-surface-2 p-2">
-          <form action={logout}>
-            <button
-              type="submit"
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-zinc-400 transition-colors hover:bg-surface-2 hover:text-white"
-            >
-              <span className="shrink-0"><IconLogout /></span>
-              <span className="overflow-hidden whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 delay-75 group-hover:opacity-100">
-                Cerrar sesión
-              </span>
-            </button>
-          </form>
+          <MenuMas
+            variante="desktop"
+            actividadCount={actividadCount}
+            onOpenChange={setMenuAbierto}
+            triggerClassName={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
+              menuAbierto || masActivo
+                ? 'bg-blue-500/10 text-blue-400'
+                : 'text-zinc-400 hover:bg-surface-2 hover:text-white'
+            }`}
+            trigger={() => (
+              <>
+                <span className="relative shrink-0">
+                  <IconMenu />
+                  <Badge count={actividadCount} />
+                </span>
+                <span className={labelCls}>Más</span>
+              </>
+            )}
+          />
         </div>
       )}
     </aside>

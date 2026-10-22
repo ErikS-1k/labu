@@ -10,6 +10,7 @@ const RUTAS_PROTEGIDAS = [
   '/mensajes',
   '/notificaciones',
   '/editar',
+  '/configuracion',
 ]
 
 export async function proxy(request: NextRequest) {

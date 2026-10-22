@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import MenuMas from './MenuMas'
 
 type Props = {
   userId: string | null
@@ -47,14 +48,12 @@ function IconMessage() {
   )
 }
 
-function IconList() {
+function IconMenu() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-      <polyline points="14 2 14 8 20 8"/>
-      <line x1="16" y1="13" x2="8" y2="13"/>
-      <line x1="16" y1="17" x2="8" y2="17"/>
-      <polyline points="10 9 9 9 8 9"/>
+      <line x1="4" y1="6" x2="20" y2="6"/>
+      <line x1="4" y1="12" x2="20" y2="12"/>
+      <line x1="4" y1="18" x2="20" y2="18"/>
     </svg>
   )
 }
@@ -140,15 +139,17 @@ export default function BottomNav({ userId, unreadCount, unreadActividadCount, i
       (isPost && (!fromParam || fromParam === 'panel'))
     )
     if (href === '/buscar') return pathname === '/buscar' || (isPost && fromParam === 'busqueda')
-    // Mismo criterio que la sidebar desktop
-    if (href === '/mi-actividad') return (
-      pathname === '/mi-actividad' ||
-      pathname.startsWith('/mi-actividad/') ||
-      pathname.startsWith('/editar/') ||
-      (isPost && fromParam === 'mi-actividad')
-    )
     return pathname === href || pathname.startsWith(href + '/')
   }
+
+  // "Más" se marca activo en las páginas que se abren desde su popover (mismo criterio que la sidebar)
+  const masActivo =
+    pathname === '/mi-actividad' ||
+    pathname.startsWith('/mi-actividad/') ||
+    pathname.startsWith('/editar/') ||
+    pathname === '/configuracion' ||
+    pathname === '/verificacion' ||
+    (pathname.startsWith('/post/') && fromParam === 'mi-actividad')
 
   function badge(count: number) {
     if (count <= 0) return null
@@ -183,9 +184,21 @@ export default function BottomNav({ userId, unreadCount, unreadActividadCount, i
         {navItem('/buscar',   <IconSearch />,  'Buscar')}
         {navItem('/publicar', <IconPlus />,    'Publicar')}
         {navItem('/mensajes', <IconMessage />, 'Mensajes', badge(msgCount))}
-        {isLoggedIn
-          ? navItem('/mi-actividad', <IconList />, 'Actividad', badge(actividadCount))
-          : navItem('/login', <IconLogin />, 'Entrar')}
+        {isLoggedIn ? (
+          <MenuMas
+            variante="mobile"
+            actividadCount={actividadCount}
+            triggerClassName="flex flex-1 items-center justify-center"
+            trigger={abierto => (
+              <span className={`flex flex-col items-center gap-0.5 rounded-xl px-2 py-1.5 ${
+                abierto || masActivo ? 'bg-blue-500/15 text-blue-400' : 'text-zinc-500'
+              }`}>
+                <span className="relative"><IconMenu />{badge(actividadCount)}</span>
+                <span className="text-[10px] font-semibold leading-none">Más</span>
+              </span>
+            )}
+          />
+        ) : navItem('/login', <IconLogin />, 'Entrar')}
       </nav>
     </div>
   )
