@@ -12,7 +12,7 @@ import {
   type SearchResults,
   type SearchUser,
 } from '@/lib/search'
-import PostCard from '@/components/posts/PostCard'
+import PostCard, { POST_CARD_SELECT } from '@/components/posts/PostCard'
 import SearchForm from '@/components/search/SearchForm'
 import SearchTabs from '@/components/search/SearchTabs'
 import SearchFilters from '@/components/search/SearchFilters'
@@ -21,8 +21,8 @@ import PublicarBusquedaCTA from '@/components/search/PublicarBusquedaCTA'
 import { SearchNavigationProvider, SearchPendingArea } from '@/components/search/SearchNavigation'
 import PageHeader from '@/components/ui/PageHeader'
 
-// Listado por defecto (sin texto buscado). Sin fecha_nacimiento: PostCard no la usa.
-const postSelect = 'id, user_id, type, title, description, category, modality, presencialidad, temporal_duration, price, price_type, location, created_at, users(username, first_name, rating_avg, avatar_url)'
+// Listado por defecto (sin texto buscado). Campos definidos junto a PostCard.
+const postSelect = POST_CARD_SELECT
 const PAGE_SIZE = 20
 
 function plural(n: number, singular: string, pluralForm: string) {

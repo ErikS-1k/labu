@@ -3,7 +3,7 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
-import PostCard, { type PostCardData } from '@/components/posts/PostCard'
+import PostCard, { POST_CARD_SELECT, type PostCardData } from '@/components/posts/PostCard'
 import FeedFilters from '@/components/posts/FeedFilters'
 import EmptyFeedState from '@/components/posts/EmptyFeedState'
 
@@ -33,7 +33,7 @@ export default async function RequerimientosPage({
   const supabase = await createClient()
   const user = await getAuthUser()
 
-  const baseSelect = 'id, user_id, type, title, description, category, modality, presencialidad, temporal_duration, price, price_type, location, created_at, users(username, first_name, fecha_nacimiento, rating_avg, avatar_url)'
+  const baseSelect = POST_CARD_SELECT
 
   // Posts urgentes al tope (solo si no hay filtros y es página 0)
   const hayFiltros = busqueda || categoria || modalidad

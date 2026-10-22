@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { POST_CARD_SELECT } from '@/components/posts/PostCard'
 import {
   sanitizarFiltros,
   sanitizarTerminos,
@@ -12,8 +13,8 @@ import {
 
 const LIMITE = 20
 
-// Sin fecha_nacimiento: PostCard no la usa y es un dato privado
-const postSelect = 'id, user_id, type, title, description, category, modality, presencialidad, temporal_duration, price, price_type, location, created_at, users(username, first_name, rating_avg, avatar_url)'
+// Campos que necesita la card (definidos junto a PostCard)
+const postSelect = POST_CARD_SELECT
 const userSelect = 'id, first_name, username, headline, location, avatar_url, rating_avg, rating_count'
 
 type FilaRanking = { id: string; puntaje: number; total: number }

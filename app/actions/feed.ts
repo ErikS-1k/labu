@@ -1,9 +1,9 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import type { PostCardData } from '@/components/posts/PostCard'
+import { POST_CARD_SELECT, type PostCardData } from '@/components/posts/PostCard'
 
-const postSelect = 'id, user_id, type, title, description, category, modality, presencialidad, temporal_duration, price, price_type, location, created_at, users(username, first_name, fecha_nacimiento, rating_avg, avatar_url)'
+const postSelect = POST_CARD_SELECT
 
 export async function fetchMorePosts({
   cursor,
