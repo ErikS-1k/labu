@@ -220,7 +220,7 @@ export default async function AdminPostulacionesPage({ searchParams }: { searchP
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
       <Link href="/admin" className="text-xs text-zinc-500 hover:text-zinc-300">← Admin</Link>
-      <h1 className="mt-1 text-2xl font-bold text-white">Postulaciones</h1>
+      <h1 className="mt-1 text-2xl font-bold text-white">Solicitudes</h1>
       <p className="text-sm text-zinc-500">
         {totalCount.toLocaleString('es-AR')} {isSinConv ? 'aceptadas sin conversación' : 'en total'}
         {isJsMode && <span className="ml-2 text-zinc-600">(máx. 200)</span>}
@@ -301,7 +301,7 @@ export default async function AdminPostulacionesPage({ searchParams }: { searchP
                       : <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white ${avatarBg(applicant?.username, applicant?.first_name, applicant?.id)}`}>{inicialAp}</span>
                     }
                     <div>
-                      <p className="text-[11px] text-zinc-500">Postulante</p>
+                      <p className="text-[11px] text-zinc-500">Interesado</p>
                       <Link href={`/perfil/${applicant?.id}`} className="text-sm font-medium text-white hover:underline">{nombreAp}</Link>
                     </div>
                   </div>

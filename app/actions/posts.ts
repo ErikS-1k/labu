@@ -19,7 +19,7 @@ export async function publicarPost(
   // getAll recoge todos los valores del mismo nombre — necesario para checkboxes múltiples
   const modality = formData.getAll('modality') as string[]
 
-  if (modality.length === 0) return { error: 'Seleccioná al menos una duración.' }
+  if (modality.length === 0) return { error: 'Elegí al menos un tipo de trabajo.' }
 
   const { data, error } = await supabase
     .from('posts')
@@ -79,7 +79,7 @@ export async function editarPost(
   const priceRaw = formData.get('price') as string
   const modality = formData.getAll('modality') as string[]
 
-  if (modality.length === 0) return { error: 'Seleccioná al menos una duración.' }
+  if (modality.length === 0) return { error: 'Elegí al menos un tipo de trabajo.' }
 
   // .eq('user_id', user.id) garantiza que solo el dueño puede editar
   const { error } = await supabase
@@ -175,13 +175,13 @@ export async function marcarCompletado(formData: FormData) {
       crearNotificacion({
         userId:  post.user_id,
         type:    'trabajo_completado',
-        message: `El trabajo "${post.title}" fue marcado como completado`,
+        message: `El trabajo "${post.title}" quedó terminado`,
         link:    `/post/${postId}`,
       }),
       crearNotificacion({
         userId:  app.applicant_id,
         type:    'trabajo_completado',
-        message: `El trabajo "${post.title}" fue marcado como completado`,
+        message: `El trabajo "${post.title}" quedó terminado`,
         link:    `/post/${postId}`,
       }),
       crearNotificacion({

@@ -88,11 +88,11 @@ export default function PostulacionesAutorSection({ initialPostulaciones, postId
   return (
     <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
       <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-        {esRequerimiento ? 'Postulaciones' : 'Solicitudes de contacto'} ({postulaciones.length})
+        {esRequerimiento ? 'Solicitudes' : 'Solicitudes de contacto'} ({postulaciones.length})
       </p>
       {postulaciones.length === 0 ? (
         <p className="text-sm text-zinc-400">
-          {esRequerimiento ? 'Todavía no hay postulaciones.' : 'Todavía no hay solicitudes.'}
+          Todavía nadie te contactó.
         </p>
       ) : (
         <div className="flex flex-col gap-4">

@@ -9,10 +9,10 @@ export default async function AdminSaludPage() {
   const tablas: Array<{ from: string; label: string }> = [
     { from: 'users',            label: 'Usuarios' },
     { from: 'posts',            label: 'Publicaciones' },
-    { from: 'applications',     label: 'Postulaciones' },
+    { from: 'applications',     label: 'Solicitudes' },
     { from: 'messages',         label: 'Mensajes' },
     { from: 'notifications',    label: 'Notificaciones' },
-    { from: 'verifications',    label: 'Verificaciones' },
+    { from: 'verifications',    label: 'Identidades' },
     { from: 'ratings',          label: 'Calificaciones' },
     { from: 'profile_sections', label: 'Secciones de perfil' },
   ]

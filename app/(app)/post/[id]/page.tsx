@@ -188,7 +188,7 @@ export default async function PostPage({
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                   </svg>
-                  Duración
+                  Tipo de trabajo
                 </span>
                 <span className="text-zinc-300">
                   {(post.modality as string[]).map(m => MODALITY_LABEL[m]).join(', ')}
@@ -200,7 +200,7 @@ export default async function PostPage({
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                     </svg>
-                    Duración exacta
+                    Por cuánto tiempo
                   </span>
                   <span className="text-zinc-300">{(post as any).temporal_duration}</span>
                 </div>
@@ -212,7 +212,7 @@ export default async function PostPage({
                       <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
                       <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                     </svg>
-                    Presencialidad
+                    Modalidad
                   </span>
                   <span className="text-zinc-300">
                     {(post as any).presencialidad === 'presencial' ? 'Presencial'
@@ -299,7 +299,7 @@ export default async function PostPage({
                         return (
                           <li key={r.id} className="flex items-center justify-between text-sm">
                             <Link href={`/post/${rPost?.id ?? '#'}?from=panel`} className="truncate text-zinc-400 hover:text-white hover:underline">
-                              {rPost?.title ?? 'Trabajo completado'}
+                              {rPost?.title ?? 'Trabajo terminado'}
                             </Link>
                             <span className="ml-3 shrink-0 text-xs text-zinc-400">
                               {new Date(r.completed_at as string).toLocaleDateString('es-AR', {
@@ -336,7 +336,7 @@ export default async function PostPage({
                   postId={post.id}
                   textoBoton="Enviar solicitud"
                   placeholder="Contá brevemente para qué necesitás contratar este servicio (opcional)..."
-                  mensajeOk="Solicitud enviada. El oferente la revisará pronto."
+                  mensajeOk="Solicitud enviada. Te avisamos cuando te respondan."
                 />
               </div>
             )}
@@ -364,7 +364,7 @@ export default async function PostPage({
             )}
             {esRequerimiento && user && !esAutor && !miPostulacion && !estaCompletado && (
               <div className="rounded-xl border border-surface-2 bg-surface-1 p-5">
-                <p className="mb-3 text-sm font-semibold text-white">Postularse</p>
+                <p className="mb-3 text-sm font-semibold text-white">Enviar solicitud</p>
                 <PostularseForm postId={post.id} />
               </div>
             )}
@@ -431,7 +431,7 @@ export default async function PostPage({
 
             {estaCompletado && (
               <div className="rounded-full border border-green-800/40 bg-green-900/40 px-4 py-2 text-center text-sm font-medium text-green-400">
-                Trabajo completado
+                Trabajo terminado
               </div>
             )}
 

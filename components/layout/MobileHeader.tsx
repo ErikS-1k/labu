@@ -21,7 +21,7 @@ const PAGES: Record<string, PageConfig> = {
   '/panel':          { title: 'Inicio',        subtitle: 'Descubrí quién puede ayudarte' },
   '/buscar':         { title: 'Buscar',         subtitle: 'Encontrá personas, servicios o trabajo' },
   '/mensajes':       { title: 'Mensajes',       subtitle: 'Tus conversaciones activas' },
-  '/mi-actividad':   { title: 'Mi actividad',   subtitle: 'Tus publicaciones y postulaciones' },
+  '/mi-actividad':   { title: 'Mi actividad',   subtitle: 'Tus publicaciones y solicitudes' },
   '/notificaciones': { title: 'Notificaciones', subtitle: 'Tus novedades recientes' },
   '/configuracion':  { title: 'Configuración',  subtitle: 'Preferencias de tu cuenta' },
 }

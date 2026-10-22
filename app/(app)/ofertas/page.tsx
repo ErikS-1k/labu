@@ -7,7 +7,7 @@ import PostCard, { type PostCardData } from '@/components/posts/PostCard'
 import FeedFilters from '@/components/posts/FeedFilters'
 import EmptyFeedState from '@/components/posts/EmptyFeedState'
 
-export const metadata: Metadata = { title: 'Ofertas de trabajo — Labu' }
+export const metadata: Metadata = { title: 'Servicios — Labu' }
 
 const PAGE_SIZE = 20
 

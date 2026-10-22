@@ -22,13 +22,13 @@ export default function CerrarPostButton({
       const fd = new FormData()
       fd.append('post_id', postId)
       await cerrarPost(fd)
-      showToast('Tu publicación fue cerrada.')
+      showToast('Finalizaste tu publicación.')
     })
   }
 
   const descripcion = type === 'oferta'
     ? 'Nadie más podrá solicitar este servicio, pero la publicación se mantendrá en tu historial y en el de todos los usuarios que interactuaron con ella.'
-    : 'Nadie más podrá postularse, pero la publicación se mantendrá en tu historial y en el de todos los usuarios que interactuaron con ella.'
+    : 'Nadie más podrá enviarte solicitudes, pero la publicación se mantendrá en tu historial y en el de todos los usuarios que interactuaron con ella.'
 
   return (
     <>
@@ -44,7 +44,7 @@ export default function CerrarPostButton({
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-sm rounded-2xl border border-surface-2 bg-surface-0 p-6">
-            <h2 className="mb-2 text-base font-bold text-white">¿Cerrar esta publicación?</h2>
+            <h2 className="mb-2 text-base font-bold text-white">¿Finalizar esta publicación?</h2>
             <p className="mb-6 text-sm leading-relaxed text-zinc-400">{descripcion}</p>
             <div className="flex gap-3">
               <button
@@ -59,7 +59,7 @@ export default function CerrarPostButton({
                 onClick={confirmar}
                 className="flex-1 rounded-lg bg-zinc-700 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-600"
               >
-                Cerrar publicación
+                Finalizar publicación
               </button>
             </div>
           </div>

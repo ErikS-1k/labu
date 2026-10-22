@@ -20,13 +20,13 @@ function fechaRelativa(iso: string) {
 }
 
 const TIPO_LABEL: Record<string, string> = {
-  nueva_postulacion:      '📩 Nueva postulación',
-  postulacion_aceptada:   '✅ Postulación aceptada',
-  postulacion_rechazada:  '❌ Postulación rechazada',
-  trabajo_completado:     '🏁 Trabajo completado',
+  nueva_postulacion:      '📩 Nueva solicitud',
+  postulacion_aceptada:   '✅ Solicitud aceptada',
+  postulacion_rechazada:  '❌ Solicitud rechazada',
+  trabajo_completado:     '🏁 Trabajo terminado',
   recordatorio_calificacion: '⭐ Calificar trabajo',
-  verificacion_aprobada:  '🔵 Verificación aprobada',
-  verificacion_rechazada: '🔴 Verificación rechazada',
+  verificacion_aprobada:  '🔵 Identidad confirmada',
+  verificacion_rechazada: '🔴 Identidad no confirmada',
 }
 
 const TIPOS_DISPONIBLES = [

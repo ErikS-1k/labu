@@ -14,9 +14,8 @@ type Props = {
   postType: 'oferta' | 'requerimiento'
 }
 
-export default function MiPostulacionSection({ initialStatus, applicationId, postId, postUserId, postType }: Props) {
+export default function MiPostulacionSection({ initialStatus, applicationId, postId, postUserId }: Props) {
   const [status, setStatus] = useState<Status>(initialStatus)
-  const esRequerimiento = postType === 'requerimiento'
 
   // Sincronizar si el servidor re-renderiza con nuevo estado
   useEffect(() => {
@@ -56,7 +55,7 @@ export default function MiPostulacionSection({ initialStatus, applicationId, pos
     return (
       <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-5">
         <p className="mb-3 text-sm font-semibold text-green-800">
-          ✓ {esRequerimiento ? 'Tu postulación fue aceptada' : 'Tu solicitud fue aceptada'}
+          ✓ ¡Quieren trabajar con vos!
         </p>
         <form action={iniciarConversacion} className="mt-4">
           <input type="hidden" name="post_id"     value={postId} />
@@ -78,14 +77,8 @@ export default function MiPostulacionSection({ initialStatus, applicationId, pos
         ? 'border-red-200 bg-red-50 text-red-700'
         : 'border-surface-2 bg-surface-2 text-zinc-400'
     }`}>
-      {status === 'pendiente' && (esRequerimiento
-        ? 'Postulación enviada · pendiente de revisión.'
-        : 'Solicitud enviada · pendiente de revisión.'
-      )}
-      {status === 'rechazado' && (esRequerimiento
-        ? 'Tu postulación fue rechazada.'
-        : 'Tu solicitud fue rechazada.'
-      )}
+      {status === 'pendiente' && 'Solicitud enviada · Esperando respuesta.'}
+      {status === 'rechazado' && 'Esta vez eligieron a otra persona.'}
     </div>
   )
 }

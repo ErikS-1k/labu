@@ -122,7 +122,7 @@ export default function FeedFilters({ paramPrefix = '', preserveParams = [], sho
           onChange={e => updateModalidad(e.target.value)}
           className={`${inputClass} w-auto`}
         >
-          <option value="">Duración</option>
+          <option value="">Tipo de trabajo</option>
           {MODALIDADES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
         </select>
       </div>

@@ -237,7 +237,7 @@ export default function NotificacionesList({ initialNotifs, userId, initialUnrea
         <p className="text-4xl">🔔</p>
         <p className="mt-3 text-sm font-medium text-zinc-300">Todo tranquilo por acá</p>
         <p className="mt-1 text-xs text-zinc-500">
-          Cuando alguien se postule, te califique o te envíe un mensaje, te avisamos aquí.
+          Cuando alguien te contacte, te deje una opinión o te mande un mensaje, te avisamos acá.
         </p>
       </div>
     )

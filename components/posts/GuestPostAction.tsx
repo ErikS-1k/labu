@@ -9,15 +9,15 @@ export default function GuestPostAction({
   type: 'oferta' | 'requerimiento'
 }) {
   const [open, setOpen] = useState(false)
-  const label = type === 'oferta' ? 'Solicitar contacto' : 'Postularse'
+  const label = type === 'oferta' ? 'Solicitar contacto' : 'Enviar solicitud'
 
   return (
     <>
       <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
         <p className="mb-3 text-sm text-zinc-400">
           {type === 'oferta'
-            ? 'Iniciá sesión para solicitar contacto con el oferente.'
-            : 'Iniciá sesión para postularte a este trabajo.'}
+            ? 'Iniciá sesión para solicitar contacto con quien ofrece el servicio.'
+            : 'Iniciá sesión para enviar tu solicitud.'}
         </p>
         <button
           type="button"

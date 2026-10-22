@@ -68,7 +68,7 @@ export default async function AdminHubPage() {
   const cards: HubCard[] = [
     {
       href:      '/admin/verificaciones',
-      titulo:    'Verificaciones',
+      titulo:    'Identidades',
       desc:      'Revisar DNI pendientes',
       icono:     <IconShield />,
       color:     'bg-amber-500/15 text-amber-400',
@@ -87,15 +87,15 @@ export default async function AdminHubPage() {
     {
       href:      '/admin/publicaciones',
       titulo:    'Publicaciones',
-      desc:      'Ofertas y requerimientos',
+      desc:      'Servicios y búsquedas',
       icono:     <IconFileText />,
       color:     'bg-green-500/15 text-green-400',
       valor:     postsActivos,
-      subtitulo: postsActivos === 1 ? '1 activa' : `${postsActivos ?? 0} activas`,
+      subtitulo: postsActivos === 1 ? '1 visible' : `${postsActivos ?? 0} visibles`,
     },
     {
       href:      '/admin/postulaciones',
-      titulo:    'Postulaciones',
+      titulo:    'Solicitudes',
       desc:      'Enviadas esta semana',
       icono:     <IconSend />,
       color:     'bg-violet-500/15 text-violet-400',

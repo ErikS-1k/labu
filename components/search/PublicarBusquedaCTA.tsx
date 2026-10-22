@@ -23,7 +23,7 @@ export default function PublicarBusquedaCTA({ q, logueado }: { q: string; loguea
   return (
     <div className="flex flex-col items-center">
       <p className="font-semibold text-white">¿No encontrás lo que necesitás?</p>
-      <p className="mt-1.5 text-sm text-zinc-400">Publicá tu búsqueda y esperá a que alguien se postule.</p>
+      <p className="mt-1.5 text-sm text-zinc-400">Publicá tu búsqueda y esperá a que alguien te contacte.</p>
 
       <div className="mt-5">
         {logueado ? (

@@ -177,7 +177,7 @@ export default function NotificacionesSection() {
             <h2 className="text-sm font-semibold text-white">Notificaciones desactivadas</h2>
           </div>
           <p className="text-sm text-zinc-400">
-            Activá las notificaciones para enterarte cuando alguien te mande un mensaje o se postule a tus publicaciones.
+            Activá las notificaciones para enterarte cuando alguien te mande un mensaje o una solicitud.
           </p>
           <button
             type="button"
@@ -204,7 +204,7 @@ export default function NotificacionesSection() {
               </svg>
             </div>
           </div>
-          <p className="text-sm text-zinc-500">Recibís alertas cuando te llegan mensajes o postulaciones.</p>
+          <p className="text-sm text-zinc-500">Recibís alertas cuando te llegan mensajes o solicitudes.</p>
           <button
             type="button"
             onClick={desactivar}

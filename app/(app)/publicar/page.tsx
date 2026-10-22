@@ -29,13 +29,13 @@ export default async function PublicarPage({
         </div>
 
         <h1 className="mb-3 font-serif text-2xl font-medium text-white">
-          {esOferta ? '¡Tu publicación está activa!' : '¡Tu búsqueda está activa!'}
+          {esOferta ? '¡Tu publicación ya está visible!' : '¡Tu búsqueda ya está visible!'}
         </h1>
 
         <p className="mb-8 max-w-sm text-base leading-relaxed text-zinc-400">
           {esOferta
             ? 'Ahora esperá a que alguien se interese y te contacte. Podés revisar y gestionar tus publicaciones desde Mi Actividad.'
-            : 'Ahora esperá a que alguien se postule. Podés revisar las postulaciones y gestionar tu búsqueda desde Mi Actividad.'}
+            : 'Ahora esperá a que alguien te contacte. Podés revisar las solicitudes y gestionar tu búsqueda desde Mi actividad.'}
         </p>
 
         <Link

@@ -152,7 +152,7 @@ export default function OnboardingBanner({ step1Done, step2Done, step3Done, step
       ),
     },
     {
-      title: 'Publicá tu primera oferta o búsqueda',
+      title: 'Publicá lo que ofrecés o lo que buscás',
       desc:  'Ofrecé tu servicio o publicá lo que estás buscando para empezar a conectar.',
       done:  step2Done,
       cta: (

@@ -18,7 +18,7 @@ export default function PostularseForm({
   postId,
   textoBoton = 'Postularse',
   placeholder = 'Contá brevemente por qué sos la persona indicada (opcional)...',
-  mensajeOk = 'Postulación enviada. Te avisamos cuando el demandante la revise.',
+  mensajeOk = 'Solicitud enviada. Te avisamos cuando te respondan.',
 }: Props) {
   const [state, action, pending] = useActionState(postularse, init)
   useProgress(pending)
@@ -28,7 +28,7 @@ export default function PostularseForm({
     const esOferta = textoBoton.toLowerCase().includes('solicitud') || textoBoton.toLowerCase().includes('solicitar') || textoBoton.toLowerCase().includes('enviar')
     showToast(esOferta
       ? 'Tu solicitud fue enviada correctamente.'
-      : 'Te postulaste correctamente. Te avisaremos cuando haya una respuesta.'
+      : 'Tu solicitud fue enviada. Te avisamos cuando haya una respuesta.'
     )
   }, [state.ok])
 

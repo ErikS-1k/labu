@@ -25,7 +25,7 @@ export async function aprobarVerificacion(formData: FormData) {
   await crearNotificacion({
     userId,
     type:    'verificacion_aprobada',
-    message: 'Tu verificación de identidad fue aprobada. Ya tenés el badge verificado en tu perfil.',
+    message: 'Confirmamos tu identidad. Tu perfil ya muestra «Identidad confirmada».',
     link:    `/perfil/${userId}`,
   })
 
@@ -46,7 +46,7 @@ export async function rechazarVerificacion(formData: FormData) {
   await crearNotificacion({
     userId,
     type:    'verificacion_rechazada',
-    message: 'Tu verificación de identidad fue rechazada. Podés subir un nuevo documento desde la sección de verificación.',
+    message: 'No pudimos confirmar tu identidad con ese documento. Podés subir otro desde «Confirmar identidad».',
     link:    '/verificacion',
   })
 

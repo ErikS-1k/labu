@@ -7,7 +7,7 @@ import PostCard, { type PostCardData } from '@/components/posts/PostCard'
 import FeedFilters from '@/components/posts/FeedFilters'
 import EmptyFeedState from '@/components/posts/EmptyFeedState'
 
-export const metadata: Metadata = { title: 'Requerimientos — Labu' }
+export const metadata: Metadata = { title: 'Búsquedas — Labu' }
 
 const PAGE_SIZE = 20
 
@@ -71,7 +71,7 @@ export default async function RequerimientosPage({
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="mb-1 font-serif text-2xl font-medium text-white">Búsquedas activas</h1>
+      <h1 className="mb-1 font-serif text-2xl font-medium text-white">Búsquedas abiertas</h1>
       <p className="mb-6 text-sm text-zinc-400">Personas que buscan trabajo o un servicio</p>
 
       <Suspense>

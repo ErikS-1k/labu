@@ -32,7 +32,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "Labu — Marketplace de trabajo",
-  description: "Conectá con oferentes y demandantes de trabajo en Argentina.",
+  description: "Conectá con quienes ofrecen y quienes buscan trabajo en Argentina.",
   manifest: "/manifest.json",
   icons: {
     icon: "/_1A1A1A.png",

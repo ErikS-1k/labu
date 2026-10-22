@@ -14,7 +14,7 @@ export default function MarcarCompletadoButton({ postId }: { postId: string }) {
       const fd = new FormData()
       fd.append('post_id', postId)
       await marcarCompletado(fd)
-      showToast('¡Trabajo completado! No te olvides de dejar tu calificación.')
+      showToast('¡Trabajo terminado! No te olvides de dejar tu opinión.')
     })
   }
 
@@ -25,7 +25,7 @@ export default function MarcarCompletadoButton({ postId }: { postId: string }) {
       disabled={isPending}
       className="rounded-lg border border-surface-2 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:bg-surface-2 disabled:opacity-50"
     >
-      {isPending ? 'Guardando...' : 'Marcar completado'}
+      {isPending ? 'Guardando...' : 'Marcar como terminado'}
     </button>
   )
 }

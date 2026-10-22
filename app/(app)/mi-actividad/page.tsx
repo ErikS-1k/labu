@@ -95,7 +95,7 @@ export default async function MiActividadPage({
       <AutoMarcarActividadLeida />
 
       {/* Título solo en desktop (mobile: MobileHeader) */}
-      <PageHeader title="Mi actividad" subtitle="Tus publicaciones y postulaciones" />
+      <PageHeader title="Mi actividad" subtitle="Tus publicaciones y solicitudes" />
 
       {/* Tabs segmentados */}
       <div className="mb-6 flex gap-2">
@@ -103,7 +103,7 @@ export default async function MiActividadPage({
           Mis publicaciones
         </Link>
         <Link href="/mi-actividad?tab=postulaciones" className={tabCls('postulaciones')}>
-          Mis postulaciones
+          Mis solicitudes
         </Link>
       </div>
 
@@ -128,9 +128,7 @@ export default async function MiActividadPage({
             <div className="flex flex-col gap-3">
               {posts.map(post => {
                 const appCount = countsByPost[post.id] ?? 0
-                const countLabel = post.type === 'oferta'
-                  ? `${appCount} ${appCount === 1 ? 'solicitud' : 'solicitudes'}`
-                  : `${appCount} ${appCount === 1 ? 'postulación' : 'postulaciones'}`
+                const countLabel = `${appCount} ${appCount === 1 ? 'solicitud' : 'solicitudes'}`
 
                 return (
                   <div key={post.id} className="rounded-2xl border border-[#2a2a2a] bg-[#171717] p-4">
@@ -149,7 +147,7 @@ export default async function MiActividadPage({
                             ? 'bg-green-500/10 text-green-500'
                             : 'bg-surface-2 text-zinc-500'
                         }`}>
-                          {post.is_active ? 'Activo' : 'Pausado'}
+                          {post.is_active ? 'Visible' : 'Finalizada'}
                         </span>
                       </div>
                       <PostActionsMenu postId={post.id} type={post.type} isActive={post.is_active} />
@@ -190,9 +188,9 @@ export default async function MiActividadPage({
           {postulaciones.length === 0 ? (
             <div className="rounded-2xl border border-[#2a2a2a] bg-[#171717] px-6 py-14 text-center">
               <p className="text-3xl">📨</p>
-              <p className="mt-3 text-sm font-semibold text-zinc-200">Todavía no te postulaste a nada</p>
+              <p className="mt-3 text-sm font-semibold text-zinc-200">Todavía no enviaste ninguna solicitud</p>
               <p className="mt-2 text-sm text-zinc-500">
-                Cuando te postules a una publicación, aparecerá acá con el estado actualizado.
+                Cuando le envíes una solicitud a alguien, vas a ver acá cómo va.
               </p>
               <Link
                 href="/buscar"
@@ -221,7 +219,7 @@ export default async function MiActividadPage({
                   badgeLabel = 'En curso'
                   badgeCls   = 'bg-blue-500/15 text-blue-400'
                 } else if (app.completed_at) {
-                  badgeLabel = 'Completado'
+                  badgeLabel = 'Terminado'
                   badgeCls   = 'bg-green-500/15 text-green-400'
                 }
 

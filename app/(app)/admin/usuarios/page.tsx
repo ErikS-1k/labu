@@ -66,8 +66,8 @@ export default async function AdminUsuariosPage({ searchParams }: { searchParams
 
   const FILTROS = [
     { value: 'todos',       label: 'Todos' },
-    { value: 'verificados', label: 'Verificados' },
-    { value: 'sinVerificar', label: 'Sin verificar' },
+    { value: 'verificados', label: 'Identidad confirmada' },
+    { value: 'sinVerificar', label: 'Sin confirmar' },
   ]
 
   return (
@@ -134,7 +134,7 @@ export default async function AdminUsuariosPage({ searchParams }: { searchParams
                   <Link href={`/perfil/${u.id}`} className="font-medium text-white hover:underline">{nombre}</Link>
                   {u.username && <span className="text-sm text-zinc-500">@{u.username}</span>}
                   {verificado && (
-                    <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-400">Verificado</span>
+                    <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-400">Identidad confirmada</span>
                   )}
                 </div>
                 <p className="mt-0.5 text-xs text-zinc-500">{u.email ?? 'Sin email'}</p>

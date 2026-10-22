@@ -23,7 +23,7 @@ export async function postularse(
   if (post.user_id === user.id) {
     const errMsg = post.type === 'oferta'
       ? 'No podés solicitar tu propio servicio.'
-      : 'No podés postularte a tu propia publicación.'
+      : 'No podés enviar una solicitud a tu propia publicación.'
     return { error: errMsg, ok: false }
   }
 
@@ -37,12 +37,11 @@ export async function postularse(
   if (error?.code === '23505') {
     const errMsg = post.type === 'oferta'
       ? 'Ya enviaste una solicitud para esta publicación.'
-      : 'Ya te postulaste para esta publicación.'
+      : 'Ya enviaste una solicitud para esta publicación.'
     return { error: errMsg, ok: false }
   }
   if (error) return { error: 'No se pudo enviar. Intentá de nuevo.', ok: false }
 
-  const esOferta = post.type === 'oferta'
   const { data: applicantUser } = await supabase
     .from('users').select('first_name, username').eq('id', user.id).single()
   const nombre = applicantUser?.first_name || applicantUser?.username || 'Alguien'
@@ -57,23 +56,17 @@ export async function postularse(
     crearNotificacion({
       userId:  post.user_id,
       type:    'nueva_postulacion',
-      message: esOferta
-        ? `Tenés una nueva solicitud de contacto para "${post.title}"`
-        : `Tenés una nueva postulación en "${post.title}"`,
+      message: `${nombre} quiere contactarte por "${post.title}"`,
       link:    `/post/${postId}`,
     }),
     crearNotificacion({
       userId:  user.id,
       type:    'postulacion_enviada',
-      message: esOferta
-        ? `Tu solicitud para "${post.title}" fue enviada. Te avisamos cuando el oferente responda.`
-        : `Tu postulación a "${post.title}" fue enviada. Te avisamos cuando el empleador responda.`,
+      message: `Enviaste tu solicitud para "${post.title}". Te avisamos cuando te respondan.`,
       link:    `/post/${postId}`,
     }),
     enviarPushNotification(post.user_id, {
-      title: esOferta
-        ? `${nombre} quiere contactarte`
-        : `${nombre} se postuló a tu publicación`,
+      title: `${nombre} quiere contactarte`,
       body:  pushBodyPostulacion,
       url:   `/post/${postId}?from=notification`,
     }),
@@ -104,12 +97,10 @@ export async function aceptarPostulacion(formData: FormData) {
   ])
 
   if (app && post) {
-    const authorNombre = authorUser?.first_name || authorUser?.username || 'El empleador'
+    const authorNombre = authorUser?.first_name || authorUser?.username || 'Alguien'
     const trunc = (s: string, n = 100) => s.length > n ? s.slice(0, n) + '...' : s
 
-    const notifMsg = post.type === 'oferta'
-      ? `Tu solicitud para "${post.title}" fue aceptada`
-      : `Tu postulación a "${post.title}" fue aceptada`
+    const notifMsg = `${authorNombre} quiere trabajar con vos en "${post.title}"`
 
     await Promise.all([
       crearNotificacion({
@@ -119,7 +110,7 @@ export async function aceptarPostulacion(formData: FormData) {
         link:    `/post/${postId}`,
       }),
       enviarPushNotification(app.applicant_id, {
-        title: `${authorNombre} aceptó tu postulación`,
+        title: `${authorNombre} quiere trabajar con vos`,
         body:  trunc(`En "${post.title}" — Ahora podés coordinar los detalles`),
         url:   `/post/${postId}?from=notification`,
       }),
@@ -137,23 +128,10 @@ export async function rechazarPostulacion(formData: FormData) {
   const applicationId = formData.get('application_id') as string
   const postId        = formData.get('post_id')        as string
 
-  const [, { data: app }] = await Promise.all([
-    supabase.from('applications').update({ status: 'rechazado' }).eq('id', applicationId),
-    supabase.from('applications').select('applicant_id').eq('id', applicationId).single(),
-  ])
-
-  const { data: post } = await supabase.from('posts').select('title, type').eq('id', postId).single()
-
-  if (app && post) {
-    await crearNotificacion({
-      userId:  app.applicant_id,
-      type:    'postulacion_rechazada',
-      message: post.type === 'oferta'
-        ? `Tu solicitud para "${post.title}" fue rechazada`
-        : `Tu postulación a "${post.title}" fue rechazada`,
-      link:    `/post/${postId}`,
-    })
-  }
+  // La RLS solo permite update si sos el dueño del post.
+  // A propósito NO se notifica al interesado (ni push ni notificación interna): avisar un
+  // rechazo no le sirve y desanima. Ve el estado "Rechazada" en Mi actividad si entra a mirar.
+  await supabase.from('applications').update({ status: 'rechazado' }).eq('id', applicationId)
 
   revalidatePath(`/post/${postId}`)
 }

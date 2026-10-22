@@ -115,9 +115,9 @@ function IconHandshake() {
 // ── Datos ───────────────────────────────────────────────────────────────────
 
 const CARACTERISTICAS = [
-  { Icon: IconShield,  title: 'Verificación',          desc: 'Perfiles verificados para mayor confianza' },
+  { Icon: IconShield,  title: 'Identidad confirmada',   desc: 'Perfiles con identidad confirmada para mayor confianza' },
   { Icon: IconLayers,  title: 'Todos los rubros',      desc: 'Plomeros, electricistas, profesores y muchos más' },
-  { Icon: IconClock,   title: 'Todas las duraciones', desc: 'Inmediato, temporal, por proyecto o permanente' },
+  { Icon: IconClock,   title: 'Todo tipo de trabajo', desc: 'Inmediato, temporal, por proyecto o permanente' },
   { Icon: IconZap,     title: 'Contacto directo',      desc: 'Sin intermediarios ni burocracia' },
 ]
 

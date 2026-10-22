@@ -222,7 +222,7 @@ export default function MenuMas({ variante, actividadCount, trigger, triggerClas
 
           <Link href="/verificacion" role="menuitem" onClick={() => cambiar(false)} className={filaCls}>
             <IconVerificacion />
-            Verificación
+            Confirmar identidad
           </Link>
 
           <button type="button" role="menuitem" onClick={proximamente} className={filaCls}>

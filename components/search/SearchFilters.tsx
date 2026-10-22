@@ -121,7 +121,7 @@ export default function SearchFilters() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Duración</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Tipo de trabajo</p>
             <div className="flex flex-wrap gap-2">
               {MODALIDADES.map(m => (
                 <Chip
@@ -136,7 +136,7 @@ export default function SearchFilters() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Presencialidad</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Modalidad</p>
             <div className="flex flex-wrap gap-2">
               {PRESENCIALIDADES.map(p => (
                 <Chip

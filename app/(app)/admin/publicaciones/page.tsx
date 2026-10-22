@@ -47,7 +47,7 @@ export default async function AdminPublicacionesPage({ searchParams }: { searchP
   }
 
   const TIPOS_FILTRO   = [{ value: 'todos', label: 'Todos' }, { value: 'oferta', label: 'Servicios' }, { value: 'requerimiento', label: 'Búsquedas' }]
-  const ESTADO_FILTRO  = [{ value: 'todos', label: 'Todas' }, { value: 'activas', label: 'Activas' }, { value: 'desactivadas', label: 'Desactivadas' }]
+  const ESTADO_FILTRO  = [{ value: 'todos', label: 'Todas' }, { value: 'activas', label: 'Visibles' }, { value: 'desactivadas', label: 'Desactivadas' }]
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
@@ -101,7 +101,7 @@ export default async function AdminPublicacionesPage({ searchParams }: { searchP
                       {p.type === 'oferta' ? 'Ofrece' : 'Busca'}
                     </span>
                     {!p.is_active && (
-                      <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500">Desactivada</span>
+                      <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500">Finalizada</span>
                     )}
                     {p.category && <span className="text-xs text-zinc-500">{p.category}</span>}
                   </div>

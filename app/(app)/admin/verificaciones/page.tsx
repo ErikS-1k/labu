@@ -24,7 +24,7 @@ export default async function AdminVerificacionesPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
       <Link href="/admin" className="text-xs text-zinc-500 hover:text-zinc-300">← Admin</Link>
-      <h1 className="mt-1 text-2xl font-bold text-white">Verificaciones pendientes</h1>
+      <h1 className="mt-1 text-2xl font-bold text-white">Identidades por confirmar</h1>
       <p className="text-sm text-zinc-500">
         {conUrls.length === 0 ? 'Todo al día' : `${conUrls.length} solicitud${conUrls.length !== 1 ? 'es' : ''} pendiente${conUrls.length !== 1 ? 's' : ''}`}
       </p>

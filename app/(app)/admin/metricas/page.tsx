@@ -81,11 +81,11 @@ export default async function AdminMetricasPage() {
       {/* Stat cards */}
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         <StatCard titulo="Usuarios totales" valor={totalUsuarios?.toLocaleString('es-AR') ?? '–'} sub={`+${usuariosNuevosSemana ?? 0} esta semana`} />
-        <StatCard titulo="Publicaciones activas" valor={postsActivos?.toLocaleString('es-AR') ?? '–'} />
-        <StatCard titulo="Postulaciones enviadas" valor={totalApps?.toLocaleString('es-AR') ?? '–'} />
+        <StatCard titulo="Publicaciones visibles" valor={postsActivos?.toLocaleString('es-AR') ?? '–'} />
+        <StatCard titulo="Solicitudes enviadas" valor={totalApps?.toLocaleString('es-AR') ?? '–'} />
         <StatCard titulo="Tasa de aceptación" valor={`${tasaAceptacion}%`} sub={`${appsAceptadas ?? 0} aceptadas de ${totalApps ?? 0}`} color={tasaAceptacion > 30 ? 'text-green-400' : 'text-white'} />
         <StatCard titulo="Mensajes enviados" valor={totalMensajes?.toLocaleString('es-AR') ?? '–'} />
-        <StatCard titulo="Usuarios verificados" valor={`${pctVerificados}%`} sub={`${usuariosVerificados ?? 0} de ${totalUsuarios ?? 0}`} color="text-blue-400" />
+        <StatCard titulo="Identidad confirmada" valor={`${pctVerificados}%`} sub={`${usuariosVerificados ?? 0} de ${totalUsuarios ?? 0}`} color="text-blue-400" />
       </div>
 
       {/* Gráfico: usuarios por día */}
@@ -105,7 +105,7 @@ export default async function AdminMetricasPage() {
       {/* Gráfico: categorías */}
       {categorias.length > 0 && (
         <div className="mt-4 rounded-2xl border border-[#2a2a2a] bg-[#171717] p-5">
-          <h2 className="text-sm font-semibold text-white">Publicaciones activas por categoría (top 10)</h2>
+          <h2 className="text-sm font-semibold text-white">Publicaciones visibles por categoría (top 10)</h2>
           <div className="mt-4 flex flex-col gap-2">
             {categorias.map(([cat, val]) => (
               <div key={cat} className="flex items-center gap-3">

@@ -150,7 +150,7 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     const errors: { title?: string; modality?: string; precio?: string } = {}
     if (!titulo.trim())        errors.title   = 'Este campo es obligatorio'
-    if (modalidades.length === 0) errors.modality = 'Seleccioná al menos una duración'
+    if (modalidades.length === 0) errors.modality = 'Elegí al menos un tipo de trabajo'
     if (aDefinir === null)     errors.precio  = 'Elegí cómo querés cobrar'
     else if (!aDefinir && !precio) errors.precio = 'Ingresá el precio'
     if (Object.keys(errors).length > 0) { e.preventDefault(); setFieldErrors(errors); return }
@@ -213,7 +213,7 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
             }`}>
               <IconTool />
             </div>
-            <p className="text-sm font-bold leading-tight text-white">Ofrezco mis servicios</p>
+            <p className="text-sm font-bold leading-tight text-white">Ofrezco</p>
             <p className="mt-1 text-xs leading-snug text-zinc-500">
               Ofrecé lo que sabés hacer y encontrá clientes.
             </p>
@@ -235,9 +235,9 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
             }`}>
               <IconSearch />
             </div>
-            <p className="text-sm font-bold leading-tight text-white">Necesito contratar</p>
+            <p className="text-sm font-bold leading-tight text-white">Busco</p>
             <p className="mt-1 text-xs leading-snug text-zinc-500">
-              Publicá qué necesitás y recibí postulaciones.
+              Publicá qué necesitás y recibí solicitudes.
             </p>
           </button>
         </div>
@@ -311,7 +311,7 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
 
       {/* ── 4. Duración ── */}
       <div className="flex flex-col gap-4 rounded-2xl border border-[#2a2a2a] bg-[#171717] p-5">
-        <SectionLabel icon={<IconClock />} text="Duración * — podés elegir varias" />
+        <SectionLabel icon={<IconClock />} text="Tipo de trabajo * — podés elegir varias" />
         {modalidades.map(v => <input key={v} type="hidden" name="modality" value={v} />)}
         <div className="flex flex-wrap gap-2">
           {MODALIDADES.map(m => (
@@ -337,7 +337,7 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
         {modalidades.includes('temporal') && (
           <div className="flex flex-col gap-1.5">
             <label htmlFor="temporal_duration" className="text-xs font-medium text-zinc-400">
-              Duración estimada <span className="text-zinc-600">(opcional)</span>
+              Por cuánto tiempo <span className="text-zinc-600">(opcional)</span>
             </label>
             <input
               id="temporal_duration"

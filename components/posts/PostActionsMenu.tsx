@@ -41,7 +41,7 @@ export default function PostActionsMenu({
       const fd = new FormData()
       fd.append('post_id', postId)
       await cerrarPost(fd)
-      showToast('Publicación desactivada.')
+      showToast('Finalizaste tu publicación.')
     })
   }
 
@@ -86,7 +86,7 @@ export default function PostActionsMenu({
                 onClick={() => { setMenuOpen(false); setCerrarOpen(true) }}
                 className="block w-full px-4 py-2.5 text-left text-sm text-zinc-300 transition-colors hover:bg-surface-2 hover:text-white"
               >
-                Desactivar
+                Finalizar
               </button>
             )}
             <button
@@ -104,7 +104,7 @@ export default function PostActionsMenu({
       {cerrarOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-sm rounded-2xl border border-surface-2 bg-surface-0 p-6">
-            <h2 className="mb-2 text-base font-bold text-white">¿Desactivar esta publicación?</h2>
+            <h2 className="mb-2 text-base font-bold text-white">¿Finalizar esta publicación?</h2>
             <p className="mb-6 text-sm leading-relaxed text-zinc-400">
               Nadie más podrá interactuar con ella, pero se mantendrá en tu historial.
             </p>
@@ -121,7 +121,7 @@ export default function PostActionsMenu({
                 onClick={confirmarDesactivar}
                 className="flex-1 rounded-lg bg-zinc-700 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-600"
               >
-                Desactivar
+                Finalizar
               </button>
             </div>
           </div>

@@ -4,7 +4,7 @@ import { getAuthUser } from '@/lib/auth'
 import VerificacionForm from '@/components/verificacion/VerificacionForm'
 import { redirect } from 'next/navigation'
 
-export const metadata: Metadata = { title: 'Verificar identidad — Labu' }
+export const metadata: Metadata = { title: 'Confirmar identidad — Labu' }
 
 // ─── Íconos inline ────────────────────────────────────────────────────────────
 
@@ -49,7 +49,7 @@ const beneficios = [
   {
     icon: IconBadge,
     color: 'bg-blue-500/15 text-blue-400',
-    title: 'Badge verificado',
+    title: 'Identidad confirmada',
     desc: 'Aparecé destacado en publicaciones y perfil.',
   },
   {
@@ -62,14 +62,14 @@ const beneficios = [
     icon: IconClock,
     color: 'bg-orange-500/15 text-orange-400',
     title: 'Rápido y simple',
-    desc: '24 a 48 horas y quedás verificado.',
+    desc: 'En 24 a 48 horas confirmamos tu identidad.',
   },
 ]
 
 const pasos = [
   { title: 'Subí tu DNI',        desc: 'Foto del frente o dorso, argentino. JPG, PNG o PDF.' },
   { title: 'Esperá la revisión', desc: 'Nuestro equipo lo revisa en 24 a 48 horas.' },
-  { title: 'Listo',              desc: 'Aparece el badge Verificado en tu perfil.' },
+  { title: 'Listo',              desc: 'Tu perfil muestra «Identidad confirmada».' },
 ]
 
 // ─── Página ───────────────────────────────────────────────────────────────────
@@ -94,7 +94,7 @@ export default async function VerificacionPage() {
         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-500/15 text-blue-400 ring-1 ring-blue-500/20">
           <IconShieldCheck />
         </div>
-        <h1 className="font-serif text-3xl font-medium text-white">Verificá tu identidad</h1>
+        <h1 className="font-serif text-3xl font-medium text-white">Confirmá tu identidad</h1>
         <p className="mx-auto mt-3 max-w-sm text-zinc-400">
           Ganá la confianza de otros usuarios y accedé a más oportunidades en Labu.
         </p>
@@ -134,7 +134,7 @@ export default async function VerificacionPage() {
 
       {/* ── CTA ── */}
       <div className="rounded-2xl bg-gradient-to-b from-blue-600 to-blue-700 p-8 text-center md:p-10">
-        <h2 className="text-xl font-bold text-white">¿Listo para verificarte?</h2>
+        <h2 className="text-xl font-bold text-white">¿Listo para confirmar tu identidad?</h2>
         <p className="mt-2 text-sm text-blue-100">
           Formatos aceptados: JPG, PNG o PDF · máximo 5MB
         </p>

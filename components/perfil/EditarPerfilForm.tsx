@@ -284,7 +284,7 @@ export default function EditarPerfilForm({
       {/* ── Sobre vos ── */}
       <SectionCard icon={<IconDoc />} iconCls="bg-violet-500/15 text-violet-400" title="Sobre vos">
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-medium text-zinc-400">Titular profesional</label>
+          <label className="text-xs font-medium text-zinc-400">Título profesional</label>
           <input
             name="headline"
             defaultValue={headline ?? ''}
@@ -294,7 +294,7 @@ export default function EditarPerfilForm({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-medium text-zinc-400">Bio</label>
+          <label className="text-xs font-medium text-zinc-400">Sobre mí</label>
           <textarea
             name="bio"
             defaultValue={bio ?? ''}

@@ -212,7 +212,7 @@ export default async function PerfilPage({
               }
               {estaVerif && (
                 <span className="flex items-center gap-1 rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-medium text-blue-400">
-                  <IconCheck /> Verificado
+                  <IconCheck /> Identidad confirmada
                 </span>
               )}
             </div>
@@ -227,7 +227,7 @@ export default async function PerfilPage({
               <p className="mt-2 flex items-center justify-center gap-1.5 text-sm md:justify-start">
                 <span className="text-yellow-400">★</span>
                 <span className="font-semibold text-white">{perfil.rating_avg}</span>
-                <span className="text-zinc-500">· {perfil.rating_count} reseñas</span>
+                <span className="text-zinc-500">· {perfil.rating_count} opiniones</span>
               </p>
             )}
 
@@ -246,7 +246,7 @@ export default async function PerfilPage({
 
             {/* Estado de verificación pendiente */}
             {esPropio && pendVerif && (
-              <p className="mt-2 text-xs text-zinc-600">Verificación en revisión.</p>
+              <p className="mt-2 text-xs text-zinc-600">Estamos revisando tu identidad.</p>
             )}
           </div>
         </div>
@@ -263,14 +263,14 @@ export default async function PerfilPage({
                   disabled
                   className="flex-1 rounded-xl border border-[#2a2a2a] py-2.5 text-sm font-semibold text-zinc-600"
                 >
-                  ✓ Verificado
+                  ✓ Identidad confirmada
                 </button>
               ) : (
                 <Link
                   href="/verificacion"
                   className={btnSecondary}
                 >
-                  {pendVerif ? 'Verificación pendiente' : 'Verificar'}
+                  {pendVerif ? 'Identidad en revisión' : 'Confirmar mi identidad'}
                 </Link>
               )}
             </>
@@ -302,7 +302,7 @@ export default async function PerfilPage({
           <SectionCard
             icon={<IconDoc />}
             iconCls="bg-violet-500/15 text-violet-400"
-            title="Sobre"
+            title="Sobre mí"
             id="bio"
           >
             <p className="mt-0 text-sm leading-relaxed text-zinc-300">{perfil.bio}</p>
@@ -310,9 +310,9 @@ export default async function PerfilPage({
         </div>
       ) : esPropio ? (
         <div className="md:mt-4 mt-4 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[#2a2a2a] bg-[#111] p-6 text-center">
-          <p className="text-sm text-zinc-500">Todavía no tenés una bio.</p>
+          <p className="text-sm text-zinc-500">Todavía no contaste nada sobre vos.</p>
           <Link href="/perfil/editar" className="text-sm font-medium text-blue-400 transition-colors hover:text-blue-300">
-            Agregar bio →
+            Escribir sobre mí →
           </Link>
         </div>
       ) : null}
@@ -380,7 +380,7 @@ export default async function PerfilPage({
           <SectionCard
             icon={<IconStar />}
             iconCls="bg-yellow-500/15 text-yellow-400"
-            title="Reseñas"
+            title="Opiniones"
           >
             {/* Promedio destacado */}
             {(perfil.rating_count ?? 0) > 0 && (
@@ -416,9 +416,9 @@ export default async function PerfilPage({
           <SectionCard
             icon={<IconStar />}
             iconCls="bg-yellow-500/15 text-yellow-400"
-            title="Reseñas"
+            title="Opiniones"
           >
-            <p className="text-sm text-zinc-500">Todavía no tiene reseñas.</p>
+            <p className="text-sm text-zinc-500">Todavía no tiene opiniones.</p>
           </SectionCard>
         )}
       </div>
@@ -429,7 +429,7 @@ export default async function PerfilPage({
           <SectionCard
             icon={<IconMegaphone />}
             iconCls="bg-green-500/15 text-green-400"
-            title="Publicaciones activas"
+            title="Publicaciones visibles"
             id="publicaciones"
           >
             <div className="flex flex-col divide-y divide-[#2a2a2a]">
@@ -472,7 +472,7 @@ export default async function PerfilPage({
         </div>
       ) : esPropio ? (
         <div className="mt-4 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[#2a2a2a] bg-[#111] p-6 text-center">
-          <p className="text-sm text-zinc-500">Todavía no tenés publicaciones activas.</p>
+          <p className="text-sm text-zinc-500">Todavía no publicaste nada.</p>
           <Link href="/publicar" className="text-sm font-medium text-blue-400 transition-colors hover:text-blue-300">
             Crear primera publicación →
           </Link>
