@@ -6,11 +6,11 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import NotificationBell from './NotificationBell'
 import MenuMas from './MenuMas'
+import { useUnreadMessages } from '@/components/mensajes/UnreadMessagesProvider'
 
 type Props = {
   userId: string | null
   userName: string | null
-  unreadCount: number
   unreadNotifCount: number
   unreadActividadCount: number
   isLoggedIn: boolean
@@ -43,9 +43,10 @@ function IconSearch() {
   )
 }
 
-function IconMessage() {
+// Relleno cuando hay mensajes sin leer, contorno cuando no
+function IconMessage({ relleno = false }: { relleno?: boolean }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={relleno ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
     </svg>
   )
@@ -82,8 +83,9 @@ function IconUser() {
   )
 }
 
-export default function PanelSidebar({ userId, userName, unreadCount, unreadNotifCount, unreadActividadCount, isLoggedIn }: Props) {
-  const [count, setCount]               = useState(unreadCount)
+export default function PanelSidebar({ userId, userName, unreadNotifCount, unreadActividadCount, isLoggedIn }: Props) {
+  // Mensajes sin leer: vienen del provider (un solo canal Realtime para toda la app)
+  const { count, pulseKey } = useUnreadMessages()
   const [actividadCount, setActividad]  = useState(unreadActividadCount)
   // Mientras el popover "Más" está abierto el sidebar queda expandido (si se colapsara al
   // mover el mouse hacia el popover, éste quedaría flotando lejos del botón)
@@ -91,11 +93,6 @@ export default function PanelSidebar({ userId, userName, unreadCount, unreadNoti
   const pathname     = usePathname()
   const searchParams = useSearchParams()
   const fromParam    = searchParams.get('from')
-
-  // Sincronizar cuando el layout re-fetchea unreadCount (ej: al abrir un chat)
-  useEffect(() => {
-    setCount(unreadCount)
-  }, [unreadCount])
 
   // Sincronizar el count de actividad con el servidor
   useEffect(() => {
@@ -106,31 +103,6 @@ export default function PanelSidebar({ userId, userName, unreadCount, unreadNoti
   useEffect(() => {
     if (pathname === '/mi-actividad') setActividad(0)
   }, [pathname])
-
-  useEffect(() => {
-    if (!userId) return
-    const supabase = createClient()
-    let channel: ReturnType<typeof supabase.channel> | undefined
-    let cancelled = false
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (cancelled) return
-      if (session?.access_token) supabase.realtime.setAuth(session.access_token)
-
-      channel = supabase
-        .channel('sidebar-unread')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-          const msg = payload.new as { receiver_id: string }
-          if (msg.receiver_id === userId) setCount(c => c + 1)
-        })
-        .subscribe()
-    })
-
-    return () => {
-      cancelled = true
-      if (channel) supabase.removeChannel(channel)
-    }
-  }, [userId])
 
   useEffect(() => {
     if (!userId) return
@@ -234,8 +206,18 @@ export default function PanelSidebar({ userId, userName, unreadCount, unreadNoti
         {isLoggedIn && (
           <Link href="/mensajes" className={itemClass('/mensajes')}>
             <span className="relative shrink-0">
-              <IconMessage />
-              <Badge count={count} />
+              <IconMessage relleno={count > 0} />
+              {count > 0 && (
+                // key = pulseKey: al llegar un mensaje se remonta y la animación arranca de nuevo
+                <span
+                  key={pulseKey}
+                  className={`absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold leading-none text-white ${
+                    pulseKey > 0 ? 'motion-safe:animate-pulso-msg' : ''
+                  }`}
+                >
+                  {count > 9 ? '9+' : count}
+                </span>
+              )}
             </span>
             <span className={labelCls}>Mensajes</span>
           </Link>

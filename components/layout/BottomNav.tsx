@@ -5,10 +5,10 @@ import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import MenuMas from './MenuMas'
+import { useUnreadMessages } from '@/components/mensajes/UnreadMessagesProvider'
 
 type Props = {
   userId: string | null
-  unreadCount: number
   unreadActividadCount: number
   isLoggedIn: boolean
 }
@@ -40,9 +40,10 @@ function IconPlus() {
   )
 }
 
-function IconMessage() {
+// Relleno cuando hay mensajes sin leer, contorno cuando no
+function IconMessage({ relleno = false }: { relleno?: boolean }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill={relleno ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
     </svg>
   )
@@ -70,16 +71,13 @@ function IconLogin() {
 
 const TIPOS_ACTIVIDAD = ['nueva_postulacion', 'postulacion_aceptada', 'postulacion_rechazada', 'trabajo_completado', 'recordatorio_calificacion']
 
-export default function BottomNav({ userId, unreadCount, unreadActividadCount, isLoggedIn }: Props) {
-  const [msgCount, setMsgCount] = useState(unreadCount)
+export default function BottomNav({ userId, unreadActividadCount, isLoggedIn }: Props) {
+  // Mensajes sin leer: vienen del provider (un solo canal Realtime para toda la app)
+  const { count: msgCount, pulseKey } = useUnreadMessages()
   const [actividadCount, setActividadCount] = useState(unreadActividadCount)
   const pathname     = usePathname()
   const searchParams = useSearchParams()
   const fromParam    = searchParams.get('from')
-
-  useEffect(() => {
-    if (pathname === '/mensajes' || pathname.startsWith('/mensajes/')) setMsgCount(0)
-  }, [pathname])
 
   // Sincronizar el contador de actividad con el servidor
   useEffect(() => {
@@ -115,19 +113,6 @@ export default function BottomNav({ userId, unreadCount, unreadActividadCount, i
       cancelled = true
       if (channel) supabase.removeChannel(channel)
     }
-  }, [userId])
-
-  useEffect(() => {
-    if (!userId) return
-    const supabase = createClient()
-    const channel = supabase
-      .channel('bottomnav-unread')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-        const msg = payload.new as { receiver_id: string }
-        if (msg.receiver_id === userId) setMsgCount(c => c + 1)
-      })
-      .subscribe()
-    return () => { supabase.removeChannel(channel) }
   }, [userId])
 
   function isActive(href: string) {
@@ -183,7 +168,22 @@ export default function BottomNav({ userId, unreadCount, unreadActividadCount, i
         {navItem('/panel',    <IconHome />,    'Inicio')}
         {navItem('/buscar',   <IconSearch />,  'Buscar')}
         {navItem('/publicar', <IconPlus />,    'Publicar')}
-        {navItem('/mensajes', <IconMessage />, 'Mensajes', badge(msgCount))}
+        {navItem(
+          '/mensajes',
+          <IconMessage relleno={msgCount > 0} />,
+          'Mensajes',
+          msgCount > 0 && (
+            // key = pulseKey: al llegar un mensaje se remonta y la animación arranca de nuevo
+            <span
+              key={pulseKey}
+              className={`absolute -right-2 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold leading-none text-white ${
+                pulseKey > 0 ? 'motion-safe:animate-pulso-msg' : ''
+              }`}
+            >
+              {msgCount > 9 ? '9+' : msgCount}
+            </span>
+          ),
+        )}
         {isLoggedIn ? (
           <MenuMas
             variante="mobile"

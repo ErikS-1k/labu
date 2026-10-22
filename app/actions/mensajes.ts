@@ -77,3 +77,21 @@ export async function enviarMensaje(params: {
 
   return { error: null }
 }
+
+// Marca como leídos los mensajes recibidos en una conversación que el usuario tiene abierta.
+// Usa serviceClient porque RLS no tiene política UPDATE para receptores (igual que la página
+// del chat al abrirse). Seguro: el receiver_id sale de la sesión, nunca del cliente.
+export async function marcarConversacionLeida(conversationId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || typeof conversationId !== 'string' || !conversationId) return
+
+  const { error } = await createServiceClient()
+    .from('messages')
+    .update({ read: true })
+    .eq('conversation_id', conversationId)
+    .eq('receiver_id', user.id)
+    .eq('read', false)
+
+  if (error) console.error('[marcarConversacionLeida]', error.message)
+}

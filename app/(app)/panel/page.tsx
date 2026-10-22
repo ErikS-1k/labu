@@ -7,6 +7,7 @@ import EmptyFeedState from '@/components/posts/EmptyFeedState'
 import OnboardingBanner from '@/components/onboarding/OnboardingBanner'
 import PageHeader from '@/components/ui/PageHeader'
 import InfinitePostFeed from '@/components/panel/InfinitePostFeed'
+import UnreadMessagesBanner from '@/components/mensajes/UnreadMessagesBanner'
 
 export const metadata = { title: 'Inicio — Labu' }
 
@@ -69,6 +70,9 @@ export default async function PanelPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
       <PageHeader title="Inicio" subtitle="Descubrí quién puede ayudarte" />
+
+      {/* Mensajes sin leer — arriba de todo: es lo más urgente para el usuario */}
+      {user && <UnreadMessagesBanner />}
 
       {user && !allDone && (
         <OnboardingBanner step1Done={step1Done} step2Done={step2Done} step3Done={step3Done} step4Done={step4Done} />

@@ -8,6 +8,7 @@ import MobileHeader from '@/components/layout/MobileHeader'
 import FloatingPublishMenu from '@/components/layout/FloatingPublishMenu'
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
 import Toaster from '@/components/ui/Toaster'
+import { UnreadMessagesProvider } from '@/components/mensajes/UnreadMessagesProvider'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -36,12 +37,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
+    // Un solo canal Realtime de mensajes para nav, banner de /panel y toast de mensaje nuevo
+    <UnreadMessagesProvider userId={user?.id ?? null} initialCount={unreadCount}>
     <div className="flex h-dvh overflow-hidden bg-surface-0">
       <Suspense fallback={<div className="hidden md:flex h-dvh w-14 shrink-0 border-r border-surface-2 bg-surface-0" />}>
         <PanelSidebar
           userId={user?.id ?? null}
           userName={userName}
-          unreadCount={unreadCount}
           unreadNotifCount={unreadNotifCount}
           unreadActividadCount={unreadActividadCount}
           isLoggedIn={!!user}
@@ -65,7 +67,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <Suspense fallback={null}>
         <BottomNav
           userId={user?.id ?? null}
-          unreadCount={unreadCount}
           unreadActividadCount={unreadActividadCount}
           isLoggedIn={!!user}
         />
@@ -74,5 +75,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <FloatingPublishMenu isLoggedIn={!!user} />
       <Suspense><Toaster /></Suspense>
     </div>
+    </UnreadMessagesProvider>
   )
 }

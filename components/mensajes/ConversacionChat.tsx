@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { enviarMensaje } from '@/app/actions/mensajes'
+import { enviarMensaje, marcarConversacionLeida } from '@/app/actions/mensajes'
 import { avatarBg } from '@/lib/avatar'
 
 type Mensaje = {
@@ -71,8 +71,33 @@ export default function ConversacionChat({
     router.refresh()
   }, [conversationId])
 
-  // Suscripción Realtime — escucha mensajes nuevos de esta conversación
+  // Suscripción Realtime — escucha mensajes nuevos de esta conversación.
+  // Los que llegan con el chat abierto se marcan como leídos: al instante si la app está
+  // visible, o apenas el usuario vuelve a ella (pestaña en segundo plano, celular bloqueado).
   useEffect(() => {
+    let pendienteLeer = false
+    let timerLeer: ReturnType<typeof setTimeout> | undefined
+
+    function marcarLeidos() {
+      pendienteLeer = false
+      clearTimeout(timerLeer)
+      // Pequeño debounce: una ráfaga de mensajes se marca con una sola llamada
+      timerLeer = setTimeout(() => {
+        timerLeer = undefined
+        marcarConversacionLeida(conversationId)
+      }, 250)
+    }
+
+    function alRecibir() {
+      if (document.visibilityState === 'visible') marcarLeidos()
+      else pendienteLeer = true
+    }
+
+    function alCambiarVisibilidad() {
+      if (document.visibilityState === 'visible' && pendienteLeer) marcarLeidos()
+    }
+    document.addEventListener('visibilitychange', alCambiarVisibilidad)
+
     const channel = supabase
       .channel(`chat:${conversationId}`)
       .on(
@@ -84,12 +109,21 @@ export default function ConversacionChat({
           setMessages(prev =>
             prev.some(m => m.id === nuevo.id) ? prev : [...prev, nuevo]
           )
+          if (nuevo.sender_id !== currentUserId) alRecibir()
         }
       )
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
-  }, [conversationId])
+    return () => {
+      document.removeEventListener('visibilitychange', alCambiarVisibilidad)
+      // Si quedó una marca pendiente (el usuario salió del chat enseguida), hacerla igual
+      if (timerLeer) {
+        clearTimeout(timerLeer)
+        marcarConversacionLeida(conversationId)
+      }
+      supabase.removeChannel(channel)
+    }
+  }, [conversationId, currentUserId])
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault()
