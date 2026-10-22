@@ -164,7 +164,7 @@ export default async function PostPage({
               )}
             </div>
 
-            <h1 className="text-xl font-bold text-white">{post.title}</h1>
+            <h1 className="font-serif text-xl font-medium text-white">{post.title}</h1>
 
             {post.description && (
               <p className="mt-4 text-sm leading-relaxed text-zinc-300">{post.description}</p>

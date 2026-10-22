@@ -94,7 +94,7 @@ export default async function VerificacionPage() {
         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-500/15 text-blue-400 ring-1 ring-blue-500/20">
           <IconShieldCheck />
         </div>
-        <h1 className="text-3xl font-bold text-white">Verificá tu identidad</h1>
+        <h1 className="font-serif text-3xl font-medium text-white">Verificá tu identidad</h1>
         <p className="mx-auto mt-3 max-w-sm text-zinc-400">
           Ganá la confianza de otros usuarios y accedé a más oportunidades en Labu.
         </p>

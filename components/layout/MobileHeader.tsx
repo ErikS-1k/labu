@@ -93,7 +93,7 @@ export default function MobileHeader({
     <div className="mx-auto w-full max-w-2xl px-4 pt-8 pb-1 md:hidden">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">{config.title}</h1>
+          <h1 className="font-serif text-3xl font-medium tracking-tight text-white">{config.title}</h1>
           <p className="mt-1 text-sm text-zinc-400">{config.subtitle}</p>
         </div>
 

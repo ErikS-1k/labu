@@ -71,7 +71,7 @@ export default async function OfertasPage({
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="mb-1 text-2xl font-bold text-white">Servicios disponibles</h1>
+      <h1 className="mb-1 font-serif text-2xl font-medium text-white">Servicios disponibles</h1>
       <p className="mb-6 text-sm text-zinc-400">Personas que ofrecen sus servicios</p>
 
       <Suspense>

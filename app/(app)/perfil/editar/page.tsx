@@ -51,7 +51,7 @@ export default async function EditarPerfilPage() {
         <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-500/15 text-blue-400 ring-1 ring-blue-500/20">
           <IconUser />
         </div>
-        <h1 className="text-3xl font-bold text-white">Editá tu perfil</h1>
+        <h1 className="font-serif text-3xl font-medium text-white">Editá tu perfil</h1>
         <p className="mx-auto mt-3 max-w-sm text-zinc-400">
           Cuanto más completo esté tu perfil, más confianza generás en otros usuarios.
         </p>

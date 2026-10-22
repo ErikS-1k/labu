@@ -1,14 +1,29 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Literata } from "next/font/google";
 import { Suspense } from "react";
 import ProgressBar from "@/components/ui/ProgressBar";
 import ServiceWorkerRegistration from "@/components/pwa/ServiceWorkerRegistration";
 import InstallBanner from "@/components/pwa/InstallBanner";
 import "./globals.css";
 
+// Sistema tipográfico dual:
+//   Inter (font-sans, default) → interfaz: botones, navegación, badges, datos, formularios
+//   Literata (font-serif)      → contenido humano en tamaños ≥ 18px: títulos de página,
+//                                 títulos de publicaciones, nombres en el perfil, hero de la landing
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+// Fuente variable con eje de tamaño óptico (opsz): en títulos grandes usa trazos más finos.
+// Los títulos serif van en font-medium (500) — en 700 se ve demasiado pesada.
+const literata = Literata({
+  variable: "--font-literata",
+  subsets: ["latin"],
+  axes: ["opsz"],
+  display: "swap",
 });
 
 export const viewport: Viewport = {
@@ -38,7 +53,7 @@ export default function RootLayout({
   return (
     <html
       lang="es-AR"
-      className={`${inter.variable} h-full antialiased`}
+      className={`${inter.variable} ${literata.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Suspense fallback={null}>

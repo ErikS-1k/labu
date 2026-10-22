@@ -169,7 +169,7 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
       <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-500/15 text-blue-400 ring-1 ring-blue-500/20">
         {esEdicion ? <IconPencil /> : <IconMegaphone />}
       </div>
-      <h1 className="text-3xl font-bold text-white">
+      <h1 className="font-serif text-3xl font-medium text-white">
         {esEdicion ? 'Editá tu publicación' : 'Publicá tu servicio o búsqueda'}
       </h1>
       <p className="mx-auto mt-3 max-w-sm text-zinc-400">

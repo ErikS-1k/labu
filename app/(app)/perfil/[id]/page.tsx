@@ -207,8 +207,8 @@ export default async function PerfilPage({
             {/* Nombre + badge verificado */}
             <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
               {esPropio
-                ? <p className="text-2xl font-bold text-white">{nombre}</p>
-                : <h1 className="text-2xl font-bold text-white">{nombre}</h1>
+                ? <p className="font-serif text-2xl font-medium text-white">{nombre}</p>
+                : <h1 className="font-serif text-2xl font-medium text-white">{nombre}</h1>
               }
               {estaVerif && (
                 <span className="flex items-center gap-1 rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-medium text-blue-400">

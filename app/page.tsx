@@ -196,7 +196,7 @@ export default async function Home() {
 
           {/* Texto */}
           <div className="flex-1 text-center md:text-left">
-            <h1 className="text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-[3.25rem]">
+            <h1 className="font-serif text-4xl font-medium leading-tight tracking-tight text-white sm:text-5xl lg:text-[3.25rem]">
               Encontrá personas
               <span className="text-blue-500"> confiables</span>{' '}
               cerca tuyo

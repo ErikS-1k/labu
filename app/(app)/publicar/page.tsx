@@ -28,7 +28,7 @@ export default async function PublicarPage({
           </svg>
         </div>
 
-        <h1 className="mb-3 text-2xl font-bold text-white">
+        <h1 className="mb-3 font-serif text-2xl font-medium text-white">
           {esOferta ? '¡Tu publicación está activa!' : '¡Tu búsqueda está activa!'}
         </h1>
 
