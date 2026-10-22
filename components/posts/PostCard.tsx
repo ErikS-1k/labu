@@ -70,8 +70,9 @@ function IconStar() {
 // ─── Card ─────────────────────────────────────────────────────────────────────
 // "Mini-perfil con una oferta": persona primero, servicio después.
 // Dos zonas clickeables hermanas (no anidadas): autor → /perfil, publicación → /post.
+// hideAuthor: oculta la zona del autor (ej. dentro de su propio perfil, donde sería redundante).
 
-export default function PostCard({ post, from }: { post: PostCardData; from?: string }) {
+export default function PostCard({ post, from, hideAuthor = false }: { post: PostCardData; from?: string; hideAuthor?: boolean }) {
   const autor   = post.users
   const nombre  = autor?.first_name || autor?.username || 'Usuario'
   const inicial = nombre[0]?.toUpperCase() ?? 'U'
@@ -97,56 +98,60 @@ export default function PostCard({ post, from }: { post: PostCardData; from?: st
     <article className="overflow-hidden rounded-2xl border border-[#2a2a2a] bg-[#171717] transition-colors hover:border-[#3a3a3a]">
 
       {/* ── Zona autor → perfil ── */}
-      <Link
-        href={`/perfil/${post.user_id}`}
-        aria-label={`Ver el perfil de ${nombre}`}
-        className="flex items-center gap-4 px-5 pb-4 pt-5 transition-colors hover:bg-white/5"
-      >
-        {autor?.avatar_url ? (
-          <Image
-            src={autor.avatar_url}
-            width={64}
-            height={64}
-            sizes="64px"
-            className="h-16 w-16 shrink-0 rounded-full object-cover"
-            alt=""
-          />
-        ) : (
-          <span className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-semibold text-white ${avatarBg(autor?.username, autor?.first_name, post.user_id, post.id)}`}>
-            {inicial}
-          </span>
-        )}
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-2">
-            <p className="truncate text-[15px] font-semibold text-white">{nombre}</p>
-            {ratingCount > 0 && (
-              <span className="flex shrink-0 items-center gap-1 text-sm text-zinc-300" aria-label={`${ratingAvg.toFixed(1)} de 5, ${ratingCount} opiniones`}>
-                <span className="text-yellow-400"><IconStar /></span>
-                <span className="font-medium">{ratingAvg.toFixed(1)}</span>
-                <span className="text-zinc-500">({ratingCount})</span>
+      {!hideAuthor && (
+        <>
+          <Link
+            href={`/perfil/${post.user_id}`}
+            aria-label={`Ver el perfil de ${nombre}`}
+            className="flex items-center gap-4 px-5 pb-4 pt-5 transition-colors hover:bg-white/5"
+          >
+            {autor?.avatar_url ? (
+              <Image
+                src={autor.avatar_url}
+                width={64}
+                height={64}
+                sizes="64px"
+                className="h-16 w-16 shrink-0 rounded-full object-cover"
+                alt=""
+              />
+            ) : (
+              <span className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-semibold text-white ${avatarBg(autor?.username, autor?.first_name, post.user_id, post.id)}`}>
+                {inicial}
               </span>
             )}
-          </div>
-          {autor?.headline && (
-            <p className="mt-0.5 truncate text-sm text-zinc-400">{autor.headline}</p>
-          )}
-          {autor?.location && (
-            <p className="mt-1 flex min-w-0 items-center gap-1 text-xs text-zinc-500">
-              <IconMapPin />
-              <span className="truncate">{autor.location}</span>
-            </p>
-          )}
-        </div>
-      </Link>
 
-      {/* Separador entre persona y publicación */}
-      <div className="mx-5 border-t border-[#2a2a2a]" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2">
+                <p className="truncate text-[15px] font-semibold text-white">{nombre}</p>
+                {ratingCount > 0 && (
+                  <span className="flex shrink-0 items-center gap-1 text-sm text-zinc-300" aria-label={`${ratingAvg.toFixed(1)} de 5, ${ratingCount} opiniones`}>
+                    <span className="text-yellow-400"><IconStar /></span>
+                    <span className="font-medium">{ratingAvg.toFixed(1)}</span>
+                    <span className="text-zinc-500">({ratingCount})</span>
+                  </span>
+                )}
+              </div>
+              {autor?.headline && (
+                <p className="mt-0.5 truncate text-sm text-zinc-400">{autor.headline}</p>
+              )}
+              {autor?.location && (
+                <p className="mt-1 flex min-w-0 items-center gap-1 text-xs text-zinc-500">
+                  <IconMapPin />
+                  <span className="truncate">{autor.location}</span>
+                </p>
+              )}
+            </div>
+          </Link>
+
+          {/* Separador entre persona y publicación */}
+          <div className="mx-5 border-t border-[#2a2a2a]" />
+        </>
+      )}
 
       {/* ── Zona publicación → detalle ── */}
       <Link
         href={`/post/${post.id}${from ? `?from=${from}` : ''}`}
-        className="block px-5 pb-5 pt-4 transition-colors hover:bg-white/5"
+        className={`block px-5 pb-5 transition-colors hover:bg-white/5 ${hideAuthor ? 'pt-5' : 'pt-4'}`}
       >
         <h3 className="line-clamp-2 font-serif text-lg font-medium leading-snug text-white">
           {post.title}
