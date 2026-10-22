@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
 // ── Ilustración SVG: nodos conectados ──────────────────────────────────────
@@ -144,8 +145,18 @@ const PASOS = [
 // ── Página ──────────────────────────────────────────────────────────────────
 
 export default async function Home() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // Usuarios con sesión van directo al feed; la landing es solo para visitantes.
+  // Si Supabase falla, se trata como visitante y se muestra la landing.
+  let user = null
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase.auth.getUser()
+    if (!error) user = data.user
+  } catch {
+    user = null
+  }
+  // Fuera del try: redirect() funciona lanzando una excepción interna de Next
+  if (user) redirect('/panel')
 
   return (
     <div className="min-h-screen bg-[#0f0f0f] text-white">
