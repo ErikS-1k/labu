@@ -108,8 +108,12 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
   useProgress(pending)
 
   const catInicial = categoriaInicial(initialData?.category)
-  // En edición: sin precio = "a definir" (incluye publicaciones viejas con price_type null)
-  const aDefinirInicial = initialData ? initialData.price == null : null
+
+  // "Más detalles" arranca abierto al editar una publicación que ya tiene alguno de esos datos
+  const tieneDetalles = !!initialData && (
+    (initialData.modality?.length ?? 0) > 0 || !!initialData.presencialidad ||
+    initialData.price != null || !!initialData.location || !!initialData.temporal_duration
+  )
 
   const [tipo, setTipo]                         = useState<'oferta' | 'requerimiento'>(initialData?.type ?? defaultTipo)
   const [titulo, setTitulo]                     = useState(initialData?.title ?? defaultTitulo)
@@ -118,14 +122,16 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
   const [catCustom, setCatCustom]               = useState(catInicial.custom)
   const [precio, setPrecio]                     = useState(initialData?.price != null ? String(initialData.price) : '')
   const [precioTipo, setPrecioTipo]             = useState(
-    aDefinirInicial === true ? 'a_convenir' : (initialData?.price_type ?? 'hora')
+    initialData?.price_type && initialData.price_type !== 'a_convenir' ? initialData.price_type : 'hora'
   )
-  const [aDefinir, setADefinir]                 = useState<boolean | null>(aDefinirInicial)
+  // Precio: un solo campo con dos modos. Sin precio cargado = "A convenir".
+  const [modoPrecio, setModoPrecio]             = useState<'monto' | 'convenir'>(initialData?.price != null ? 'monto' : 'convenir')
+  const [detallesAbiertos, setDetallesAbiertos] = useState(tieneDetalles)
   const [zona, setZona]                         = useState(initialData?.location ?? '')
   const [modalidades, setModalidades]           = useState<string[]>(initialData?.modality ?? [])
   const [temporalDuration, setTemporalDuration] = useState(initialData?.temporal_duration ?? '')
   const [presencialidad, setPresencialidad]     = useState(initialData?.presencialidad ?? '')
-  const [fieldErrors, setFieldErrors]           = useState<{ title?: string; modality?: string; precio?: string }>({})
+  const [fieldErrors, setFieldErrors]           = useState<{ title?: string; description?: string; category?: string; precio?: string }>({})
 
   function handleTipoChange(nuevoTipo: 'oferta' | 'requerimiento') {
     // El tipo no se puede cambiar una vez creada la publicación
@@ -137,27 +143,30 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
 
   function toggleModalidad(value: string, checked: boolean) {
     setModalidades(prev => checked ? [...prev, value] : prev.filter(v => v !== value))
-    if (fieldErrors.modality) setFieldErrors(e => ({ ...e, modality: undefined }))
   }
 
-  function handleADefinir(checked: boolean) {
-    setADefinir(checked)
-    if (checked) { setPrecio(''); setPrecioTipo('a_convenir') }
-    else          { setPrecioTipo('hora') }
+  function cambiarModoPrecio(modo: 'monto' | 'convenir') {
+    setModoPrecio(modo)
+    if (modo === 'convenir') setPrecio('')
     if (fieldErrors.precio) setFieldErrors(e => ({ ...e, precio: undefined }))
   }
 
+  const categoryValue = catSel === 'Otro' ? catCustom.trim() : catSel
+  // Obligatorios: tipo (siempre tiene valor), título, descripción y categoría
+  const puedeEnviar = !!titulo.trim() && !!descripcion.trim() && !!categoryValue
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    const errors: { title?: string; modality?: string; precio?: string } = {}
-    if (!titulo.trim())        errors.title   = 'Este campo es obligatorio'
-    if (modalidades.length === 0) errors.modality = 'Elegí al menos un tipo de trabajo'
-    if (aDefinir === null)     errors.precio  = 'Elegí cómo querés cobrar'
-    else if (!aDefinir && !precio) errors.precio = 'Ingresá el precio'
+    const errors: { title?: string; description?: string; category?: string; precio?: string } = {}
+    if (!titulo.trim())      errors.title       = 'Escribí un título'
+    if (!descripcion.trim()) errors.description = 'Escribí una descripción'
+    if (!categoryValue)      errors.category    = catSel === 'Otro' ? 'Escribí tu categoría' : 'Elegí una categoría'
+    if (modoPrecio === 'monto' && !precio) {
+      errors.precio = 'Ingresá el monto o elegí "A convenir"'
+      setDetallesAbiertos(true)
+    }
     if (Object.keys(errors).length > 0) { e.preventDefault(); setFieldErrors(errors); return }
     setFieldErrors({})
   }
-
-  const categoryValue = catSel === 'Otro' ? catCustom.trim() : catSel
 
   // En edición el botón del tipo no elegido queda apagado y sin interacción
   const tipoBloqueado = 'cursor-not-allowed opacity-40'
@@ -246,9 +255,9 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
         )}
       </div>
 
-      {/* ── 2. Descripción ── */}
+      {/* ── 2. Título y descripción ── */}
       <div className="flex flex-col gap-4 rounded-2xl border border-[#2a2a2a] bg-[#171717] p-5">
-        <SectionLabel icon={<IconDoc />} text="Descripción" />
+        <SectionLabel icon={<IconDoc />} text="Tu publicación" />
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="title" className="text-xs font-medium text-zinc-400">
@@ -258,11 +267,7 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
             id="title" name="title" type="text"
             value={titulo}
             onChange={e => { setTitulo(e.target.value); if (fieldErrors.title) setFieldErrors(er => ({ ...er, title: undefined })) }}
-            placeholder={
-              tipo === 'oferta'
-                ? 'Ej: Plomero con 10 años de experiencia'
-                : 'Ej: Necesito electricista para instalación'
-            }
+            placeholder="Ej: Clases particulares de Matemática"
             className={fieldErrors.title ? inputDarkError : inputDark}
           />
           {fieldErrors.title && <p className="text-xs text-red-400">{fieldErrors.title}</p>}
@@ -270,28 +275,33 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="description" className="text-xs font-medium text-zinc-400">
-            Descripción <span className="text-zinc-600">(opcional)</span>
+            Descripción <span className="text-red-400">*</span>
           </label>
           <textarea
             id="description" name="description" rows={4}
             value={descripcion}
-            onChange={e => setDescripcion(e.target.value)}
-            placeholder="Describí qué hacés, cómo lo hacés, tu experiencia, disponibilidad..."
-            className={`${inputDark} resize-none`}
+            onChange={e => { setDescripcion(e.target.value); if (fieldErrors.description) setFieldErrors(er => ({ ...er, description: undefined })) }}
+            placeholder="Contá qué ofrecés o buscás. Cuanto más detalle, mejor."
+            className={`${fieldErrors.description ? inputDarkError : inputDark} resize-none`}
           />
+          {fieldErrors.description && <p className="text-xs text-red-400">{fieldErrors.description}</p>}
         </div>
       </div>
 
       {/* ── 3. Categoría ── */}
       <div className="flex flex-col gap-4 rounded-2xl border border-[#2a2a2a] bg-[#171717] p-5">
-        <SectionLabel icon={<IconTag />} text="Categoría (opcional)" />
+        <SectionLabel icon={<IconTag />} text="Categoría *" />
         <input type="hidden" name="category" value={categoryValue} />
         <div className="grid grid-cols-2 gap-2">
           {CATEGORIAS.map(cat => (
             <button
               key={cat}
               type="button"
-              onClick={() => { setCatSel(cat === catSel ? '' : cat); if (cat !== 'Otro') setCatCustom('') }}
+              onClick={() => {
+                setCatSel(cat === catSel ? '' : cat)
+                if (cat !== 'Otro') setCatCustom('')
+                if (fieldErrors.category) setFieldErrors(er => ({ ...er, category: undefined }))
+              }}
               className={catSel === cat ? btnSelected : btnUnselected}
             >
               {cat}
@@ -307,142 +317,186 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
             className={inputDark}
           />
         )}
+        {fieldErrors.category && <p className="text-xs text-red-400">{fieldErrors.category}</p>}
       </div>
 
-      {/* ── 4. Duración ── */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-[#2a2a2a] bg-[#171717] p-5">
-        <SectionLabel icon={<IconClock />} text="Tipo de trabajo * — podés elegir varias" />
-        {modalidades.map(v => <input key={v} type="hidden" name="modality" value={v} />)}
-        <div className="flex flex-wrap gap-2">
-          {MODALIDADES.map(m => (
-            <button
-              key={m.value}
-              type="button"
-              onClick={() => toggleModalidad(m.value, !modalidades.includes(m.value))}
-              className={modalidades.includes(m.value) ? btnSelected : btnUnselected}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
-        {modalidades.length > 0 && (
-          <div className="flex flex-col gap-0.5">
-            {MODALIDADES.filter(m => modalidades.includes(m.value)).map(m => (
-              <p key={m.value} className="text-xs text-zinc-500">{m.desc}</p>
-            ))}
-          </div>
-        )}
-        {fieldErrors.modality && <p className="text-xs text-red-400">{fieldErrors.modality}</p>}
-
-        {modalidades.includes('temporal') && (
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="temporal_duration" className="text-xs font-medium text-zinc-400">
-              Por cuánto tiempo <span className="text-zinc-600">(opcional)</span>
-            </label>
-            <input
-              id="temporal_duration"
-              type="text"
-              name="temporal_duration"
-              value={temporalDuration}
-              onChange={e => setTemporalDuration(e.target.value)}
-              placeholder="ej: 3 días, 2 semanas, 1 mes"
-              maxLength={100}
-              className={inputDark}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* ── 5. Modalidad ── */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-[#2a2a2a] bg-[#171717] p-5">
-        <SectionLabel icon={<IconGlobe />} text="Modalidad (opcional)" />
-        <input type="hidden" name="presencialidad" value={presencialidad} />
-        <div className="flex gap-2">
-          {PRESENCIALIDAD_OPTS.map(op => (
-            <button
-              key={op.value}
-              type="button"
-              onClick={() => setPresencialidad(prev => prev === op.value ? '' : op.value)}
-              className={`flex-1 ${presencialidad === op.value ? btnSelected : btnUnselected}`}
-            >
-              {op.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── 6. Precio ── */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-[#2a2a2a] bg-[#171717] p-5">
-        <SectionLabel icon={<IconDollar />} text="Precio *" />
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => handleADefinir(false)}
-            className={`py-3 ${aDefinir === false ? btnSelected : btnUnselected}`}
+      {/* ── 4. Más detalles (opcional) — acordeón ── */}
+      <div className="overflow-hidden rounded-2xl border border-[#2a2a2a] bg-[#171717]">
+        <button
+          type="button"
+          onClick={() => setDetallesAbiertos(a => !a)}
+          aria-expanded={detallesAbiertos}
+          aria-controls="mas-detalles"
+          className="flex w-full items-center justify-between gap-4 p-5 text-left transition-colors hover:bg-white/5"
+        >
+          <span className="min-w-0">
+            <span className="block text-[15px] font-semibold text-white">
+              Más detalles <span className="font-normal text-zinc-500">(opcional)</span>
+            </span>
+            <span className="mt-0.5 block text-sm text-zinc-400">Agregá tipo de trabajo, modalidad, precio y zona</span>
+          </span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+            className={`shrink-0 text-zinc-400 transition-transform duration-300 ${detallesAbiertos ? 'rotate-180' : ''}`}
           >
-            $ &nbsp;Precio fijo
-          </button>
-          <button
-            type="button"
-            onClick={() => handleADefinir(true)}
-            className={`py-3 ${aDefinir === true ? btnSelected : btnUnselected}`}
-          >
-            ≈ &nbsp;A definir
-          </button>
-        </div>
-        {fieldErrors.precio && <p className="text-xs text-red-400">{fieldErrors.precio}</p>}
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
 
-        {aDefinir === false && (
-          <div className="flex gap-2">
-            <input
-              id="price" name="price" type="number" min="0" step="100"
-              value={precio}
-              onChange={e => { setPrecio(e.target.value); if (fieldErrors.precio) setFieldErrors(er => ({ ...er, precio: undefined })) }}
-              placeholder="Ej: 5000"
-              className={`flex-1 ${fieldErrors.precio && !precio ? inputDarkError : inputDark}`}
-            />
-            <select
-              id="price_type" name="price_type"
-              value={precioTipo}
-              onChange={e => setPrecioTipo(e.target.value)}
-              className="flex-1 rounded-xl border border-[#2a2a2a] bg-[#111] px-3 py-2.5 text-sm text-white outline-none focus:border-zinc-500"
-            >
-              {PRICE_TYPES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-            </select>
+        {/* Los campos siguen en el DOM aunque esté cerrado: lo cargado se envía igual */}
+        <div
+          id="mas-detalles"
+          className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${
+            detallesAbiertos ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+          }`}
+        >
+          <div className="overflow-hidden" inert={!detallesAbiertos}>
+            <div className="flex flex-col divide-y divide-[#2a2a2a] border-t border-[#2a2a2a] px-5">
+
+              {/* Tipo de trabajo (+ por cuánto tiempo si es temporal) */}
+              <div className="flex flex-col gap-3 py-5">
+                <SectionLabel icon={<IconClock />} text="Tipo de trabajo — podés elegir varios" />
+                {modalidades.map(v => <input key={v} type="hidden" name="modality" value={v} />)}
+                <div className="flex flex-wrap gap-2">
+                  {MODALIDADES.map(m => (
+                    <button
+                      key={m.value}
+                      type="button"
+                      onClick={() => toggleModalidad(m.value, !modalidades.includes(m.value))}
+                      className={modalidades.includes(m.value) ? btnSelected : btnUnselected}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+                {modalidades.length > 0 && (
+                  <div className="flex flex-col gap-0.5">
+                    {MODALIDADES.filter(m => modalidades.includes(m.value)).map(m => (
+                      <p key={m.value} className="text-xs text-zinc-500">{m.desc}</p>
+                    ))}
+                  </div>
+                )}
+
+                {modalidades.includes('temporal') && (
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="temporal_duration" className="text-xs font-medium text-zinc-400">Por cuánto tiempo</label>
+                    <input
+                      id="temporal_duration"
+                      type="text"
+                      name="temporal_duration"
+                      value={temporalDuration}
+                      onChange={e => setTemporalDuration(e.target.value)}
+                      placeholder="Ej: 3 días, 2 semanas, 1 mes"
+                      maxLength={100}
+                      className={inputDark}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Modalidad (presencial / virtual) */}
+              <div className="flex flex-col gap-3 py-5">
+                <SectionLabel icon={<IconGlobe />} text="Modalidad" />
+                <input type="hidden" name="presencialidad" value={presencialidad} />
+                <div className="flex gap-2">
+                  {PRESENCIALIDAD_OPTS.map(op => (
+                    <button
+                      key={op.value}
+                      type="button"
+                      onClick={() => setPresencialidad(prev => prev === op.value ? '' : op.value)}
+                      className={`flex-1 ${presencialidad === op.value ? btnSelected : btnUnselected}`}
+                    >
+                      {op.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Precio: un solo campo con dos modos (monto con unidad / a convenir) */}
+              <div className="flex flex-col gap-3 py-5">
+                <SectionLabel icon={<IconDollar />} text="Precio" />
+                <div className="rounded-xl border border-[#2a2a2a] bg-[#111] p-1.5">
+                  <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="Cómo cobrás">
+                    {([['monto', 'Poner precio'], ['convenir', 'A convenir']] as const).map(([valor, texto]) => (
+                      <button
+                        key={valor}
+                        type="button"
+                        role="radio"
+                        aria-checked={modoPrecio === valor}
+                        onClick={() => cambiarModoPrecio(valor)}
+                        className={`rounded-lg py-2 text-sm font-medium transition-colors ${
+                          modoPrecio === valor ? 'bg-blue-600 text-white' : 'text-zinc-400 hover:text-zinc-200'
+                        }`}
+                      >
+                        {texto}
+                      </button>
+                    ))}
+                  </div>
+
+                  {modoPrecio === 'monto' ? (
+                    <div className="mt-1.5 flex gap-2">
+                      <input
+                        id="price" name="price" type="number" min="0" step="100" inputMode="numeric"
+                        aria-label="Monto en pesos"
+                        value={precio}
+                        onChange={e => { setPrecio(e.target.value); if (fieldErrors.precio) setFieldErrors(er => ({ ...er, precio: undefined })) }}
+                        placeholder="$ Ej: 5000"
+                        className={`min-w-0 flex-1 ${fieldErrors.precio ? inputDarkError : inputDark}`}
+                      />
+                      <select
+                        id="price_type" name="price_type"
+                        aria-label="Unidad del precio"
+                        value={precioTipo}
+                        onChange={e => setPrecioTipo(e.target.value)}
+                        className="w-36 shrink-0 rounded-xl border border-[#2a2a2a] bg-[#111] px-3 py-2.5 text-sm text-white outline-none focus:border-zinc-500"
+                      >
+                        {PRICE_TYPES.map(pt => <option key={pt.value} value={pt.value}>{pt.label}</option>)}
+                      </select>
+                    </div>
+                  ) : (
+                    <>
+                      <input type="hidden" name="price_type" value="a_convenir" />
+                      <p className="px-2 pb-1 pt-2.5 text-sm text-zinc-500">El precio se acuerda directamente con la otra persona.</p>
+                    </>
+                  )}
+                </div>
+                {fieldErrors.precio && <p className="text-xs text-red-400">{fieldErrors.precio}</p>}
+              </div>
+
+              {/* Zona */}
+              <div className="flex flex-col gap-3 py-5">
+                <SectionLabel icon={<IconMapPin />} text="Zona" />
+                <input
+                  id="location" name="location" type="text"
+                  aria-label="Zona"
+                  value={zona}
+                  onChange={e => setZona(e.target.value)}
+                  placeholder="Ej: Palermo, CABA"
+                  className={inputDark}
+                />
+              </div>
+            </div>
           </div>
-        )}
-        {aDefinir === true && <input type="hidden" name="price_type" value="a_convenir" />}
-      </div>
-
-      {/* ── 7. Zona ── */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-[#2a2a2a] bg-[#171717] p-5">
-        <SectionLabel icon={<IconMapPin />} text="Zona (opcional)" />
-        <input
-          id="location" name="location" type="text"
-          value={zona}
-          onChange={e => setZona(e.target.value)}
-          placeholder="Ej: Palermo, CABA"
-          className={inputDark}
-        />
+        </div>
       </div>
 
       {/* ── CTA ── */}
-      <div className="rounded-2xl bg-gradient-to-b from-blue-600 to-blue-700 p-6 text-center md:p-8">
-        <h2 className="text-xl font-bold text-white">
-          {esEdicion ? '¿Todo listo?' : '¿Listo para publicar?'}
-        </h2>
-        <p className="mt-1 text-sm text-blue-100">
-          * Título, duración y precio son obligatorios
-        </p>
+      <div className="mt-2 flex flex-col items-center gap-3">
         <button
           type="submit"
-          disabled={pending}
-          className="mt-5 w-full max-w-xs rounded-xl bg-white px-6 py-3 text-base font-bold text-blue-600 transition-colors hover:bg-blue-50 disabled:opacity-50"
+          disabled={pending || !puedeEnviar}
+          className="h-14 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 text-base font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {esEdicion
-            ? (pending ? 'Guardando...' : 'Guardar cambios')
-            : (pending ? 'Publicando...' : 'Publicar ahora')}
+            ? (pending ? 'Guardando…' : 'Guardar cambios')
+            : (pending ? 'Publicando…' : 'Publicar')}
         </button>
+        <p className="text-xs text-zinc-500">
+          {puedeEnviar
+            ? 'Podés editar la publicación en cualquier momento.'
+            : 'Completá título, descripción y categoría para publicar.'}
+        </p>
       </div>
     </form>
     </>

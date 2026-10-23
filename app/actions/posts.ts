@@ -5,6 +5,14 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { crearNotificacion } from './notifications'
 
+function validarObligatorios(formData: FormData): string | null {
+  const vacio = (campo: string) => !String(formData.get(campo) ?? '').trim()
+  if (vacio('title'))       return 'Escribí un título.'
+  if (vacio('description')) return 'Escribí una descripción.'
+  if (vacio('category'))    return 'Elegí una categoría.'
+  return null
+}
+
 export async function publicarPost(
   _prevState: { error: string } | null,
   formData: FormData
@@ -19,7 +27,10 @@ export async function publicarPost(
   // getAll recoge todos los valores del mismo nombre — necesario para checkboxes múltiples
   const modality = formData.getAll('modality') as string[]
 
-  if (modality.length === 0) return { error: 'Elegí al menos un tipo de trabajo.' }
+  // Obligatorios: título, descripción y categoría. Tipo de trabajo, modalidad, precio y zona
+  // son opcionales ("Más detalles"); sin tipo de trabajo se guarda [] (la columna es not null).
+  const errorObligatorios = validarObligatorios(formData)
+  if (errorObligatorios) return { error: errorObligatorios }
 
   const { data, error } = await supabase
     .from('posts')
@@ -79,7 +90,8 @@ export async function editarPost(
   const priceRaw = formData.get('price') as string
   const modality = formData.getAll('modality') as string[]
 
-  if (modality.length === 0) return { error: 'Elegí al menos un tipo de trabajo.' }
+  const errorObligatorios = validarObligatorios(formData)
+  if (errorObligatorios) return { error: errorObligatorios }
 
   // .eq('user_id', user.id) garantiza que solo el dueño puede editar
   const { error } = await supabase

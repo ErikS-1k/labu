@@ -183,6 +183,8 @@ export default async function PostPage({
                   <span className="font-medium text-white">{priceLabel}</span>
                 </div>
               )}
+              {/* El tipo de trabajo es opcional: sin datos no se muestra la fila */}
+              {(post.modality as string[]).length > 0 && (
               <div className="flex justify-between">
                 <span className="flex items-center gap-1.5 text-zinc-400">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -194,6 +196,7 @@ export default async function PostPage({
                   {(post.modality as string[]).map(m => MODALITY_LABEL[m]).join(', ')}
                 </span>
               </div>
+              )}
               {(post.modality as string[]).includes('temporal') && (post as any).temporal_duration && (
                 <div className="flex justify-between">
                   <span className="flex items-center gap-1.5 text-zinc-400">
