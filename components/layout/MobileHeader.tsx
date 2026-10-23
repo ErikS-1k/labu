@@ -24,6 +24,7 @@ const PAGES: Record<string, PageConfig> = {
   '/mi-actividad':   { title: 'Mi actividad',   subtitle: 'Tus publicaciones y solicitudes' },
   '/notificaciones': { title: 'Notificaciones', subtitle: 'Tus novedades recientes' },
   '/configuracion':  { title: 'Configuración',  subtitle: 'Preferencias de tu cuenta' },
+  '/reportar-problema': { title: 'Reportar un problema', subtitle: 'Contanos qué pasó y lo revisamos' },
 }
 
 function getConfig(pathname: string, userId: string | null): PageConfig | null {

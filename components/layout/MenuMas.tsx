@@ -230,10 +230,10 @@ export default function MenuMas({ variante, actividadCount, trigger, triggerClas
             Cambiar apariencia
           </button>
 
-          <button type="button" role="menuitem" onClick={proximamente} className={filaCls}>
+          <Link href="/reportar-problema" role="menuitem" onClick={() => cambiar(false)} className={filaCls}>
             <IconAyuda />
             Reportar un problema
-          </button>
+          </Link>
 
           <div role="separator" className="my-1.5 h-px bg-[#2a2a2a]" />
 

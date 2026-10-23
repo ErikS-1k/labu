@@ -16,6 +16,7 @@ const MESSAGES: Record<string, { message: string; type: ToastItem['type'] }> = {
   publicacion_editada:  { message: 'Los cambios fueron guardados.',                        type: 'success' },
   publicacion_eliminada:{ message: 'Tu publicación fue eliminada.',                        type: 'success' },
   email_actualizado:    { message: 'Tu email quedó actualizado.',                           type: 'success' },
+  reporte_enviado:      { message: 'Gracias, recibimos tu reporte. Lo vamos a revisar pronto.', type: 'success' },
 }
 
 export default function Toaster() {

@@ -41,6 +41,9 @@ function IconActivity() {
 function IconBarChart() {
   return <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
 }
+function IconFlag() {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+}
 function IconHeart() {
   return <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
 }
@@ -56,6 +59,7 @@ export default async function AdminHubPage() {
     { count: postulacionesSemana },
     { count: mensajes7d },
     { count: notifNoLeidas },
+    { count: reportesNuevos },
   ] = await Promise.all([
     service.from('users').select('*', { count: 'exact', head: true }),
     service.from('verifications').select('*', { count: 'exact', head: true }).eq('status', 'pendiente'),
@@ -63,9 +67,19 @@ export default async function AdminHubPage() {
     service.from('applications').select('*', { count: 'exact', head: true }).gte('created_at', hace7d),
     service.from('messages').select('*', { count: 'exact', head: true }).gte('created_at', hace7d),
     service.from('notifications').select('*', { count: 'exact', head: true }).eq('read', false),
+    service.from('reportes').select('*', { count: 'exact', head: true }).eq('status', 'nuevo'),
   ])
 
   const cards: HubCard[] = [
+    {
+      href:      '/admin/reportes',
+      titulo:    'Reportes',
+      desc:      'Bugs y sugerencias de usuarios',
+      icono:     <IconFlag />,
+      color:     'bg-red-500/15 text-red-400',
+      valor:     reportesNuevos,
+      subtitulo: reportesNuevos === 1 ? '1 nuevo' : `${reportesNuevos ?? 0} nuevos`,
+    },
     {
       href:      '/admin/verificaciones',
       titulo:    'Identidades',
