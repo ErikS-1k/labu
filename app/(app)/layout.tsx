@@ -38,6 +38,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     // Un solo canal Realtime de mensajes para nav, banner de /panel y toast de mensaje nuevo
+    // .tema-app: alcance del modo claro (app/tema-claro.css). "contents" no altera el layout.
+    <div className="tema-app contents">
     <UnreadMessagesProvider userId={user?.id ?? null} initialCount={unreadCount}>
     <div className="flex h-dvh overflow-hidden bg-surface-0">
       <Suspense fallback={<div className="hidden md:flex h-dvh w-14 shrink-0 border-r border-surface-2 bg-surface-0" />}>
@@ -76,5 +78,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <Suspense><Toaster /></Suspense>
     </div>
     </UnreadMessagesProvider>
+    </div>
   )
 }

@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import ProgressBar from "@/components/ui/ProgressBar";
 import ServiceWorkerRegistration from "@/components/pwa/ServiceWorkerRegistration";
 import InstallBanner from "@/components/pwa/InstallBanner";
+import { SCRIPT_TEMA } from "@/lib/tema";
 import "./globals.css";
 
 // Sistema tipográfico dual:
@@ -54,7 +55,12 @@ export default function RootLayout({
     <html
       lang="es-AR"
       className={`${inter.variable} ${literata.variable} h-full antialiased`}
+      // El script de tema agrega la clase "light" antes de hidratar: React no debe quejarse
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
+      </head>
       <body className="min-h-full flex flex-col">
         <Suspense fallback={null}>
           <ProgressBar />

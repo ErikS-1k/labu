@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useFormStatus } from 'react-dom'
 import { logout } from '@/app/actions/auth'
-import { showToast } from '@/lib/toast'
+import { aplicarTema, temaActual } from '@/lib/tema'
 
 // Menú "Más" (estilo Instagram): popover con las opciones de uso esporádico.
 // No es una ruta — es un overlay flotante que no cambia la URL.
@@ -64,6 +64,15 @@ function IconLuna() {
   )
 }
 
+function IconSol() {
+  return (
+    <svg {...svgProps}>
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+    </svg>
+  )
+}
+
 function IconAyuda() {
   return (
     <svg {...svgProps}>
@@ -99,6 +108,24 @@ function BotonSalir() {
     >
       <IconSalir />
       {pending ? 'Saliendo…' : 'Salir'}
+    </button>
+  )
+}
+
+// Alterna modo claro/oscuro. Solo se monta con el menú abierto (en el cliente),
+// así que puede leer el tema actual directo del <html>.
+function ItemTema({ onCambio }: { onCambio: () => void }) {
+  const [tema] = useState(temaActual)
+  const siguiente = tema === 'light' ? 'dark' : 'light'
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={() => { aplicarTema(siguiente); onCambio() }}
+      className={filaCls}
+    >
+      {siguiente === 'light' ? <IconSol /> : <IconLuna />}
+      {siguiente === 'light' ? 'Modo claro' : 'Modo oscuro'}
     </button>
   )
 }
@@ -169,11 +196,6 @@ export default function MenuMas({ variante, actividadCount, trigger, triggerClas
     items[siguiente]?.focus()
   }
 
-  function proximamente() {
-    showToast('Próximamente', 'warning')
-    cambiar(false)
-  }
-
   const posicionCls = variante === 'mobile'
     ? 'right-3 origin-bottom-right'
     : 'origin-bottom-left'
@@ -225,10 +247,7 @@ export default function MenuMas({ variante, actividadCount, trigger, triggerClas
             Confirmar identidad
           </Link>
 
-          <button type="button" role="menuitem" onClick={proximamente} className={filaCls}>
-            <IconLuna />
-            Cambiar apariencia
-          </button>
+          <ItemTema onCambio={() => cambiar(false)} />
 
           <Link href="/reportar-problema" role="menuitem" onClick={() => cambiar(false)} className={filaCls}>
             <IconAyuda />
