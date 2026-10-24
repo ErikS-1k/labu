@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useState, useSyncExternalStore, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { completarOnboarding, completarOnboardingNotificaciones } from '@/app/actions/perfil'
@@ -25,8 +25,32 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   return bytes
 }
 
+// ─── Preferencia expandido/colapsado (localStorage "labu-onboarding-expanded") ───
+// useSyncExternalStore: el servidor dibuja el banner colapsado y el cliente aplica la
+// preferencia guardada sin errores de hidratación. Si el navegador bloquea localStorage
+// (modo privado), la preferencia vive en memoria mientras dure la sesión.
+const CLAVE_EXPANDIDO = 'labu-onboarding-expanded'
+const suscriptores = new Set<() => void>()
+let enMemoria: boolean | null = null
+
+function leerExpandido(): boolean {
+  if (enMemoria !== null) return enMemoria
+  try { return localStorage.getItem(CLAVE_EXPANDIDO) === 'true' } catch { return false }
+}
+
+function guardarExpandido(valor: boolean) {
+  enMemoria = valor
+  try { localStorage.setItem(CLAVE_EXPANDIDO, String(valor)) } catch { /* sin storage: queda en memoria */ }
+  suscriptores.forEach(cb => cb())
+}
+
+function suscribirExpandido(cb: () => void) {
+  suscriptores.add(cb)
+  return () => { suscriptores.delete(cb) }
+}
+
 export default function OnboardingBanner({ step1Done, step2Done, step3Done, step4Done }: Props) {
-  const [open, setOpen]               = useState(false)
+  const open = useSyncExternalStore(suscribirExpandido, leerExpandido, () => false)
   const [pending3, startTransition3]  = useTransition()
   const [activandoNotif, setActivandoNotif] = useState(false)
   const router                        = useRouter()
@@ -200,89 +224,96 @@ export default function OnboardingBanner({ step1Done, step2Done, step3Done, step
     }] : []),
   ]
 
+  const completo = totalDone >= total
+
   return (
-    <div className="mb-6 overflow-hidden rounded-xl border border-blue-900/50 bg-blue-950/40">
-      {/* Cabecera */}
-      <div className="flex items-center gap-3 px-4 py-3">
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-white">Primeros pasos en Labu</p>
-          <p className="mt-0.5 text-xs text-zinc-400">{totalDone} de {total} completados</p>
-        </div>
-        <button
-          onClick={() => setOpen(v => !v)}
-          className="flex shrink-0 items-center gap-1.5 rounded-lg border border-surface-2 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-surface-2"
-        >
-          {open ? 'Ocultar' : 'Ver pasos'}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-          >
-            <polyline points="6 9 12 15 18 9" />
+    <div className="mb-6 overflow-hidden rounded-xl bg-surface-2">
+      {/* Línea colapsada: toda la fila es clickeable */}
+      <button
+        type="button"
+        onClick={() => guardarExpandido(!open)}
+        aria-expanded={open}
+        aria-controls="primeros-pasos"
+        className="flex h-12 w-full cursor-pointer items-center gap-3 px-4 text-left transition-colors hover:bg-surface-3"
+      >
+        <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
+          completo ? 'bg-emerald-500/15 text-emerald-400' : 'bg-blue-500/15 text-blue-400'
+        }`}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12" />
           </svg>
-        </button>
-      </div>
+        </span>
+        <span className="min-w-0 flex-1 truncate text-sm font-medium text-white">
+          Primeros pasos: <span className="text-zinc-400">{totalDone}/{total} completados</span>
+        </span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+          className={`shrink-0 text-zinc-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
 
-      {/* Barra de progreso */}
-      <div className="px-4 pb-3">
-        <div className="h-1.5 overflow-hidden rounded-full bg-surface-2">
-          <div
-            className="h-full rounded-full bg-blue-500 transition-all duration-500"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Lista de pasos */}
-      {open && (
-        <div className="flex flex-col gap-3 border-t border-surface-2 px-4 py-4">
-          {steps.map((step, i) => (
-            <div key={i} className="flex items-start gap-3">
-              {step.done ? (
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-900/50">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-emerald-400"
-                  >
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-              ) : (
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-surface-3 text-xs font-semibold text-zinc-500">
-                  {i + 1}
-                </div>
-              )}
-
-              <div className="min-w-0 flex-1 pt-0.5">
-                <p className={`text-sm font-medium leading-tight ${step.done ? 'text-zinc-500 line-through' : 'text-white'}`}>
-                  {step.title}
-                </p>
-                {!step.done && (
-                  <>
-                    <p className="mt-1 text-xs leading-relaxed text-zinc-500">{step.desc}</p>
-                    <div className="mt-2">{step.cta}</div>
-                  </>
-                )}
-              </div>
+      {/* Contenido expandible: barra de progreso + pasos (la altura se anima con grid-rows) */}
+      <div
+        id="primeros-pasos"
+        className={`grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none ${
+          open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+        }`}
+      >
+        <div className="overflow-hidden" inert={!open}>
+          <div className="px-4 pb-1 pt-1">
+            <div className="h-1.5 overflow-hidden rounded-full bg-surface-3">
+              <div
+                className="h-full rounded-full bg-blue-500 transition-all duration-500"
+                style={{ width: `${pct}%` }}
+              />
             </div>
-          ))}
+          </div>
+
+          <div className="mt-3 flex flex-col gap-3 border-t border-surface-3 px-4 py-4">
+            {steps.map((step, i) => (
+              <div key={i} className="flex items-start gap-3">
+                {step.done ? (
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-900/50">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-emerald-400"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </div>
+                ) : (
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-surface-3 text-xs font-semibold text-zinc-500">
+                    {i + 1}
+                  </div>
+                )}
+
+                <div className="min-w-0 flex-1 pt-0.5">
+                  <p className={`text-sm font-medium leading-tight ${step.done ? 'text-zinc-500 line-through' : 'text-white'}`}>
+                    {step.title}
+                  </p>
+                  {!step.done && (
+                    <>
+                      <p className="mt-1 text-xs leading-relaxed text-zinc-500">{step.desc}</p>
+                      <div className="mt-2">{step.cta}</div>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
