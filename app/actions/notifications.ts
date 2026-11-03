@@ -61,3 +61,25 @@ export async function marcarActividadLeida() {
     .in('type', TIPOS_ACTIVIDAD)
   revalidatePath('/mi-actividad')
 }
+
+// Panel de notificaciones (desktop): la lista ya armada para mostrar
+export async function obtenerNotificaciones() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+  const { cargarNotificaciones } = await import('@/lib/notificaciones')
+  return cargarNotificaciones(user.id)
+}
+
+// Marca como leídas solo las notificaciones tocadas (siempre del propio usuario)
+export async function marcarNotificacionesLeidas(ids: string[]) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || !Array.isArray(ids) || ids.length === 0) return
+  await createServiceClient()
+    .from('notifications')
+    .update({ read: true })
+    .eq('user_id', user.id)
+    .in('id', ids.slice(0, 100))
+  revalidatePath('/notificaciones')
+}

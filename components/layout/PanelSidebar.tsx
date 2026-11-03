@@ -90,6 +90,9 @@ export default function PanelSidebar({ userId, userName, unreadNotifCount, unrea
   // Mientras el popover "Más" está abierto el sidebar queda expandido (si se colapsara al
   // mover el mouse hacia el popover, éste quedaría flotando lejos del botón)
   const [menuAbierto, setMenuAbierto]   = useState(false)
+  // Con el panel de notificaciones abierto el sidebar queda angosto (estilo Instagram):
+  // sin la clase `group` no se expande ni muestra los textos al pasar el mouse
+  const [notifAbierto, setNotifAbierto] = useState(false)
   const pathname     = usePathname()
   const searchParams = useSearchParams()
   const fromParam    = searchParams.get('from')
@@ -167,8 +170,8 @@ export default function PanelSidebar({ userId, userName, unreadNotifCount, unrea
   return (
     <aside
       data-expandido={menuAbierto}
-      className={`group hidden md:flex h-dvh flex-col border-r border-surface-2 bg-surface-0 transition-[width] duration-200 ease-in-out overflow-hidden shrink-0 ${
-        menuAbierto ? 'w-56' : 'w-14 hover:w-56'
+      className={`hidden md:flex h-dvh flex-col border-r border-surface-2 bg-surface-0 transition-[width] duration-200 ease-in-out overflow-hidden shrink-0 ${
+        notifAbierto ? 'w-14' : menuAbierto ? 'group w-56' : 'group w-14 hover:w-56'
       }`}
     >
 
@@ -224,7 +227,7 @@ export default function PanelSidebar({ userId, userName, unreadNotifCount, unrea
         )}
 
         {isLoggedIn && userId && (
-          <NotificationBell userId={userId} initialCount={unreadNotifCount} />
+          <NotificationBell userId={userId} initialCount={unreadNotifCount} onOpenChange={setNotifAbierto} />
         )}
 
         {isLoggedIn && userId ? (

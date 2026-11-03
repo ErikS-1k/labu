@@ -86,7 +86,8 @@ export default function PostulacionesAutorSection({ initialPostulaciones, postId
   }, [postId])
 
   return (
-    <div className="mt-4 rounded-xl border border-surface-2 bg-surface-1 p-5">
+    // id="solicitudes": destino del indicador "N solicitudes pendientes" de Mi actividad
+    <div id="solicitudes" className="mt-4 scroll-mt-24 rounded-xl border border-surface-2 bg-surface-1 p-5">
       <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-zinc-400">
         {esRequerimiento ? 'Solicitudes' : 'Solicitudes de contacto'} ({postulaciones.length})
       </p>

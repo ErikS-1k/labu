@@ -59,12 +59,8 @@ export async function postularse(
       message: `${nombre} quiere contactarte por "${post.title}"`,
       link:    `/post/${postId}`,
     }),
-    crearNotificacion({
-      userId:  user.id,
-      type:    'postulacion_enviada',
-      message: `Enviaste tu solicitud para "${post.title}". Te avisamos cuando te respondan.`,
-      link:    `/post/${postId}`,
-    }),
+    // Sin aviso "Enviaste tu solicitud" para quien la envía: lo acaba de hacer él mismo
+    // (la confirmación la ve en el formulario). Las viejas de la base se siguen mostrando.
     enviarPushNotification(post.user_id, {
       title: `${nombre} quiere contactarte`,
       body:  pushBodyPostulacion,

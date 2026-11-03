@@ -21,17 +21,21 @@ function formatDate(ts: string) {
 export default async function MiActividadPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>
+  searchParams: Promise<{ tab?: string; highlight?: string }>
 }) {
   const sp  = await searchParams
+  // "mis-publicaciones" (link de las notificaciones) es la pestaña por defecto: publicaciones
   const tab = sp.tab === 'postulaciones' ? 'postulaciones' : 'publicaciones'
+  // Publicación a resaltar al llegar desde la notificación "quiere contactarte"
+  const resaltada = sp.highlight ?? null
 
   const supabase = await createClient()
   const user = await getAuthUser()
 
   // ── TAB 1: Mis publicaciones ──────────────────────────────────────────────
   let posts: any[] = []
-  let countsByPost: Record<string, number> = {}
+  // Solicitudes por publicación: total y cuántas siguen pendientes
+  let countsByPost: Record<string, { total: number; pendientes: number }> = {}
 
   if (tab === 'publicaciones') {
     const { data } = await supabase
@@ -45,11 +49,14 @@ export default async function MiActividadPage({
     if (posts.length > 0) {
       const { data: apps } = await supabase
         .from('applications')
-        .select('post_id')
+        .select('post_id, status')
         .in('post_id', posts.map(p => p.id))
 
       for (const app of apps ?? []) {
-        countsByPost[app.post_id] = (countsByPost[app.post_id] ?? 0) + 1
+        const c = countsByPost[app.post_id] ?? { total: 0, pendientes: 0 }
+        c.total++
+        if (app.status === 'pendiente') c.pendientes++
+        countsByPost[app.post_id] = c
       }
     }
   }
@@ -127,11 +134,17 @@ export default async function MiActividadPage({
           ) : (
             <div className="flex flex-col gap-3">
               {posts.map(post => {
-                const appCount = countsByPost[post.id] ?? 0
-                const countLabel = `${appCount} ${appCount === 1 ? 'solicitud' : 'solicitudes'}`
+                const { total, pendientes } = countsByPost[post.id] ?? { total: 0, pendientes: 0 }
+                const esResaltada = post.id === resaltada
 
                 return (
-                  <div key={post.id} className="rounded-2xl border border-[#2a2a2a] bg-[#171717] p-4">
+                  <div
+                    key={post.id}
+                    id={`post-${post.id}`}
+                    className={`scroll-mt-24 rounded-2xl border bg-[#171717] p-4 ${
+                      esResaltada ? 'border-blue-500 motion-safe:animate-resaltar' : 'border-[#2a2a2a]'
+                    }`}
+                  >
                     {/* Header: badges + menú */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex flex-wrap items-center gap-1.5">
@@ -161,18 +174,31 @@ export default async function MiActividadPage({
                       {post.title}
                     </Link>
 
+                    {/* Solicitudes: pendientes (destacado, lleva a gestionarlas) / totales / ninguna */}
+                    <div className="mt-2.5">
+                      {pendientes > 0 ? (
+                        <Link
+                          href={`/post/${post.id}?from=mi-actividad#solicitudes`}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/15 px-2.5 py-1 text-xs font-semibold text-amber-400 transition-colors hover:bg-amber-500/25"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/>
+                          </svg>
+                          {pendientes} {pendientes === 1 ? 'solicitud pendiente' : 'solicitudes pendientes'}
+                        </Link>
+                      ) : total > 0 ? (
+                        <span className="inline-flex rounded-lg bg-surface-2 px-2.5 py-1 text-xs font-medium text-zinc-400">
+                          {total} {total === 1 ? 'solicitud' : 'solicitudes'} {total === 1 ? 'total' : 'totales'}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-zinc-500">Todavía nadie te contactó</span>
+                      )}
+                    </div>
+
                     {/* Meta */}
-                    <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500">
+                    <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500">
                       {post.category && <span>{post.category}</span>}
                       <span>{formatDate(post.created_at)}</span>
-                      <span className="flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                          <circle cx="9" cy="7" r="4"/>
-                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
-                        {countLabel}
-                      </span>
                     </div>
                   </div>
                 )

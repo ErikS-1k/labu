@@ -14,9 +14,16 @@
   --font-serif: var(--font-literata), ui-serif, Georgia, serif;
 }
 
-/* Pulso del badge de Mensajes al llegar un mensaje nuevo: 3 latidos de 1s (clase animate-pulso-msg) */
+/* Pulso del badge de Mensajes al llegar un mensaje nuevo: 3 latidos de 1s (clase animate-pulso-msg)
+   Resaltado de una publicación en Mi actividad al llegar desde una notificación (animate-resaltar) */
 @theme {
   --animate-pulso-msg: pulso-msg 1s ease-in-out 3;
+  --animate-resaltar: resaltar 1s ease-in-out 3;
+
+  @keyframes resaltar {
+    0%, 100% { box-shadow: 0 0 0 0 rgb(59 130 246 / 0); }
+    50%      { box-shadow: 0 0 0 4px rgb(59 130 246 / 0.45); }
+  }
 
   @keyframes pulso-msg {
     0%, 100% { transform: scale(1); }

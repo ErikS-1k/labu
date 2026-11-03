@@ -196,18 +196,7 @@ export async function marcarCompletado(formData: FormData) {
         message: `El trabajo "${post.title}" quedó terminado`,
         link:    `/post/${postId}`,
       }),
-      crearNotificacion({
-        userId:  post.user_id,
-        type:    'recordatorio_calificacion',
-        message: `¿Cómo fue tu experiencia en "${post.title}"? Dejá una calificación.`,
-        link:    `/post/${postId}`,
-      }),
-      crearNotificacion({
-        userId:  app.applicant_id,
-        type:    'recordatorio_calificacion',
-        message: `¿Cómo fue tu experiencia en "${post.title}"? Dejá una calificación.`,
-        link:    `/post/${postId}`,
-      }),
+      // Sin el aviso aparte "¿Cómo fue tu experiencia?": "Trabajo terminado" ya trae el botón Calificar
     ])
   }
 

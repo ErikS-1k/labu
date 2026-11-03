@@ -1,4 +1,3 @@
-import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
@@ -19,6 +18,26 @@ const MODALITY_LABEL: Record<string, string> = {
   permanente:   'Permanente',
 }
 
+function PublicacionNoDisponible() {
+  return (
+    <main className="mx-auto flex max-w-md flex-col items-center px-4 py-20 text-center">
+      <span className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-surface-2 text-zinc-400">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9.5" y1="12.5" x2="14.5" y2="17.5"/><line x1="14.5" y1="12.5" x2="9.5" y2="17.5"/>
+        </svg>
+      </span>
+      <h1 className="font-serif text-2xl font-medium text-white">Esta publicación ya no está disponible</h1>
+      <p className="mt-2 text-sm text-zinc-400">Puede que la hayan finalizado o eliminado.</p>
+      <Link
+        href="/mi-actividad"
+        className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+      >
+        Volver a Mi actividad
+      </Link>
+    </main>
+  )
+}
+
 export default async function PostPage({
   params,
   searchParams,
@@ -32,14 +51,21 @@ export default async function PostPage({
 
   const { data: post } = await supabase
     .from('posts')
-    .select('id, user_id, type, title, description, category, modality, presencialidad, temporal_duration, price, price_type, location, users(username, first_name, fecha_nacimiento, avatar_url, bio, location, rating_avg, rating_count, email, phone)')
+    .select('id, user_id, type, title, description, category, modality, presencialidad, temporal_duration, price, price_type, location, is_active, users(username, first_name, fecha_nacimiento, avatar_url, bio, location, rating_avg, rating_count, email, phone)')
     .eq('id', id)
-    .eq('is_active', true)
-    .single()
-
-  if (!post) notFound()
+    .maybeSingle()
 
   const user = await getAuthUser()
+
+  // Una publicación finalizada solo la ven su dueño y quienes le enviaron una solicitud
+  // (para poder calificar el trabajo). Para el resto, o si fue eliminada: pantalla amigable.
+  let puedeVer = !!post && (post.is_active || post.user_id === user?.id)
+  if (post && !puedeVer && user) {
+    const { data: participa } = await supabase
+      .from('applications').select('id').eq('post_id', post.id).eq('applicant_id', user.id).maybeSingle()
+    puedeVer = !!participa
+  }
+  if (!post || !puedeVer) return <PublicacionNoDisponible />
   const esAutor         = user?.id === post.user_id
   const esRequerimiento = post.type === 'requerimiento'
 
@@ -438,8 +464,8 @@ export default async function PostPage({
               </div>
             )}
 
-            {/* ── RATING ── */}
-
+            {/* ── RATING ── (#calificar: destino del botón "Calificar" de la notificación) */}
+            <div id="calificar" className="scroll-mt-24">
             {(() => {
               if (!estaCompletado || !user) return null
               const soyTrabajadorAceptado = miPostulacion?.status === 'aceptado'
@@ -466,6 +492,7 @@ export default async function PostPage({
 
               return null
             })()}
+            </div>
 
           </div>
         </div>
