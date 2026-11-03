@@ -435,5 +435,5 @@ Detalle completo en `handoff.md` → sesiones 2026-09-24 a 2026-11-02.
   - Fotos en mensajes (requiere sistema de moderación).
   - Fotos en publicaciones (requiere OCR para bloquear datos de contacto que suelen venir en flyers).
   - ~~Chat estilo WhatsApp Web en desktop~~ — HECHO (2026-11-02).
-- **SQL pendiente:** correr `supabase/reportes.sql` (la tabla `reportes` no existe todavía → "Reportar un problema" falla).
+- ~~**SQL pendiente:** correr `supabase/reportes.sql`.~~ — HECHO (2026-11-02). Ojo: en este proyecto las tablas nuevas necesitan `grant` explícitos también para `service_role` (ver handoff.md).
 - **Ideas evaluadas, sin hacer:** columna `actor_id` en notifications (hoy se deduce la persona del link); métricas de admin como RPC cuando crezca la base; unificar "Ambos" (form) vs "Híbrido" (filtro).

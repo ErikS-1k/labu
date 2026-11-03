@@ -30,3 +30,9 @@ create policy "Usuarios ven sus propios reportes"
   using (auth.uid() = user_id);
 
 grant select, insert on public.reportes to authenticated;
+
+-- El panel admin (/admin y /admin/reportes) usa el service role para listar, contar y cambiar
+-- el estado. En este proyecto las tablas nuevas no le dan permisos automáticos: sin esta línea
+-- el admin recibe "permission denied for table reportes" (42501). El service role salta la RLS,
+-- así que no hace falta una política, solo el permiso.
+grant select, update on public.reportes to service_role;

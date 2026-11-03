@@ -226,9 +226,9 @@ ALTER TABLE public.users ADD COLUMN IF NOT EXISTS onboarding_notifications_done 
 ### Ejecutado en las sesiones 2026-09-24 → 2026-11-02
 - `supabase/search_functions.sql` — funciones `buscar_posts` y `buscar_usuarios` (full text + trigram). Requirió cast `p_tipo::post_type` porque `posts.type` es enum.
 - `supabase/posts_finalizados_policy.sql` — política SELECT extra: el dueño y quienes enviaron solicitud ven publicaciones finalizadas (para poder calificar). Usa la función `es_interesado()` (security definer). La primera versión consultaba `applications` directo y causó un ciclo de RLS (error 42P17) que rompió todas las lecturas de posts en producción el 2026-11-02; se corrigió el mismo día.
-
-### ⚠️ PENDIENTE
-- `supabase/reportes.sql` — **no se corrió**: la tabla `reportes` no existe, así que "Reportar un problema" falla y /admin/reportes muestra el aviso de tabla faltante.
+- `supabase/reportes.sql` — tabla `reportes` con RLS (cada usuario crea y ve solo los suyos). Corrido el 2026-11-02 en dos partes: primero la tabla + `grant select, insert ... to authenticated`, después `grant select, update ... to service_role`.
+  ⚠️ En este proyecto **las tablas nuevas no dan permisos automáticos a ningún rol**, ni siquiera al service role. Sin el grant, el admin recibe 42501 "permission denied for table" aunque el service role salte la RLS. Toda tabla nueva necesita sus `grant` explícitos (authenticated para la app, service_role si la usa el admin o un server action con service client).
+  Verificado con curl: service role lee y cuenta (0 reportes), anon recibe 42501 al leer y al crear, posts siguen OK.
 
 ### RLS — política UPDATE en messages
 No existe. El marcado como leído usa `createServiceClient()` en el server component de conversación. Si se agrega en el futuro:
@@ -302,7 +302,7 @@ Las páginas usan `user!.id` (non-null assertion) porque el proxy garantiza que 
 | Perfil | Estilo Airbnb: hero compacto (avatar 120px, chips de confianza, CTA 240px), secciones colapsables como tarjetas, publicaciones con `hideAuthor`, columna de 560px. |
 | Notificaciones | Desktop: panel de 400px desde la campana del sidebar (marca leída al tocar + "Marcar todas"). Diseño persona + texto + ícono + hora agrupado Hoy / Esta semana / Anteriores (`lib/notificaciones.ts` deduce la persona del link). No se notifican rechazos, "solicitud enviada" ni el recordatorio duplicado. /notificaciones (mobile) sigue marcando todo al entrar. |
 | Mi actividad y detalle | Contador de solicitudes pendientes/totales por publicación; `?highlight=` resalta una publicación. Detalle de post: "Esta publicación ya no está disponible" en vez de 404; las finalizadas las ven dueño e interesados; ancla `#calificar`. |
-| Configuración / reportes | /configuracion (push, email y contraseña con contraseña actual, eliminar cuenta borrando avatar + DNI del storage). /reportar-problema + /admin/reportes (tabla pendiente de crear). |
+| Configuración / reportes | /configuracion (push, email y contraseña con contraseña actual, eliminar cuenta borrando avatar + DNI del storage). /reportar-problema + /admin/reportes (tabla `reportes` creada 2026-11-02). |
 | Admin | /admin es un dashboard: KPIs vs semana anterior, alertas (reportes, verificaciones, conversaciones estancadas), embudo con selector de período, top publicaciones y usuarios (`lib/admin-metricas.ts`, cache 5 min). |
 | Onboarding | "Primeros pasos" en una sola línea colapsable (localStorage `labu-onboarding-expanded`). |
 
