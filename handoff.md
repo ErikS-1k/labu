@@ -225,7 +225,7 @@ ALTER TABLE public.users ADD COLUMN IF NOT EXISTS onboarding_notifications_done 
 
 ### Ejecutado en las sesiones 2026-09-24 → 2026-11-02
 - `supabase/search_functions.sql` — funciones `buscar_posts` y `buscar_usuarios` (full text + trigram). Requirió cast `p_tipo::post_type` porque `posts.type` es enum.
-- `supabase/posts_finalizados_policy.sql` — política SELECT extra: el dueño y quienes enviaron solicitud ven publicaciones finalizadas (para poder calificar).
+- `supabase/posts_finalizados_policy.sql` — política SELECT extra: el dueño y quienes enviaron solicitud ven publicaciones finalizadas (para poder calificar). Usa la función `es_interesado()` (security definer). La primera versión consultaba `applications` directo y causó un ciclo de RLS (error 42P17) que rompió todas las lecturas de posts en producción el 2026-11-02; se corrigió el mismo día.
 
 ### ⚠️ PENDIENTE
 - `supabase/reportes.sql` — **no se corrió**: la tabla `reportes` no existe, así que "Reportar un problema" falla y /admin/reportes muestra el aviso de tabla faltante.
@@ -519,6 +519,9 @@ input, textarea, select {
 ---
 
 ## Problemas conocidos y soluciones
+
+### RLS: recursión infinita entre posts y applications (42P17)
+La política SELECT de `applications` consulta `posts`. Cualquier política de `posts` que consulte `applications` directamente forma un ciclo: Postgres devuelve `infinite recursion detected in policy` y **todas** las lecturas de posts/applications fallan para usuarios reales (el SQL Editor y el service role no lo muestran porque saltan la RLS). Solución: hacer la consulta cruzada dentro de una función `security definer` (ej. `es_interesado()`). **Después de cualquier cambio de RLS, probar con la clave anon** (`/rest/v1/posts?select=id&limit=1`).
 
 | Problema | Solución |
 |---|---|
