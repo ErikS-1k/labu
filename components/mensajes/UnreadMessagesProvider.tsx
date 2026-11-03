@@ -13,9 +13,12 @@ type UnreadMessagesValue = {
   count: number
   // Sube en 1 cada vez que llega un mensaje nuevo: se usa como `key` para reiniciar la animación
   pulseKey: number
+  // Chat abierto sin cambiar la URL (columna derecha de /mensajes en desktop): sus mensajes
+  // no se cuentan ni muestran toast, igual que cuando se está en /mensajes/[id]
+  setConversacionAbierta: (id: string | null) => void
 }
 
-const UnreadMessagesContext = createContext<UnreadMessagesValue>({ count: 0, pulseKey: 0 })
+const UnreadMessagesContext = createContext<UnreadMessagesValue>({ count: 0, pulseKey: 0, setConversacionAbierta: () => {} })
 
 export function useUnreadMessages() {
   return useContext(UnreadMessagesContext)
@@ -82,6 +85,9 @@ export function UnreadMessagesProvider({
   const pathnameRef = useRef(pathname)
   useEffect(() => { pathnameRef.current = pathname }, [pathname])
 
+  const abiertaRef = useRef<string | null>(null)
+  const setConversacionAbierta = useCallback((id: string | null) => { abiertaRef.current = id }, [])
+
   // Al navegar se re-cuenta: abrir un chat marca sus mensajes como leídos en el servidor
   useEffect(() => {
     if (!userId) return
@@ -114,7 +120,7 @@ export function UnreadMessagesProvider({
 
           // Si está mirando esa conversación, ConversacionChat lo marca como leído al instante:
           // no se cuenta, no late el badge y no hay toast
-          const enEseChat = pathnameRef.current === `/mensajes/${msg.conversation_id}`
+          const enEseChat = pathnameRef.current === `/mensajes/${msg.conversation_id}` || abiertaRef.current === msg.conversation_id
           if (enEseChat && document.visibilityState === 'visible') return
 
           // Con la app en segundo plano sí cuenta: queda sin leer hasta que vuelva
@@ -160,7 +166,7 @@ export function UnreadMessagesProvider({
   }
 
   return (
-    <UnreadMessagesContext.Provider value={{ count, pulseKey }}>
+    <UnreadMessagesContext.Provider value={{ count, pulseKey, setConversacionAbierta }}>
       {children}
 
       {toast && (

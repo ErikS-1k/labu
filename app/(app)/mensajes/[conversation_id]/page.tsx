@@ -1,66 +1,32 @@
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
-import ConversacionChat from '@/components/mensajes/ConversacionChat'
+import { cargarChat, cargarConversaciones } from '@/lib/conversacion'
+import BandejaMensajes from '@/components/mensajes/BandejaMensajes'
 
+// Mobile: chat a pantalla completa (como siempre). Desktop: lista | este chat abierto a la derecha.
 export default async function ConversacionPage({
   params,
 }: {
   params: Promise<{ conversation_id: string }>
 }) {
   const { conversation_id } = await params
-  const supabase = await createClient()
   const user = await getAuthUser()
 
-  // Cargar mensajes de la conversación
-  const { data: messages } = await supabase
-    .from('messages')
-    .select('id, content, sender_id, receiver_id, post_id, created_at')
-    .eq('conversation_id', conversation_id)
-    .order('created_at', { ascending: true })
-    .limit(200)
-
-  if (!messages || messages.length === 0) notFound()
-
-  // Marcar como leídos todos los mensajes recibidos en esta conversación
-  // Usa serviceClient porque RLS no tiene política UPDATE para receptores
-  const { createServiceClient } = await import('@/lib/supabase/service')
-  await createServiceClient()
-    .from('messages')
-    .update({ read: true })
-    .eq('conversation_id', conversation_id)
-    .eq('receiver_id', user!.id)
-    .eq('read', false)
-
-  const primero = messages[0]
-  const receiverId = primero.sender_id === user!.id ? primero.receiver_id : primero.sender_id
-  const postId     = primero.post_id ?? null
-
-  // Cargar receptor y post en paralelo
-  const [{ data: receptor }, { data: post }] = await Promise.all([
-    supabase.from('users').select('id, username, first_name, headline, avatar_url').eq('id', receiverId).single(),
-    postId
-      ? supabase.from('posts').select('id, title').eq('id', postId).single()
-      : Promise.resolve({ data: null }),
+  const [chat, conversaciones] = await Promise.all([
+    cargarChat(conversation_id, user!.id),
+    cargarConversaciones(user!.id),
   ])
+  if (!chat) notFound()
+
+  // La lista se cargó en paralelo con el "marcar como leído": el chat abierto ya no tiene no leídos
+  const lista = conversaciones.map(c => c.conversation_id === conversation_id ? { ...c, unread: 0 } : c)
 
   return (
-    <ConversacionChat
-      conversationId={conversation_id}
+    <BandejaMensajes
+      conversaciones={lista}
       currentUserId={user!.id}
-      receiverId={receiverId}
-      postId={postId}
-      initialMessages={messages.map(m => ({
-        id: m.id,
-        content: m.content,
-        sender_id: m.sender_id,
-        created_at: m.created_at,
-      }))}
-      receiverName={receptor?.first_name ?? receptor?.username ?? 'Usuario'}
-      receiverHeadline={receptor?.headline ?? null}
-      receiverUsername={receptor?.username ?? null}
-      receiverAvatarUrl={receptor?.avatar_url ?? null}
-      postTitle={post?.title ?? null}
+      chatInicial={chat}
+      enRutaChat
     />
   )
 }

@@ -102,7 +102,7 @@ function SectionLabel({ icon, text }: { icon: React.ReactNode; text: string }) {
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
-export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', initialData, postId }: Props) {
+export default function PostForm({ defaultTipo, defaultTitulo = '', initialData, postId }: Props) {
   const esEdicion = !!postId
   const [state, action, pending]                = useActionState(esEdicion ? editarPost : publicarPost, null)
   useProgress(pending)
@@ -115,7 +115,8 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
     initialData.price != null || !!initialData.location || !!initialData.temporal_duration
   )
 
-  const [tipo, setTipo]                         = useState<'oferta' | 'requerimiento'>(initialData?.type ?? defaultTipo)
+  // Sin tipo (null) al crear desde /publicar sin ?tipo=: primero se elige Ofrezco o Busco
+  const [tipo, setTipo]                         = useState<'oferta' | 'requerimiento' | null>(initialData?.type ?? defaultTipo ?? null)
   const [titulo, setTitulo]                     = useState(initialData?.title ?? defaultTitulo)
   const [descripcion, setDescripcion]           = useState(initialData?.description ?? '')
   const [catSel, setCatSel]                     = useState(catInicial.sel)
@@ -136,9 +137,8 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
   function handleTipoChange(nuevoTipo: 'oferta' | 'requerimiento') {
     // El tipo no se puede cambiar una vez creada la publicación
     if (esEdicion) return
+    // Cambiar de tipo no borra nada de lo cargado: solo cambia el tipo
     setTipo(nuevoTipo)
-    setModalidades([])
-    setFieldErrors({})
   }
 
   function toggleModalidad(value: string, checked: boolean) {
@@ -153,7 +153,7 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
 
   const categoryValue = catSel === 'Otro' ? catCustom.trim() : catSel
   // Obligatorios: tipo (siempre tiene valor), título, descripción y categoría
-  const puedeEnviar = !!titulo.trim() && !!descripcion.trim() && !!categoryValue
+  const puedeEnviar = !!tipo && !!titulo.trim() && !!descripcion.trim() && !!categoryValue
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     const errors: { title?: string; description?: string; category?: string; precio?: string } = {}
@@ -199,305 +199,303 @@ export default function PostForm({ defaultTipo = 'oferta', defaultTitulo = '', i
         </p>
       )}
 
-      {/* ── 1. Selector de tipo ── */}
+      {/* ── 1. Selector de tipo ──
+          Sin elegir: los dos en su color, apagados. Elegido: color pleno. El otro: gris. */}
       <div>
         <p className="mb-3 text-sm font-semibold text-zinc-300">
           {esEdicion ? 'Tipo de publicación' : '¿Qué querés hacer?'}
         </p>
-        <input type="hidden" name="type" value={tipo} />
+        <input type="hidden" name="type" value={tipo ?? ''} />
         <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => handleTipoChange('oferta')}
-            disabled={esEdicion && tipo !== 'oferta'}
-            aria-disabled={esEdicion}
-            className={`rounded-2xl border-2 p-5 text-left transition-all ${
-              tipo === 'oferta'
-                ? 'border-green-500 bg-green-500/10'
-                : `border-[#2a2a2a] bg-[#171717] ${esEdicion ? tipoBloqueado : 'hover:border-zinc-600'}`
-            } ${esEdicion ? 'cursor-default' : ''}`}
-          >
-            <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${
-              tipo === 'oferta' ? 'bg-green-500/20 text-green-400' : 'bg-surface-2 text-zinc-400'
-            }`}>
-              <IconTool />
-            </div>
-            <p className="text-sm font-bold leading-tight text-white">Ofrezco</p>
-            <p className="mt-1 text-xs leading-snug text-zinc-500">
-              Ofrecé lo que sabés hacer y encontrá clientes.
-            </p>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleTipoChange('requerimiento')}
-            disabled={esEdicion && tipo !== 'requerimiento'}
-            aria-disabled={esEdicion}
-            className={`rounded-2xl border-2 p-5 text-left transition-all ${
-              tipo === 'requerimiento'
-                ? 'border-blue-500 bg-blue-500/10'
-                : `border-[#2a2a2a] bg-[#171717] ${esEdicion ? tipoBloqueado : 'hover:border-zinc-600'}`
-            } ${esEdicion ? 'cursor-default' : ''}`}
-          >
-            <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${
-              tipo === 'requerimiento' ? 'bg-blue-500/20 text-blue-400' : 'bg-surface-2 text-zinc-400'
-            }`}>
-              <IconSearch />
-            </div>
-            <p className="text-sm font-bold leading-tight text-white">Busco</p>
-            <p className="mt-1 text-xs leading-snug text-zinc-500">
-              Publicá qué necesitás y recibí solicitudes.
-            </p>
-          </button>
+          {([
+            { valor: 'oferta' as const, titulo: 'Ofrezco', desc: 'Ofrecé lo que sabés hacer y encontrá clientes.', icono: <IconTool />,
+              pleno: 'border-green-500 bg-green-500', apagado: 'border-green-500/40 bg-green-500/40' },
+            { valor: 'requerimiento' as const, titulo: 'Busco', desc: 'Publicá qué necesitás y recibí solicitudes.', icono: <IconSearch />,
+              pleno: 'border-blue-500 bg-blue-500', apagado: 'border-blue-500/40 bg-blue-500/40' },
+          ]).map(op => {
+            const elegido  = tipo === op.valor
+            const sinElegir = tipo === null
+            return (
+              <button
+                key={op.valor}
+                type="button"
+                onClick={() => handleTipoChange(op.valor)}
+                disabled={esEdicion && !elegido}
+                aria-pressed={elegido}
+                className={`rounded-2xl border-2 p-5 text-left transition-colors duration-200 ${
+                  elegido
+                    ? op.pleno
+                    : sinElegir
+                      ? op.apagado
+                      : `border-[#2a2a2a] bg-[#171717] ${esEdicion ? tipoBloqueado : 'hover:border-zinc-600'}`
+                } ${esEdicion ? 'cursor-default' : ''}`}
+              >
+                {/* Sobre fondo de color: ícono y textos en blanco, siempre al 100% */}
+                <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${
+                  elegido || sinElegir ? 'bg-white/20 text-white' : 'bg-surface-2 text-zinc-400'
+                }`}>
+                  {op.icono}
+                </div>
+                <p className="text-sm font-bold leading-tight text-white">{op.titulo}</p>
+                <p className={`mt-1 text-xs leading-snug ${elegido || sinElegir ? 'text-white/85' : 'text-zinc-500'}`}>{op.desc}</p>
+              </button>
+            )
+          })}
         </div>
         {esEdicion && (
           <p className="mt-2 text-xs text-zinc-500">El tipo no se puede cambiar una vez creada la publicación.</p>
         )}
       </div>
 
-      {/* ── 2. Título y descripción ── */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-[#2a2a2a] bg-[#171717] p-5">
-        <SectionLabel icon={<IconDoc />} text="Tu publicación" />
+      {/* El resto del formulario aparece recién cuando hay un tipo elegido */}
+      {tipo && (
+      <div className="flex flex-col gap-5 transition-opacity duration-300 starting:opacity-0">
 
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="title" className="text-xs font-medium text-zinc-400">
-            Título <span className="text-red-400">*</span>
-          </label>
-          <input
-            id="title" name="title" type="text"
-            value={titulo}
-            onChange={e => { setTitulo(e.target.value); if (fieldErrors.title) setFieldErrors(er => ({ ...er, title: undefined })) }}
-            placeholder="Ej: Clases particulares de Matemática"
-            className={fieldErrors.title ? inputDarkError : inputDark}
-          />
-          {fieldErrors.title && <p className="text-xs text-red-400">{fieldErrors.title}</p>}
+        {/* ── 2. Título y descripción ── */}
+        <div className="flex flex-col gap-4 rounded-2xl border border-[#2a2a2a] bg-[#171717] p-5">
+          <SectionLabel icon={<IconDoc />} text="Tu publicación" />
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="title" className="text-xs font-medium text-zinc-400">
+              Título <span className="text-red-400">*</span>
+            </label>
+            <input
+              id="title" name="title" type="text"
+              value={titulo}
+              onChange={e => { setTitulo(e.target.value); if (fieldErrors.title) setFieldErrors(er => ({ ...er, title: undefined })) }}
+              placeholder="Ej: Clases particulares de Matemática"
+              className={fieldErrors.title ? inputDarkError : inputDark}
+            />
+            {fieldErrors.title && <p className="text-xs text-red-400">{fieldErrors.title}</p>}
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="description" className="text-xs font-medium text-zinc-400">
+              Descripción <span className="text-red-400">*</span>
+            </label>
+            <textarea
+              id="description" name="description" rows={4}
+              value={descripcion}
+              onChange={e => { setDescripcion(e.target.value); if (fieldErrors.description) setFieldErrors(er => ({ ...er, description: undefined })) }}
+              placeholder="Contá qué ofrecés o buscás. Cuanto más detalle, mejor."
+              className={`${fieldErrors.description ? inputDarkError : inputDark} resize-none`}
+            />
+            {fieldErrors.description && <p className="text-xs text-red-400">{fieldErrors.description}</p>}
+          </div>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="description" className="text-xs font-medium text-zinc-400">
-            Descripción <span className="text-red-400">*</span>
-          </label>
-          <textarea
-            id="description" name="description" rows={4}
-            value={descripcion}
-            onChange={e => { setDescripcion(e.target.value); if (fieldErrors.description) setFieldErrors(er => ({ ...er, description: undefined })) }}
-            placeholder="Contá qué ofrecés o buscás. Cuanto más detalle, mejor."
-            className={`${fieldErrors.description ? inputDarkError : inputDark} resize-none`}
-          />
-          {fieldErrors.description && <p className="text-xs text-red-400">{fieldErrors.description}</p>}
+        {/* ── 3. Categoría ── */}
+        <div className="flex flex-col gap-4 rounded-2xl border border-[#2a2a2a] bg-[#171717] p-5">
+          <SectionLabel icon={<IconTag />} text="Categoría *" />
+          <input type="hidden" name="category" value={categoryValue} />
+          <div className="grid grid-cols-2 gap-2">
+            {CATEGORIAS.map(cat => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => {
+                  setCatSel(cat === catSel ? '' : cat)
+                  if (cat !== 'Otro') setCatCustom('')
+                  if (fieldErrors.category) setFieldErrors(er => ({ ...er, category: undefined }))
+                }}
+                className={catSel === cat ? btnSelected : btnUnselected}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          {catSel === 'Otro' && (
+            <input
+              type="text"
+              value={catCustom}
+              onChange={e => setCatCustom(e.target.value)}
+              placeholder="Escribí tu categoría..."
+              className={inputDark}
+            />
+          )}
+          {fieldErrors.category && <p className="text-xs text-red-400">{fieldErrors.category}</p>}
         </div>
-      </div>
 
-      {/* ── 3. Categoría ── */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-[#2a2a2a] bg-[#171717] p-5">
-        <SectionLabel icon={<IconTag />} text="Categoría *" />
-        <input type="hidden" name="category" value={categoryValue} />
-        <div className="grid grid-cols-2 gap-2">
-          {CATEGORIAS.map(cat => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => {
-                setCatSel(cat === catSel ? '' : cat)
-                if (cat !== 'Otro') setCatCustom('')
-                if (fieldErrors.category) setFieldErrors(er => ({ ...er, category: undefined }))
-              }}
-              className={catSel === cat ? btnSelected : btnUnselected}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-        {catSel === 'Otro' && (
-          <input
-            type="text"
-            value={catCustom}
-            onChange={e => setCatCustom(e.target.value)}
-            placeholder="Escribí tu categoría..."
-            className={inputDark}
-          />
-        )}
-        {fieldErrors.category && <p className="text-xs text-red-400">{fieldErrors.category}</p>}
-      </div>
-
-      {/* ── 4. Más detalles (opcional) — acordeón ── */}
-      <div className="overflow-hidden rounded-2xl border border-[#2a2a2a] bg-[#171717]">
-        <button
-          type="button"
-          onClick={() => setDetallesAbiertos(a => !a)}
-          aria-expanded={detallesAbiertos}
-          aria-controls="mas-detalles"
-          className="flex w-full items-center justify-between gap-4 p-5 text-left transition-colors hover:bg-white/5"
-        >
-          <span className="min-w-0">
-            <span className="block text-[15px] font-semibold text-white">
-              Más detalles <span className="font-normal text-zinc-500">(opcional)</span>
-            </span>
-            <span className="mt-0.5 block text-sm text-zinc-400">Agregá tipo de trabajo, modalidad, precio y zona</span>
-          </span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
-            className={`shrink-0 text-zinc-400 transition-transform duration-300 ${detallesAbiertos ? 'rotate-180' : ''}`}
+        {/* ── 4. Más detalles (opcional) — acordeón ── */}
+        <div className="overflow-hidden rounded-2xl border border-[#2a2a2a] bg-[#171717]">
+          <button
+            type="button"
+            onClick={() => setDetallesAbiertos(a => !a)}
+            aria-expanded={detallesAbiertos}
+            aria-controls="mas-detalles"
+            className="flex w-full items-center justify-between gap-4 p-5 text-left transition-colors hover:bg-white/5"
           >
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
-        </button>
+            <span className="min-w-0">
+              <span className="block text-[15px] font-semibold text-white">
+                Más detalles <span className="font-normal text-zinc-500">(opcional)</span>
+              </span>
+              <span className="mt-0.5 block text-sm text-zinc-400">Agregá tipo de trabajo, modalidad, precio y zona</span>
+            </span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+              className={`shrink-0 text-zinc-400 transition-transform duration-300 ${detallesAbiertos ? 'rotate-180' : ''}`}
+            >
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
 
-        {/* Los campos siguen en el DOM aunque esté cerrado: lo cargado se envía igual */}
-        <div
-          id="mas-detalles"
-          className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${
-            detallesAbiertos ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-          }`}
-        >
-          <div className="overflow-hidden" inert={!detallesAbiertos}>
-            <div className="flex flex-col divide-y divide-[#2a2a2a] border-t border-[#2a2a2a] px-5">
+          {/* Los campos siguen en el DOM aunque esté cerrado: lo cargado se envía igual */}
+          <div
+            id="mas-detalles"
+            className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${
+              detallesAbiertos ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+            }`}
+          >
+            <div className="overflow-hidden" inert={!detallesAbiertos}>
+              <div className="flex flex-col divide-y divide-[#2a2a2a] border-t border-[#2a2a2a] px-5">
 
-              {/* Tipo de trabajo (+ por cuánto tiempo si es temporal) */}
-              <div className="flex flex-col gap-3 py-5">
-                <SectionLabel icon={<IconClock />} text="Tipo de trabajo — podés elegir varios" />
-                {modalidades.map(v => <input key={v} type="hidden" name="modality" value={v} />)}
-                <div className="flex flex-wrap gap-2">
-                  {MODALIDADES.map(m => (
-                    <button
-                      key={m.value}
-                      type="button"
-                      onClick={() => toggleModalidad(m.value, !modalidades.includes(m.value))}
-                      className={modalidades.includes(m.value) ? btnSelected : btnUnselected}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
-                </div>
-                {modalidades.length > 0 && (
-                  <div className="flex flex-col gap-0.5">
-                    {MODALIDADES.filter(m => modalidades.includes(m.value)).map(m => (
-                      <p key={m.value} className="text-xs text-zinc-500">{m.desc}</p>
-                    ))}
-                  </div>
-                )}
-
-                {modalidades.includes('temporal') && (
-                  <div className="flex flex-col gap-1.5">
-                    <label htmlFor="temporal_duration" className="text-xs font-medium text-zinc-400">Por cuánto tiempo</label>
-                    <input
-                      id="temporal_duration"
-                      type="text"
-                      name="temporal_duration"
-                      value={temporalDuration}
-                      onChange={e => setTemporalDuration(e.target.value)}
-                      placeholder="Ej: 3 días, 2 semanas, 1 mes"
-                      maxLength={100}
-                      className={inputDark}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Modalidad (presencial / virtual) */}
-              <div className="flex flex-col gap-3 py-5">
-                <SectionLabel icon={<IconGlobe />} text="Modalidad" />
-                <input type="hidden" name="presencialidad" value={presencialidad} />
-                <div className="flex gap-2">
-                  {PRESENCIALIDAD_OPTS.map(op => (
-                    <button
-                      key={op.value}
-                      type="button"
-                      onClick={() => setPresencialidad(prev => prev === op.value ? '' : op.value)}
-                      className={`flex-1 ${presencialidad === op.value ? btnSelected : btnUnselected}`}
-                    >
-                      {op.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Precio: un solo campo con dos modos (monto con unidad / a convenir) */}
-              <div className="flex flex-col gap-3 py-5">
-                <SectionLabel icon={<IconDollar />} text="Precio" />
-                <div className="rounded-xl border border-[#2a2a2a] bg-[#111] p-1.5">
-                  <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="Cómo cobrás">
-                    {([['monto', 'Poner precio'], ['convenir', 'A convenir']] as const).map(([valor, texto]) => (
+                {/* Tipo de trabajo (+ por cuánto tiempo si es temporal) */}
+                <div className="flex flex-col gap-3 py-5">
+                  <SectionLabel icon={<IconClock />} text="Tipo de trabajo — podés elegir varios" />
+                  {modalidades.map(v => <input key={v} type="hidden" name="modality" value={v} />)}
+                  <div className="flex flex-wrap gap-2">
+                    {MODALIDADES.map(m => (
                       <button
-                        key={valor}
+                        key={m.value}
                         type="button"
-                        role="radio"
-                        aria-checked={modoPrecio === valor}
-                        onClick={() => cambiarModoPrecio(valor)}
-                        className={`rounded-lg py-2 text-sm font-medium transition-colors ${
-                          modoPrecio === valor ? 'bg-blue-600 text-white' : 'text-zinc-400 hover:text-zinc-200'
-                        }`}
+                        onClick={() => toggleModalidad(m.value, !modalidades.includes(m.value))}
+                        className={modalidades.includes(m.value) ? btnSelected : btnUnselected}
                       >
-                        {texto}
+                        {m.label}
                       </button>
                     ))}
                   </div>
-
-                  {modoPrecio === 'monto' ? (
-                    <div className="mt-1.5 flex gap-2">
-                      <input
-                        id="price" name="price" type="number" min="0" step="100" inputMode="numeric"
-                        aria-label="Monto en pesos"
-                        value={precio}
-                        onChange={e => { setPrecio(e.target.value); if (fieldErrors.precio) setFieldErrors(er => ({ ...er, precio: undefined })) }}
-                        placeholder="$ Ej: 5000"
-                        className={`min-w-0 flex-1 ${fieldErrors.precio ? inputDarkError : inputDark}`}
-                      />
-                      <select
-                        id="price_type" name="price_type"
-                        aria-label="Unidad del precio"
-                        value={precioTipo}
-                        onChange={e => setPrecioTipo(e.target.value)}
-                        className="w-36 shrink-0 rounded-xl border border-[#2a2a2a] bg-[#111] px-3 py-2.5 text-sm text-white outline-none focus:border-zinc-500"
-                      >
-                        {PRICE_TYPES.map(pt => <option key={pt.value} value={pt.value}>{pt.label}</option>)}
-                      </select>
+                  {modalidades.length > 0 && (
+                    <div className="flex flex-col gap-0.5">
+                      {MODALIDADES.filter(m => modalidades.includes(m.value)).map(m => (
+                        <p key={m.value} className="text-xs text-zinc-500">{m.desc}</p>
+                      ))}
                     </div>
-                  ) : (
-                    <>
-                      <input type="hidden" name="price_type" value="a_convenir" />
-                      <p className="px-2 pb-1 pt-2.5 text-sm text-zinc-500">El precio se acuerda directamente con la otra persona.</p>
-                    </>
+                  )}
+
+                  {modalidades.includes('temporal') && (
+                    <div className="flex flex-col gap-1.5">
+                      <label htmlFor="temporal_duration" className="text-xs font-medium text-zinc-400">Por cuánto tiempo</label>
+                      <input
+                        id="temporal_duration"
+                        type="text"
+                        name="temporal_duration"
+                        value={temporalDuration}
+                        onChange={e => setTemporalDuration(e.target.value)}
+                        placeholder="Ej: 3 días, 2 semanas, 1 mes"
+                        maxLength={100}
+                        className={inputDark}
+                      />
+                    </div>
                   )}
                 </div>
-                {fieldErrors.precio && <p className="text-xs text-red-400">{fieldErrors.precio}</p>}
-              </div>
 
-              {/* Zona */}
-              <div className="flex flex-col gap-3 py-5">
-                <SectionLabel icon={<IconMapPin />} text="Zona" />
-                <input
-                  id="location" name="location" type="text"
-                  aria-label="Zona"
-                  value={zona}
-                  onChange={e => setZona(e.target.value)}
-                  placeholder="Ej: Palermo, CABA"
-                  className={inputDark}
-                />
+                {/* Modalidad (presencial / virtual) */}
+                <div className="flex flex-col gap-3 py-5">
+                  <SectionLabel icon={<IconGlobe />} text="Modalidad" />
+                  <input type="hidden" name="presencialidad" value={presencialidad} />
+                  <div className="flex gap-2">
+                    {PRESENCIALIDAD_OPTS.map(op => (
+                      <button
+                        key={op.value}
+                        type="button"
+                        onClick={() => setPresencialidad(prev => prev === op.value ? '' : op.value)}
+                        className={`flex-1 ${presencialidad === op.value ? btnSelected : btnUnselected}`}
+                      >
+                        {op.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Precio: un solo campo con dos modos (monto con unidad / a convenir) */}
+                <div className="flex flex-col gap-3 py-5">
+                  <SectionLabel icon={<IconDollar />} text="Precio" />
+                  <div className="rounded-xl border border-[#2a2a2a] bg-[#111] p-1.5">
+                    <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="Cómo cobrás">
+                      {([['monto', 'Poner precio'], ['convenir', 'A convenir']] as const).map(([valor, texto]) => (
+                        <button
+                          key={valor}
+                          type="button"
+                          role="radio"
+                          aria-checked={modoPrecio === valor}
+                          onClick={() => cambiarModoPrecio(valor)}
+                          className={`rounded-lg py-2 text-sm font-medium transition-colors ${
+                            modoPrecio === valor ? 'bg-blue-600 text-white' : 'text-zinc-400 hover:text-zinc-200'
+                          }`}
+                        >
+                          {texto}
+                        </button>
+                      ))}
+                    </div>
+
+                    {modoPrecio === 'monto' ? (
+                      <div className="mt-1.5 flex gap-2">
+                        <input
+                          id="price" name="price" type="number" min="0" step="100" inputMode="numeric"
+                          aria-label="Monto en pesos"
+                          value={precio}
+                          onChange={e => { setPrecio(e.target.value); if (fieldErrors.precio) setFieldErrors(er => ({ ...er, precio: undefined })) }}
+                          placeholder="$ Ej: 5000"
+                          className={`min-w-0 flex-1 ${fieldErrors.precio ? inputDarkError : inputDark}`}
+                        />
+                        <select
+                          id="price_type" name="price_type"
+                          aria-label="Unidad del precio"
+                          value={precioTipo}
+                          onChange={e => setPrecioTipo(e.target.value)}
+                          className="w-36 shrink-0 rounded-xl border border-[#2a2a2a] bg-[#111] px-3 py-2.5 text-sm text-white outline-none focus:border-zinc-500"
+                        >
+                          {PRICE_TYPES.map(pt => <option key={pt.value} value={pt.value}>{pt.label}</option>)}
+                        </select>
+                      </div>
+                    ) : (
+                      <>
+                        <input type="hidden" name="price_type" value="a_convenir" />
+                        <p className="px-2 pb-1 pt-2.5 text-sm text-zinc-500">El precio se acuerda directamente con la otra persona.</p>
+                      </>
+                    )}
+                  </div>
+                  {fieldErrors.precio && <p className="text-xs text-red-400">{fieldErrors.precio}</p>}
+                </div>
+
+                {/* Zona */}
+                <div className="flex flex-col gap-3 py-5">
+                  <SectionLabel icon={<IconMapPin />} text="Zona" />
+                  <input
+                    id="location" name="location" type="text"
+                    aria-label="Zona"
+                    value={zona}
+                    onChange={e => setZona(e.target.value)}
+                    placeholder="Ej: Palermo, CABA"
+                    className={inputDark}
+                  />
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* ── CTA ── */}
-      <div className="mt-2 flex flex-col items-center gap-3">
-        <button
-          type="submit"
-          disabled={pending || !puedeEnviar}
-          className="h-14 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 text-base font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {esEdicion
-            ? (pending ? 'Guardando…' : 'Guardar cambios')
-            : (pending ? 'Publicando…' : 'Publicar')}
-        </button>
-        <p className="text-xs text-zinc-500">
-          {puedeEnviar
-            ? 'Podés editar la publicación en cualquier momento.'
-            : 'Completá título, descripción y categoría para publicar.'}
-        </p>
+        {/* ── CTA ── */}
+        <div className="mt-2 flex flex-col items-center gap-3">
+          <button
+            type="submit"
+            disabled={pending || !puedeEnviar}
+            className="h-14 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 text-base font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {esEdicion
+              ? (pending ? 'Guardando…' : 'Guardar cambios')
+              : (pending ? 'Publicando…' : 'Publicar')}
+          </button>
+          <p className="text-xs text-zinc-500">
+            {puedeEnviar
+              ? 'Podés editar la publicación en cualquier momento.'
+              : 'Completá título, descripción y categoría para publicar.'}
+          </p>
+        </div>
       </div>
+      )}
     </form>
     </>
   )

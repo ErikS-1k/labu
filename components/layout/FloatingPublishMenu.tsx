@@ -22,7 +22,8 @@ export default function FloatingPublishMenu({ isLoggedIn }: { isLoggedIn: boolea
     return () => document.removeEventListener('mousedown', handleClick)
   }, [open])
 
-  if (pathname === '/publicar') return null
+  // En mensajes taparía el campo para escribir (en desktop el chat ya no es pantalla completa)
+  if (pathname === '/publicar' || pathname === '/mensajes' || pathname.startsWith('/mensajes/')) return null
 
   const svgTool = (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

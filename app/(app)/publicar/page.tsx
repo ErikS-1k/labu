@@ -10,7 +10,9 @@ export default async function PublicarPage({
   searchParams: Promise<Record<string, string | undefined>>
 }) {
   const params      = await searchParams
-  const defaultTipo = params.tipo === 'requerimiento' ? 'requerimiento' : 'oferta'
+  // Con ?tipo= (ej. desde "Publicar mi servicio" del panel) el tipo ya viene elegido;
+  // sin él, el formulario arranca mostrando solo los dos botones Ofrezco / Busco
+  const defaultTipo = params.tipo === 'requerimiento' ? 'requerimiento' : params.tipo === 'oferta' ? 'oferta' : undefined
   // ?titulo= viene del CTA "Publicar lo que busco" de /buscar. Se capitaliza la primera letra
   // ("profesora de inglés" → "Profesora de inglés") y se recorta al máximo de 100 caracteres.
   const tituloRaw     = (params.titulo ?? '').trim().slice(0, 100)

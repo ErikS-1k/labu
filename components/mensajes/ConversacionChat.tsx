@@ -155,10 +155,12 @@ export default function ConversacionChat({
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="mx-auto flex max-w-3xl items-center gap-2 px-2 py-2.5">
+          {/* En desktop la lista está al lado (BandejaMensajes): la flecha solo hace falta en mobile
+              y en /mensajes/nuevo, que sigue siendo pantalla completa */}
           <Link
             href={backHref}
             aria-label="Volver"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-zinc-300 transition-colors hover:bg-surface-2 hover:text-white"
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-zinc-300 transition-colors hover:bg-surface-2 hover:text-white ${isNew ? '' : 'lg:hidden'}`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6" />

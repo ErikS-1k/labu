@@ -149,6 +149,15 @@ export default function SearchFilters() {
               ))}
             </div>
           </div>
+
+          {/* Los filtros se aplican al tocarlos; esto solo cierra el panel y deja los chips a la vista */}
+          <button
+            type="button"
+            onClick={() => setAbierto(false)}
+            className="h-11 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          >
+            Ver resultados
+          </button>
         </div>
       )}
 

@@ -9,9 +9,12 @@ const PAGE_SIZE = 20
 export default function InfinitePostFeed({
   initialPosts,
   inmediatosIds,
+  tipo,
 }: {
   initialPosts: PostCardData[]
   inmediatosIds: string[]
+  // Si se pasa, solo carga más publicaciones de ese tipo (columnas del panel en desktop)
+  tipo?: 'oferta' | 'requerimiento'
 }) {
   const [posts, setPosts]       = useState(initialPosts)
   const [loading, setLoading]   = useState(false)
@@ -40,7 +43,7 @@ export default function InfinitePostFeed({
         stateRef.current.loading = true
         setLoading(true)
 
-        const newPosts = await fetchMorePosts({ cursor, excludeIds: inmediatosIds })
+        const newPosts = await fetchMorePosts({ cursor, excludeIds: inmediatosIds, tipo })
 
         if (newPosts.length < PAGE_SIZE) {
           setHasMore(false)
@@ -58,7 +61,7 @@ export default function InfinitePostFeed({
 
     observer.observe(sentinel)
     return () => observer.disconnect()
-  }, [inmediatosIds])
+  }, [inmediatosIds, tipo])
 
   return (
     <>

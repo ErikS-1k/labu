@@ -22,10 +22,8 @@ function getCrumbs(pathname: string, userId: string | null): Crumb[] {
     { label: 'Mensajes', href: '/mensajes' },
     { label: 'Nueva conversación' },
   ]
-  if (pathname.startsWith('/mensajes/')) return [
-    { label: 'Mensajes', href: '/mensajes' },
-    { label: 'Conversación' },
-  ]
+  // /mensajes/[id]: en desktop la lista está al lado y en mobile el chat tapa todo → sin migas
+  if (pathname.startsWith('/mensajes/')) return []
 
   // Mi actividad
   if (pathname === '/mi-actividad') return []

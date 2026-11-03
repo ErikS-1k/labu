@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { getAuthUser } from '@/lib/auth'
 import { avatarBg } from '@/lib/avatar'
 import { buscar } from '@/app/actions/search'
@@ -140,6 +141,58 @@ function ResultadosBusqueda({ q, resultados, logueado }: { q: string; resultados
   )
 }
 
+// ── Descubrimiento (desktop, sin búsqueda ni filtros): Recientes | Populares ──
+const COLUMNA_SIZE = 20
+
+async function publicacionesRecientes(): Promise<SearchPost[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('posts').select(postSelect)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(COLUMNA_SIZE)
+  return (data ?? []) as unknown as SearchPost[]
+}
+
+// "Popular" = interés recibido: solicitudes + conversaciones iniciadas sobre la publicación.
+// No hay contador de visitas en la base. Los conteos se leen con service role (solo ids,
+// nunca contenido de mensajes) porque la RLS no deja ver solicitudes/mensajes ajenos.
+// Desempate por fecha, así la columna siempre se llena aunque haya poco uso.
+async function publicacionesPopulares(): Promise<SearchPost[]> {
+  const supabase = await createClient()
+  const service  = createServiceClient()
+  const [{ data: posts }, { data: apps }, { data: msgs }] = await Promise.all([
+    supabase.from('posts').select(postSelect).eq('is_active', true).order('created_at', { ascending: false }).limit(200),
+    service.from('applications').select('post_id'),
+    service.from('messages').select('post_id, conversation_id').not('post_id', 'is', null),
+  ])
+  const interes = new Map<string, number>()
+  for (const a of apps ?? []) interes.set(a.post_id, (interes.get(a.post_id) ?? 0) + 1)
+  const convs = new Map<string, Set<string>>()
+  for (const m of msgs ?? []) {
+    if (!convs.has(m.post_id)) convs.set(m.post_id, new Set())
+    convs.get(m.post_id)!.add(m.conversation_id)
+  }
+  for (const [postId, set] of convs) interes.set(postId, (interes.get(postId) ?? 0) + set.size)
+
+  return ((posts ?? []) as unknown as SearchPost[])
+    .map((p, orden) => ({ p, orden, puntos: interes.get(p.id) ?? 0 }))
+    .sort((a, b) => b.puntos - a.puntos || a.orden - b.orden)
+    .slice(0, COLUMNA_SIZE)
+    .map(x => x.p)
+}
+
+function ColumnaDescubrimiento({ titulo, posts }: { titulo: string; posts: SearchPost[] }) {
+  return (
+    <section className="flex min-w-0 flex-col gap-4" aria-label={titulo}>
+      <h2 className="font-serif text-xl font-medium text-white">{titulo}</h2>
+      {posts.length > 0
+        ? posts.map(p => <PostCard key={p.id} post={p} from="busqueda" />)
+        : <p className="text-sm text-zinc-500">Todavía no hay publicaciones.</p>}
+    </section>
+  )
+}
+
 export default async function BuscarPage({
   searchParams,
 }: {
@@ -158,6 +211,11 @@ export default async function BuscarPage({
   // "!!!" no tiene palabras buscables → se trata como listado por defecto
   const isSearch = sanitizarTerminos(q).length > 0
   const hayFiltros = contarFiltrosActivos(filtros) > 0
+  // Estado inicial: sin texto, sin filtros y sin pestaña elegida → en desktop, 2 columnas
+  const descubrimiento = !isSearch && !hayFiltros && !params.get('tipo')
+  const [recientes, populares] = descubrimiento
+    ? await Promise.all([publicacionesRecientes(), publicacionesPopulares()])
+    : [[], []]
 
   const user = await getAuthUser()
 
@@ -195,66 +253,78 @@ export default async function BuscarPage({
   verMasParams.set('pagina', String(pagina + 1))
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
-      <PageHeader title="Buscar" subtitle="Encontrá personas, servicios o trabajo" />
-
+    // En desktop el contenedor se ensancha solo para las columnas; buscador y resultados
+    // mantienen el ancho de siempre (max-w-2xl centrado)
+    <main className="mx-auto max-w-2xl px-4 py-8 lg:max-w-5xl">
       <SearchNavigationProvider>
-        <SearchForm />
-        <div className="mt-4">
-          <SearchTabs />
-        </div>
-        <div className="mt-4">
-          <SearchFilters />
+        <div className="mx-auto max-w-2xl">
+          <PageHeader title="Buscar" subtitle="Encontrá personas, servicios o trabajo" />
+          <SearchForm />
+          {/* En el estado inicial de desktop las columnas mezclan ambos tipos: las pestañas no aplican */}
+          <div className={descubrimiento ? 'mt-4 lg:hidden' : 'mt-4'}>
+            <SearchTabs />
+          </div>
+          <div className="mt-4">
+            <SearchFilters />
+          </div>
         </div>
 
         <div className="mt-6">
           <SearchPendingArea>
-            {isSearch && resultados ? (
-              resultados.error
-                ? <ErrorCard mensaje={resultados.error} />
-                : <ResultadosBusqueda q={q} resultados={resultados} logueado={!!user} />
-            ) : listadoError ? (
-              <ErrorCard mensaje={listadoError} />
-            ) : listado.length > 0 ? (
-              <>
-                <div className="flex flex-col gap-4">
-                  {listado.map(p => <PostCard key={p.id} post={p} from="busqueda" />)}
-                </div>
-                {listado.length === fetchLimit && (
-                  <Link
-                    href={`/buscar?${verMasParams.toString()}`}
-                    scroll={false}
-                    className="mt-4 block rounded-xl border border-surface-2 py-3 text-center text-sm text-zinc-300 transition-colors hover:bg-surface-2 hover:text-white"
-                  >
-                    Ver más
-                  </Link>
-                )}
-              </>
-            ) : (
-              <div className="rounded-xl border border-surface-2 bg-surface-1 px-6 py-12 text-center">
-                {hayFiltros ? (
-                  <>
-                    <p className="font-medium text-white">No hay publicaciones con estos filtros.</p>
-                    <p className="mt-1 text-sm text-zinc-400">Probá quitando alguno.</p>
-                  </>
-                ) : (
-                  <>
-                    <p className="font-medium text-white">
-                      Todavía no hay {tipo === 'oferta' ? 'servicios publicados' : 'búsquedas de trabajo'}.
-                    </p>
-                    <p className="mt-1 text-sm text-zinc-400">¡Sé el primero en publicar!</p>
-                    {user && (
-                      <Link
-                        href={`/publicar?tipo=${tipo}`}
-                        className="mt-4 inline-block rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600"
-                      >
-                        {tipo === 'oferta' ? 'Publicar mi servicio' : 'Publicar una búsqueda'}
-                      </Link>
-                    )}
-                  </>
-                )}
+            {descubrimiento && (
+              <div className="hidden items-start gap-6 lg:grid lg:grid-cols-2">
+                <ColumnaDescubrimiento titulo="Publicaciones recientes" posts={recientes} />
+                <ColumnaDescubrimiento titulo="Publicaciones populares" posts={populares} />
               </div>
             )}
+            <div className={descubrimiento ? 'mx-auto max-w-2xl lg:hidden' : 'mx-auto max-w-2xl'}>
+              {isSearch && resultados ? (
+                resultados.error
+                  ? <ErrorCard mensaje={resultados.error} />
+                  : <ResultadosBusqueda q={q} resultados={resultados} logueado={!!user} />
+              ) : listadoError ? (
+                <ErrorCard mensaje={listadoError} />
+              ) : listado.length > 0 ? (
+                <>
+                  <div className="flex flex-col gap-4">
+                    {listado.map(p => <PostCard key={p.id} post={p} from="busqueda" />)}
+                  </div>
+                  {listado.length === fetchLimit && (
+                    <Link
+                      href={`/buscar?${verMasParams.toString()}`}
+                      scroll={false}
+                      className="mt-4 block rounded-xl border border-surface-2 py-3 text-center text-sm text-zinc-300 transition-colors hover:bg-surface-2 hover:text-white"
+                    >
+                      Ver más
+                    </Link>
+                  )}
+                </>
+              ) : (
+                <div className="rounded-xl border border-surface-2 bg-surface-1 px-6 py-12 text-center">
+                  {hayFiltros ? (
+                    <>
+                      <p className="font-medium text-white">No hay publicaciones con estos filtros.</p>
+                      <p className="mt-1 text-sm text-zinc-400">Probá quitando alguno.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-medium text-white">
+                        Todavía no hay {tipo === 'oferta' ? 'servicios publicados' : 'búsquedas de trabajo'}.
+                      </p>
+                      <p className="mt-1 text-sm text-zinc-400">¡Sé el primero en publicar!</p>
+                      {user && (
+                        <Link
+                          href={`/publicar?tipo=${tipo}`}
+                          className="mt-4 inline-block rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600"
+                        >
+                          {tipo === 'oferta' ? 'Publicar mi servicio' : 'Publicar una búsqueda'}
+                        </Link>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </SearchPendingArea>
         </div>
       </SearchNavigationProvider>

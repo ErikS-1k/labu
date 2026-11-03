@@ -153,15 +153,18 @@ export default function PostCard({ post, from, hideAuthor = false }: { post: Pos
         href={`/post/${post.id}${from ? `?from=${from}` : ''}`}
         className={`block px-5 pb-5 transition-colors hover:bg-white/5 ${hideAuthor ? 'pt-5' : 'pt-4'}`}
       >
-        <h3 className="line-clamp-2 font-serif text-lg font-medium leading-snug text-white">
-          {post.title}
-        </h3>
-
-        {post.description && (
-          <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-zinc-400">
-            {post.description}
-          </p>
-        )}
+        {/* Badge de tipo (fondo pleno, texto blanco) + título. Si el título es largo hace wrap
+            a su derecha y el badge queda alineado con la primera línea. */}
+        <div className="flex items-start gap-2">
+          <span className={`mt-1 shrink-0 rounded-md px-2 py-0.5 text-xs font-medium text-white ${
+            post.type === 'oferta' ? 'bg-green-600' : 'bg-blue-600'
+          }`}>
+            {post.type === 'oferta' ? 'Ofrece' : 'Busca'}
+          </span>
+          <h3 className="line-clamp-2 min-w-0 font-serif text-lg font-medium leading-snug text-white">
+            {post.title}
+          </h3>
+        </div>
 
         {meta.length > 0 && (
           <div className="mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-zinc-500">
@@ -177,20 +180,13 @@ export default function PostCard({ post, from, hideAuthor = false }: { post: Pos
           </div>
         )}
 
-        {/* Precio + tipo de publicación */}
-        <div className="mt-4 flex items-end justify-between gap-3">
-          <p className={hasPrice ? 'text-lg font-semibold text-white' : 'text-base font-medium text-zinc-400'}>
-            {priceLabel}
-            {hasPrice && priceUnitLabel && (
-              <span className="ml-1 text-sm font-normal text-zinc-500">{priceUnitLabel}</span>
-            )}
-          </p>
-          <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
-            post.type === 'oferta' ? 'bg-green-900/40 text-green-400' : 'bg-blue-900/40 text-blue-400'
-          }`}>
-            {post.type === 'oferta' ? 'Ofrece' : 'Busca'}
-          </span>
-        </div>
+        {/* Precio */}
+        <p className={`mt-4 ${hasPrice ? 'text-lg font-semibold text-white' : 'text-base font-medium text-zinc-400'}`}>
+          {priceLabel}
+          {hasPrice && priceUnitLabel && (
+            <span className="ml-1 text-sm font-normal text-zinc-500">{priceUnitLabel}</span>
+          )}
+        </p>
       </Link>
     </article>
   )

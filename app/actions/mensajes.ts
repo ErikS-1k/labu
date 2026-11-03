@@ -95,3 +95,13 @@ export async function marcarConversacionLeida(conversationId: string) {
 
   if (error) console.error('[marcarConversacionLeida]', error.message)
 }
+
+// Abre un chat en la columna derecha de /mensajes (desktop), sin navegar.
+// Misma carga que /mensajes/[id], incluido marcar como leído.
+export async function abrirConversacion(conversationId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || typeof conversationId !== 'string' || !conversationId) return null
+  const { cargarChat } = await import('@/lib/conversacion')
+  return cargarChat(conversationId, user.id)
+}
