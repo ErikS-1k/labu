@@ -10,7 +10,7 @@ Marketplace bidireccional de trabajo que cubre todos los rubros (oficios físico
 
 ## Estado actual del código
 
-MVP completo y deployado en Vercel. Todas las funcionalidades principales están operativas. Desde 2026-09-23 también es PWA instalable con notificaciones push nativas.
+MVP completo y deployado en Vercel. Todas las funcionalidades principales están operativas. Desde 2026-09-23 también es PWA instalable con notificaciones push nativas. Entre 2026-09-24 y 2026-11-02 se rediseñó buena parte de la UI (ver "Últimos cambios (sesiones 2026-09-24 → 2026-11-02)").
 
 ### Stack
 - **Framework:** Next.js 16 con App Router
@@ -223,6 +223,13 @@ create policy "Usuarios gestionan sus propias subscripciones" on push_subscripti
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS onboarding_notifications_done boolean DEFAULT false;
 ```
 
+### Ejecutado en las sesiones 2026-09-24 → 2026-11-02
+- `supabase/search_functions.sql` — funciones `buscar_posts` y `buscar_usuarios` (full text + trigram). Requirió cast `p_tipo::post_type` porque `posts.type` es enum.
+- `supabase/posts_finalizados_policy.sql` — política SELECT extra: el dueño y quienes enviaron solicitud ven publicaciones finalizadas (para poder calificar).
+
+### ⚠️ PENDIENTE
+- `supabase/reportes.sql` — **no se corrió**: la tabla `reportes` no existe, así que "Reportar un problema" falla y /admin/reportes muestra el aviso de tabla faltante.
+
 ### RLS — política UPDATE en messages
 No existe. El marcado como leído usa `createServiceClient()` en el server component de conversación. Si se agrega en el futuro:
 ```sql
@@ -281,6 +288,23 @@ Todos los redirects de auth están centralizados en `proxy.ts` (raíz del proyec
 Las páginas usan `user!.id` (non-null assertion) porque el proxy garantiza que el usuario existe antes de que la página se renderice.
 
 ---
+
+## Últimos cambios (sesiones 2026-09-24 → 2026-11-02)
+
+| Área | Cambio |
+|---|---|
+| Búsqueda | /buscar con full text vía RPC (rareza IDF + peso por campo + typos trigram), filtros en la URL con chips y "Ver resultados", estado vacío con categorías y CTA "Publicar lo que busco" (`/publicar?tipo=requerimiento&titulo=`). Desktop sin búsqueda: columnas Recientes \| Populares (solicitudes + conversaciones). |
+| Navegación | Menú "Más" (`MenuMas.tsx`) en BottomNav y sidebar: Configuración, Mi actividad, Confirmar identidad, Modo claro/oscuro, Reportar, Salir. La landing redirige a /panel con sesión. |
+| Tipografía y textos | Literata (500) en títulos ≥ 20px + Inter. Textos humanizados: Solicitud, Interesado, Identidad confirmada, Opiniones, Tipo de trabajo / Modalidad / Por cuánto tiempo, Finalizar (la acción no se puede deshacer). |
+| Modo claro | `app/tema-claro.css`: redefine variables de Tailwind dentro de `.tema-app` cuando `<html>` tiene `light` (fondo azulado tipo Google Docs, tarjetas blancas con borde fino, slate invertido). Colores fijos nuevos hay que sumarlos ahí. Preferencia en localStorage `labu-theme`, script en `<head>`. |
+| Mensajes | `UnreadMessagesProvider` (canal único): badge relleno + pulso, banner en /panel, toast con "Responder". El chat abierto marca como leído al instante (`marcarConversacionLeida`). Desktop: `BandejaMensajes` lista 30% \| chat 70% sin cambiar URL (`abrirConversacion`); mobile igual que antes. Lista simplificada (avatar, nombre, último mensaje, hora, no leídos). |
+| Publicaciones | PostCard centrada en el autor (avatar 64px, sin descripción, badge Ofrece/Busca sólido) con `POST_CARD_SELECT`. Formulario: primero Ofrezco/Busco, obligatorios título + descripción + categoría, resto en "Más detalles"; precio en un campo con dos modos. /panel desktop en columnas Servicios \| Búsquedas. |
+| Perfil | Estilo Airbnb: hero compacto (avatar 120px, chips de confianza, CTA 240px), secciones colapsables como tarjetas, publicaciones con `hideAuthor`, columna de 560px. |
+| Notificaciones | Desktop: panel de 400px desde la campana del sidebar (marca leída al tocar + "Marcar todas"). Diseño persona + texto + ícono + hora agrupado Hoy / Esta semana / Anteriores (`lib/notificaciones.ts` deduce la persona del link). No se notifican rechazos, "solicitud enviada" ni el recordatorio duplicado. /notificaciones (mobile) sigue marcando todo al entrar. |
+| Mi actividad y detalle | Contador de solicitudes pendientes/totales por publicación; `?highlight=` resalta una publicación. Detalle de post: "Esta publicación ya no está disponible" en vez de 404; las finalizadas las ven dueño e interesados; ancla `#calificar`. |
+| Configuración / reportes | /configuracion (push, email y contraseña con contraseña actual, eliminar cuenta borrando avatar + DNI del storage). /reportar-problema + /admin/reportes (tabla pendiente de crear). |
+| Admin | /admin es un dashboard: KPIs vs semana anterior, alertas (reportes, verificaciones, conversaciones estancadas), embudo con selector de período, top publicaciones y usuarios (`lib/admin-metricas.ts`, cache 5 min). |
+| Onboarding | "Primeros pasos" en una sola línea colapsable (localStorage `labu-onboarding-expanded`). |
 
 ## Últimos cambios (sesión 2026-09-23)
 
@@ -537,8 +561,11 @@ input, textarea, select {
 - **SEO** — metadata dinámica por post y perfil para indexado en Google
 - **Validaciones robustas** en server actions (hoy son básicas)
 - **Safari/Tailwind v4** — otros modificadores de opacidad en el resto de la app aún usan `color-mix()`; si hay reportes, reemplazarlos con `rgba()` del mismo modo que en landing
-- **Realtime fuera de patrón** — `ConversacionChat` (chat) y el contador de mensajes de `BottomNav` todavía crean el cliente fuera del useEffect y no llaman `setAuth()`. Si el chat o el badge de mensajes dejan de actualizarse en vivo, migrarlos al patrón.
-- **Chat desktop en 2 columnas** (lista + chat, estilo WhatsApp Web) — hoy el chat es fullscreen también en desktop. Requiere reestructurar las rutas de `/mensajes`.
+- **Realtime fuera de patrón** — `ConversacionChat` (chat) todavía crea el cliente fuera del useEffect y no llama `setAuth()`. El badge de mensajes de la nav y la lista de conversaciones ya se migraron al patrón.
+- **`actor_id` en notifications** — hoy la persona de cada aviso se deduce del link (`lib/notificaciones.ts`); guardarla al crear el aviso sería más simple y exacto. Es un cambio de schema.
+- **Métricas de admin como RPC** — hoy se calculan en memoria con cache de 5 min; con mucho volumen conviene pasarlas a funciones de Postgres.
+- **`/mensajes/nuevo` en desktop** sigue a pantalla completa (al mandar el primer mensaje pasa al layout de 2 columnas).
+- **"Ambos" vs "Híbrido"** — el formulario de publicar y el filtro de búsqueda usan nombres distintos para la misma modalidad.
 - **Redirect post-publicar** — hoy va a la pantalla de éxito (`/publicar?exito=1`); si se prefiere ir directo al post, es una línea en `publicarPost`.
 
 ### V2 (post-validación)

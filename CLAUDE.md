@@ -34,7 +34,8 @@ El perfil público muestra información general. El teléfono y email del postul
 - **Runtime:** React 19
 - **Lenguaje:** TypeScript (siempre)
 - **Base de datos + Auth + Realtime:** Supabase
-- **Estilos:** Tailwind CSS v4
+- **Estilos:** Tailwind CSS v4 (modo oscuro por defecto + modo claro opcional en `app/tema-claro.css`)
+- **Tipografía:** Inter (interfaz, `font-sans`) + Literata (títulos ≥ 20px, `font-serif`, peso 500)
 - **Deploy:** Vercel (producción)
 - **Conversión de imágenes:** heic2any (HEIC → JPEG client-side)
 - **Notificaciones push:** web-push (VAPID, server-side)
@@ -49,22 +50,25 @@ El perfil público muestra información general. El teléfono y email del postul
   /auth/callback          → route handler para email confirmation (exchangeCodeForSession)
   /(auth)                 → login, registro (sin Header ni BottomNav)
   /(app)                  → todas las páginas con Header/BottomNav
-    /panel                → hub principal post-login (feed unificado + CTAs publicar)
-    /buscar               → buscador global (perfiles + publicaciones, tabs oferta/req)
+    /panel                → hub post-login. Mobile: lista única + "Disponibles ahora". Desktop (lg+): columnas Servicios | Búsquedas
+    /buscar               → buscador full text (ranking + typos, RPC buscar_posts/buscar_usuarios). Desktop sin búsqueda: Recientes | Populares
     /ofertas              → feed de ofertas con filtros y búsqueda en tiempo real
     /requerimientos       → feed de requerimientos con filtros y búsqueda en tiempo real
     /post/[id]            → detalle de post + postulaciones + sección de contacto
     /editar/[id]          → editar publicación existente (solo el autor, mismo PostForm que /publicar)
-    /perfil/[id]          → perfil público/propio (hero, bio, experiencia, reseñas, publicaciones)
+    /perfil/[id]          → perfil estilo Airbnb: hero compacto + secciones colapsables (Sobre mí, Experiencia, Opiniones) + publicaciones
     /perfil/editar        → editar perfil + secciones LinkedIn
-    /publicar             → crear nuevo post (oferta o requerimiento) con PostForm
-    /mensajes             → lista de conversaciones con badges de no leídos
-    /mensajes/[id]        → chat individual fullscreen (layout propio fixed inset-0 z-[90]) con Realtime
-    /mensajes/nuevo       → iniciar conversación nueva (mismo layout fullscreen)
-    /mi-actividad         → mis publicaciones + mis postulaciones (con badges Realtime)
-    /notificaciones       → lista de notificaciones + card de activación push (NotificacionesSection)
-    /verificacion         → página explicativa + formulario subida DNI
-    /admin                → hub del panel de admin (solo ADMIN_EMAIL)
+    /publicar             → crear post con PostForm: primero Ofrezco/Busco, después campos (+ "Más detalles" opcional)
+    /mensajes             → BandejaMensajes. Mobile: lista. Desktop: lista 30% | chat 70% (abre chats sin cambiar la URL)
+    /mensajes/[id]        → mismo layout en desktop con ese chat abierto; en mobile chat a pantalla completa
+    /mensajes/nuevo       → iniciar conversación nueva (pantalla completa también en desktop)
+    /mi-actividad         → mis publicaciones (con contador de solicitudes pendientes, ?highlight=) + mis solicitudes
+    /notificaciones       → pantalla completa (mobile / fallback). En desktop la campana del sidebar abre un panel
+    /verificacion         → página explicativa + formulario subida DNI ("Confirmar identidad")
+    /configuracion        → notificaciones push, cambiar email/contraseña, eliminar cuenta, privacidad e idioma
+    /reportar-problema    → formulario de reportes (tabla reportes)
+    /admin                → dashboard de métricas (KPIs, alertas, embudo, tops) + links a las vistas (solo ADMIN_EMAIL)
+    /admin/reportes       → reportes de usuarios con filtros y cambio de estado
     /admin/verificaciones → revisar y aprobar/rechazar DNI pendientes
     /admin/usuarios       → lista de usuarios con filtros y buscador
     /admin/publicaciones  → todas las publicaciones con filtros
@@ -76,19 +80,29 @@ El perfil público muestra información general. El teléfono y email del postul
     /admin/salud          → conteos por tabla + timestamps de últimos registros
 /components               → componentes reutilizables
   /layout
-    BottomNav.tsx                  → nav mobile: Inicio · Buscar · Publicar · Mensajes · Actividad (sin Perfil)
-    MobileHeader.tsx               → título de página + campana + avatar propio (→ perfil propio)
+    BottomNav.tsx                  → nav mobile: Inicio · Buscar · Publicar · Mensajes · Más
+    PanelSidebar.tsx               → sidebar desktop: Inicio · Buscar · Publicar · Mensajes · Notificaciones · Perfil · Más
+    MenuMas.tsx                    → popover "Más": Configuración, Mi actividad, Confirmar identidad, Modo claro/oscuro, Reportar, Salir
+    NotificationBell.tsx           → campana del sidebar: abre el panel de notificaciones de 400px (sin cambiar URL)
+    MobileHeader.tsx               → título de página + campana (→ /notificaciones) + avatar propio (→ perfil propio)
   /posts
-    PostForm.tsx                   → formulario único crear/editar (props: defaultTipo?, initialData?, postId?)
+    PostForm.tsx                   → formulario único crear/editar (props: defaultTipo?, defaultTitulo?, initialData?, postId?)
+    PostCard.tsx                   → card centrada en el autor; POST_CARD_SELECT define los campos; prop hideAuthor
   /mensajes
-    ConversacionChat.tsx           → chat fullscreen estilo WhatsApp (header con avatar → perfil del otro)
+    UnreadMessagesProvider.tsx     → canal Realtime único de mensajes: badge de nav, banner de /panel y toast
+    BandejaMensajes.tsx            → layout de /mensajes (lista + chat en desktop)
+    ConversacionChat.tsx           → chat estilo WhatsApp; marca como leído lo que llega con el chat abierto
   /pwa
     ServiceWorkerRegistration.tsx  → registra /sw.js solo en producción, escucha updates y mensajes NAVIGATE
     InstallBanner.tsx              → banner fijo "Instalar app" (beforeinstallprompt, localStorage)
     NotificacionesSection.tsx      → card de activación/desactivación push con estados A/B/C/D
   /onboarding
-    OnboardingBanner.tsx           → banner 4 pasos (perfil, publicar, explorar, activar notificaciones)
+    OnboardingBanner.tsx           → "Primeros pasos" en una línea colapsable (localStorage labu-onboarding-expanded)
 /lib                      → clientes Supabase (server, client, service), utils
+  conversacion.ts                  → carga de la lista de conversaciones y de un chat (marca como leído)
+  notificaciones.ts                → arma cada notificación (persona deducida del link, texto, destino)
+  admin-metricas.ts                → métricas del dashboard de /admin (cache 5 min)
+  search.ts / tema.ts / reportes.ts
 /app/actions              → server actions (auth, perfil, posts, mensajes, notifications, push, etc.)
   push.ts                          → enviarPushNotification, guardarPushSubscription, eliminarPushSubscription, verificarPushSubscription
 /public
@@ -397,10 +411,15 @@ Sin `setAuth()`, RLS bloquea todos los eventos silenciosamente (canal aparece co
 
 ## Últimos cambios grandes (referencia para retomar contexto)
 
-- **PWA con notificaciones push completas** — Web App Manifest, Service Worker, VAPID keys, tabla push_subscriptions con RLS, activación desde onboarding paso 4 y card en /notificaciones, envío automático al recibir mensaje o postulación (título = nombre del remitente, body = contenido). Funciona en Android Chrome, iPhone Safari (iOS 16.4+ con PWA instalada) y Chrome desktop.
-- **Chat estilo WhatsApp fullscreen** — /mensajes/[conversation_id] usa layout propio z-[90] que tapa sidebar, BottomNav y botón flotante. Header propio con flecha para volver, avatar del otro usuario y nombre/headline que llevan a su perfil.
-- **Reestructuración de navegación mobile** — BottomNav con Inicio, Buscar, Publicar, Mensajes, Actividad (reemplaza Perfil). Avatar del usuario en MobileHeader a la derecha de la campana, lleva a perfil propio (estilo LinkedIn).
-- **Formulario unificado crear/editar publicación** — PostForm.tsx recibe props opcionales (defaultTipo, initialData, postId) para funcionar en modo crear o editar. Ambos flujos comparten el diseño premium con hero, cards con íconos y CTA destacado.
+Detalle completo en `handoff.md` → sesiones 2026-09-24 a 2026-11-02.
+
+- **Búsqueda full text** — RPC `buscar_posts` / `buscar_usuarios` (supabase/search_functions.sql): cada palabra suma por rareza (IDF) y por campo, typos con trigram. /buscar con filtros en la URL y chips.
+- **Navegación** — menú "Más" (popover) en BottomNav y sidebar; landing redirige a /panel si hay sesión.
+- **Diseño** — Literata en títulos, textos humanizados (Solicitud, Identidad confirmada, Opiniones, Finalizar), modo claro opcional, PostCard centrada en el autor, perfil estilo Airbnb, formulario de publicar en dos pasos.
+- **Mensajes** — provider Realtime único (badge animado, banner en /panel, toast); en desktop /mensajes es lista | chat sin cambiar la URL; el chat abierto marca como leído al instante.
+- **Notificaciones** — en desktop panel de 400px desde el sidebar; cada aviso con persona + texto + ícono + hora (la persona se deduce del link, ver lib/notificaciones.ts). Ya no se avisan rechazos, "solicitud enviada" ni el recordatorio duplicado de calificación.
+- **Configuración y reportes** — /configuracion (cuenta, push, eliminar cuenta borrando avatar y DNI del storage) y /reportar-problema + /admin/reportes.
+- **Admin** — /admin es un dashboard de métricas (KPIs vs semana anterior, alertas, embudo, tops).
 
 ## Pendientes conocidos
 
@@ -415,4 +434,6 @@ Sin `setAuth()`, RLS bloquea todos los eventos silenciosamente (canal aparece co
 - **A largo plazo:**
   - Fotos en mensajes (requiere sistema de moderación).
   - Fotos en publicaciones (requiere OCR para bloquear datos de contacto que suelen venir en flyers).
-  - Chat estilo WhatsApp Web en desktop (layout 2 columnas: lista de conversaciones + chat abierto).
+  - ~~Chat estilo WhatsApp Web en desktop~~ — HECHO (2026-11-02).
+- **SQL pendiente:** correr `supabase/reportes.sql` (la tabla `reportes` no existe todavía → "Reportar un problema" falla).
+- **Ideas evaluadas, sin hacer:** columna `actor_id` en notifications (hoy se deduce la persona del link); métricas de admin como RPC cuando crezca la base; unificar "Ambos" (form) vs "Híbrido" (filtro).
